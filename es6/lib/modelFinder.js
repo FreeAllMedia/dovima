@@ -2,7 +2,7 @@ const validateDependencies = Symbol();
 import inflect from "jargon";
 
 export default class ModelFinder {
-	constructor(database) {
+	constructor(database) {		
 		Object.defineProperties(this, {
 			"_database": {
 				value: database,

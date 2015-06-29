@@ -2,6 +2,8 @@ import inflect from "jargon";
 
 export default class Collection extends Array {
 	constructor (initialData) {
+		super();
+
 		let association = null,
 			modelConstructor = null;
 
@@ -56,15 +58,14 @@ export default class Collection extends Array {
 
 						//lookup if there is an existing through model... how?
 						let throughModel = new throughAssociation.constructor();
-						console.log("assigning 2", {model: model, as: this.association.foreignName, on: throughModel.constructor.name});
 						throughModel[this.association.foreignName] = this.association.parent;
 
+						// work in progress for future automations
 						// let throughAssociationPropertyName = model.associations[throughAssociationNameOnModel].foreignName;
 						// throughModel[this.association.foreignName] = this.association.parent;
 						// throughModel[throughAssociationPropertyName] = model;
-						//HERE I WILL NEED THE RELATIONSHIP BETWEEN MODEL and THROUGH MODEL...
-						//throughModel[this.association.parent.foreignName] = this.association.parent;
-						//this.association.p
+						// HERE I WILL NEED THE RELATIONSHIP BETWEEN MODEL and THROUGH MODEL...
+						// throughModel[this.association.parent.foreignName] = this.association.parent;
 					}
 				} else {
 					if(model instanceof this._modelConstructor) {

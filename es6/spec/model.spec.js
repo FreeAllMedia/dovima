@@ -4,14 +4,23 @@ const sinon = require("sinon");
 //import MultiError from "../../multiError/multiError.js";
 
 //import MultiError from "../../multiError/multiError.js";
-import Database from "../../database/database.js";
-import isPresent from "../validation/isPresent.js";
-import Collection from "../collection.js";
-import Model, {AssociationSetter} from "../model.js";
-import {ModelQuery} from "../modelFinder.js";
+import Database from "almaden";
+import isPresent from "../lib/validation/isPresent.js";
+import Collection from "../lib/collection.js";
+import Model, {AssociationSetter} from "../lib/model.js";
+import {ModelQuery} from "../lib/modelFinder.js";
 
 /* Test Configuration */
-const databaseConfig = require("../../../database.json").testing;
+//nothing from a real connection needed since we are mocking here
+const databaseConfig = {
+	"debug": true,
+	"client": "mysql",
+	"connection": {},
+	"pool": {
+		"max": 2,
+		"min": 2
+	}
+};
 
 let userFixtures = require("./fixtures/users.json");
 
@@ -227,7 +236,7 @@ describe("Model(attributes, options)", () => {
 	});
 
 	describe("(static properties)", () => {
-		describe(".all", () => {
+		describe(".find", () => {
 			let users,
 				userCollection;
 
@@ -245,7 +254,7 @@ describe("Model(attributes, options)", () => {
 				});
 
 				User
-					.all
+					.find
 					.where("momId", "=", 1)
 					.results((error, fetchedUsers) => {
 						users = fetchedUsers;
@@ -254,7 +263,7 @@ describe("Model(attributes, options)", () => {
 			});
 
 			it("should return a ModelQuery instance", () => {
-				User.all.should.be.instanceOf(ModelQuery);
+				User.find.should.be.instanceOf(ModelQuery);
 			});
 
 			it("should return a collection", () => {
@@ -267,6 +276,72 @@ describe("Model(attributes, options)", () => {
 
 			it("should allow to search all models that matchs a certain condition", () => {
 				users.length.should.equal(5);
+			});
+
+			describe(".one", () => {
+				beforeEach(done => {
+					Model.database.mock({
+						"select * from `users` where `mom_id` = 1 limit 1": [
+							userFixtures[0]
+						]
+					});
+
+					User.find
+						.one
+						.where("momId", 1)
+						.results((error, fetchedUsers) => {
+							users = fetchedUsers;
+							done();
+						});
+				});
+
+				it("should return just one user", () => {
+					users.length.should.equal(1);
+				});
+			});
+
+			describe(".all", () => {
+				beforeEach(done => {
+					User.find
+						.all
+						.where("momId", 1)
+						.results((error, fetchedUsers) => {
+							users = fetchedUsers;
+							done();
+						});
+				});
+
+				it("should return just all users matching the condition", () => {
+					users.length.should.equal(5);
+				});
+			});
+
+			describe(".deleted", () => {
+				class SoftUser extends Model {
+					initialize() {
+						this.softDelete;
+					}
+				}
+
+				beforeEach(done => {
+					Model.database.mock({
+						"select * from `soft_users` where `mom_id` = 1 and `deleted_at` is not null":
+							userFixtures
+					});
+
+					SoftUser.find
+						.all
+						.where("momId", 1)
+						.deleted
+						.results((error, fetchedUsers) => {
+							users = fetchedUsers;
+							done();
+						});
+				});
+
+				it("should return just all users matching the condition", () => {
+					users.length.should.equal(5);
+				});
 			});
 		});
 	});
@@ -701,87 +776,25 @@ describe("Model(attributes, options)", () => {
 					});
 				});
 
-				describe(".through(associationName)", () => {
+				xdescribe(".through(associationName)", () => {
 					beforeEach(() => {
 						Model.database.mock({
-							"select * from `users` where `id` = 1 limit 1": [
-								{ id: 1 },
-								{ id: 2 }
-							],
-							"select * from `photos` where `user_id` = 1": [
-								{ id: 1, name: "Favorite Face Photo" },
-								{ id: 2, name: "Another Favorite Face Photo" },
-								{ id: 3, name: "Mostest Favoritest Face Photo" }
-							],
-							"select * from `comments` where `photo_id` in (1, 2, 3)": [
-								{ message: "nice photo!", author_id: 1, photo_id: 1 },
-								{ message: "where is it?", author_id: 2, photo_id: 1 },
-							]
+
 						});
+					});
+
+					it("should return the association set to allow further chaining", () => {
+						user
+							.hasMany("comments", Comment)
+							.through("apiKey")
+							.should.be.instanceOf(AssociationSetter);
 					});
 
 					it("should fetch hasMany through associations", done => {
-						user
-							.include("comments")
-							.fetch(() => {
-								user.comments[0].should.be.instanceOf(Comment);
-								done();
-							});
-					});
-
-					describe("(through hasMany)", () => {
-						let account,
-							accountContentPackage,
-							contentPackage;
-						//better example
-						class Account extends Model {
-							associate() {
-								this.hasMany("accountContentPackages", AccountContentPackage);
-								this.hasMany("contentPackages", ContentPackage)
-									.through("accountContentPackages");
-							}
-						}
-
-						class AccountContentPackage extends Model {
-							associate() {
-								this.belongsTo("account", Account);
-								this.belongsTo("contentPackage", ContentPackage);
-							}
-						}
-
-						class ContentPackage extends Model {
-							associate() {
-								this.hasMany("accountContentPackages", AccountContentPackage);
-
-								this.hasMany("accounts", Account)
-									.through("accountContentPackages", AccountContentPackage);
-							}
-						}
-
-						beforeEach(() => {
-							account = new Account({id: 1});
-							contentPackage = new ContentPackage({id: 2});
-							account.contentPackages.push(contentPackage);
-						});
-
-						it("should create a the through model when pushing", () => {
-							account.accountContentPackages.length.should.equal(1);
-						});
-
-						it("should association the new through model with the parent", () => {
-							account.accountContentPackages[0].account.should.eql(account);
-						});
-
-						it("should association the new through model with the other side of the relationship", () => {
-							account.accountContentPackages[0].contentPackage.should.eql(contentPackage);
-						});
-
-						//need to prepare test case for this
-						xit("should throw an error if the through association does not exists", () => {
-							() => {
-								account.hasMany("specialContentPackages", Comment)
-									.through("specialAccountContentPackages");
-							}.should.throw("Through association called specialAccountContentPackages not defined on model Account");
+						user.include("comments").fetch((error) => {
+							user.comments.
+							user.comments[0].instanceOf(Comment);
+							done();
 						});
 					});
 				});
@@ -1142,6 +1155,203 @@ describe("Model(attributes, options)", () => {
 			});
 		});
 
+		describe(".delete(callback)", () => {
+			describe("(when dependent is declared on the association)", () => {
+				class Account extends Model {
+					initialize() {
+						this.softDelete;
+					}
+
+					associate() {
+						this.hasOne("forumUser", ForumUser)
+							.dependent;
+					}
+				}
+
+				class ForumUser extends Model {
+					initialize() {
+						this.softDelete;
+					}
+
+					associate() {
+						this.hasMany("posts", Post)
+							.dependent;
+						this.belongsTo("account", Account)
+							.dependent;
+					}
+				}
+
+				class Post extends Model {
+					initialize() {
+						this.softDelete;
+					}
+
+					associate() {
+						this.belongsTo("forumUser", ForumUser);
+					}
+				}
+
+				let forumUser,
+					account,
+					post;
+
+				beforeEach(() => {
+					account = new Account({id: 1});
+					forumUser = new ForumUser({id: 2});
+					post = new Post({id: 3});
+				});
+
+				it("should add the association to .associations", () => {
+					account.associations.forumUser.should.eql({
+						parent: account,
+						type: "hasOne",
+						constructor: ForumUser,
+						foreignName: "account",
+						foreignId: "accountId",
+						foreignKey: "account_id",
+						dependent: true
+					});
+				});
+
+				describe("(on a hasOne)", () => {
+					let userDeleteQuerySpy;
+
+					beforeEach(() => {
+						Model.database.mock({
+							[/update `accounts` set `deleted_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 1/]:
+								1
+						});
+
+						userDeleteQuerySpy = Model.database.spy(
+							/update `forum_users` set `deleted_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 2/,
+							1);
+
+						account.forumUser = forumUser;
+					});
+
+					it("should propagate delete on those models", done => {
+						account.delete(() => {
+							userDeleteQuerySpy.callCount.should.equal(1);
+							done();
+						});
+					});
+				});
+
+				describe("(on a hasMany)", () => {
+					let postDeleteQuerySpy;
+
+					beforeEach(() => {
+						Model.database.mock({
+							[/update `forum_users` set `deleted_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 2/]:
+								1
+						});
+
+						postDeleteQuerySpy = Model.database.spy(
+							/update `posts` set `deleted_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 3/,
+							1);
+
+						forumUser.posts.push(post);
+					});
+
+					it("should propagate delete on those models", done => {
+						forumUser.delete(() => {
+							postDeleteQuerySpy.callCount.should.equal(1);
+							done();
+						});
+					});
+				});
+			});
+
+			describe("(when .softDelete is not called)", () => {
+				class Post extends Model {}
+				let post;
+
+				beforeEach(() => {
+					post = new Post();
+				});
+
+				it("should throw when calling delete", () => {
+					() => {
+						post.delete();
+					}.should.throw("Not implemented.");
+				});
+			});
+
+			describe("when softDelete called)", () => {
+				let post;
+
+				class Post extends Model {
+					initialize() {
+						this.softDelete;
+					}
+				}
+
+				beforeEach(() => {
+					post = new Post();
+				});
+
+				describe("(Model.database is set)", () => {
+					describe("(when primaryKey is set)", () => {
+						beforeEach(() => {
+							post.id = 1;
+							Model.database.mock({
+								[/update `posts` set `deleted_at` = \'1969-12-31 [0-9][0-9]:00:00.000\' where `id` = 1/]:
+									1
+							});
+						});
+
+						it("should not throw when calling delete", () => {
+							() => {
+								post.delete(() => {});
+							}.should.not.throw();
+						});
+
+						it("should return no error", () => {
+							post.delete((error) => {
+								(error == null).should.be.true;
+							});
+						});
+
+						describe("(when primary key is set but not exists)", () => {
+							beforeEach(() => {
+								post.id = 1;
+								Model.database.mock({
+									[/update `posts` set `deleted_at` = \'1969-12-31 [0-9][0-9]:00:00.000\' where `id` = 1/]:
+										0
+								});
+							});
+
+							it("should return an error", () => {
+								post.delete((error) => {
+									error.should.eql(new Error("Post with id 1 cannot be soft deleted because it doesn't exists."));
+								});
+							});
+						});
+					});
+
+					describe("(when primaryKey is not set)", () => {
+						it("should throw an error", () => {
+							() => {
+								post.delete(() => {});
+							}.should.throw("Cannot delete the Post because the primary key is not set.");
+						});
+					});
+				});
+
+				describe("(Model.database not set)", () => {
+					beforeEach(() => {
+						delete Model.database;
+					});
+
+					it("should throw an error", () => {
+						() => {
+							post.delete();
+						}.should.throw("Cannot delete without Model.database set.");
+					});
+				});
+			});
+		});
+
 		describe(".fetch(callback)", () => {
 			describe("(Model.database is set)", () => {
 				beforeEach(() => {
@@ -1168,6 +1378,30 @@ describe("Model(attributes, options)", () => {
 						user.fetch((error) => {
 							user.attributes.should.eql(userAttributes);
 							done();
+						});
+					});
+
+					describe("(when soft delete is enabled)", () => {
+						let post,
+							deleteQuerySpy;
+
+						class Post extends Model {
+							initialize() {
+								this.softDelete;
+							}
+						}
+
+						beforeEach(() => {
+							post = new Post({id: 1});
+							//querySpy
+							deleteQuerySpy = Model.database.spy("select * from `posts` where `id` = 1 and `deleted_at` is null limit 1", [{}]);
+						});
+
+						it("should add a where deleted is not null condition", done => {
+							post.fetch(() => {
+								deleteQuerySpy.callCount.should.equal(1);
+								done();
+							});
 						});
 					});
 				});
@@ -1417,14 +1651,14 @@ describe("Model(attributes, options)", () => {
 
 						class TruckOwner extends Model {
 							associate() {
-								this.belongsTo("truck", Truck);
-								this.belongsTo("owner", Owner);
+								this.belongsTo("truck");
+								this.belongsTo("owner");
 							}
 						}
 
 						class Truck extends Model {
 							associate() {
-								this.hasMany("truckOwners", TruckOwner);
+								this.hasMany("truckOwners");
 								this.hasMany("owners", Owner)
 									.through("truckOwners");
 								this.hasMany("wheels", Wheel);
@@ -1629,6 +1863,22 @@ describe("Model(attributes, options)", () => {
 						user.save();
 					}.should.throw("Cannot save without Model.database set.");
 				});
+			});
+		});
+	});
+
+	describe("(exporting)", () => {
+		describe(".toJSON()", () => {
+			it("should return a plain unformatted model", () => {
+				user.toJSON().should.eql(userAttributes);
+			});
+
+			it("should return a formatted model if a formatter is set on Model.jsonFormatter", () => {
+				let newUserAttributes = {someCustomAttribute: "someCustomAttributeValue"};
+				Model.jsonFormatter = () => {
+					return newUserAttributes;
+				};
+				user.toJSON().should.eql(newUserAttributes);
 			});
 		});
 	});

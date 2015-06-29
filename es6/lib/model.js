@@ -1,4 +1,4 @@
-const async = require("flowsync");
+const flowsync = require("flowsync");
 
 /* Component Dependencies */
 //
@@ -97,6 +97,18 @@ export default class Model {
 				},
 				set: (newPrimaryKey) => {
 					this._primaryKey = newPrimaryKey;
+				}
+			},
+
+			"_softDelete": {
+				enumerable: false,
+				writable: true,
+				value: false
+			},
+
+			"softDelete": {
+				get: () => {
+					this._softDelete = true;
 				}
 			}
 		});
@@ -214,14 +226,14 @@ export default class Model {
 				done(null, cleanedMessages);
 			};
 
-			async.mapParallel(
+			flowsync.mapParallel(
 				attributeValidations,
 				performValidation,
 				compileValidatorResponses
 			);
 		};
 
-		async.mapSeries(
+		flowsync.mapSeries(
 			attributeNamesWithValidators,
 			performValidationsForAttribute,
 			compileInvalidAttributeList
@@ -273,6 +285,10 @@ export default class Model {
 			}
 		}, this);
 
+		if(this._softDelete) {
+			chain = chain.whereNull(inflect("deletedAt").snake.toString());
+		}
+
 		chain
 			.limit(1)
 			.results((error, records) => {
@@ -286,7 +302,7 @@ export default class Model {
 
 						const associations = this.associations;
 
-						/* We'll be putting all of our async tasks into this */
+						/* We'll be putting all of our Async tasks into this */
 						const fetchTasks = [];
 
 						this._includeAssociations.forEach((associationName) => {
@@ -471,7 +487,7 @@ export default class Model {
 
 												// modelFinder
 												// 	.find(throughAssociation.constructor)
-												// 	.where("id", "=", this[throughAssociation.foreignId])
+												// 	.where(this.primaryKey, "=", this[throughAssociation.foreignId])
 												// 	.limit(1)
 												// 	.results((errors, models) => {
 												// 		const joinModel = models[0];
@@ -481,7 +497,7 @@ export default class Model {
 
 												// 		modelFinder
 												// 			.find(association.constructor)
-												// 			.where("id", "=", joinModel[destinationAssociation.foreignId])
+												// 			.where(this.primaryKey, "=", joinModel[destinationAssociation.foreignId])
 												// 			.results((associationError, associationModels) => {
 												// 				const associationModel = associationModels[0];
 												// 				this[associationName] = associationModel;
@@ -506,7 +522,7 @@ export default class Model {
 									fetchTasks.push(finished => {
 										modelFinder
 											.find(association.constructor)
-											.where("id", "=", this[association.foreignId])
+											.where(this.primaryKey, "=", this[association.foreignId])
 											.limit(1)
 											.results((errors, models) => {
 												const model = models[0];
@@ -519,7 +535,7 @@ export default class Model {
 							}
 						});
 
-						async.parallel(
+						flowsync.parallel(
 							fetchTasks,
 							() => {
 								if (callback) {
@@ -536,10 +552,51 @@ export default class Model {
 			});
 	}
 
+	delete(callback) {
+		if(this._softDelete) {
+			if (!this.constructor.database) { throw new Error("Cannot delete without Model.database set."); }
+
+			if(this[this.primaryKey]) {
+				flowsync.series([
+					(next) => {
+						this[callDeep]("delete", (associationDetails) => {
+							return (associationDetails.type !== "belongsTo"
+								&& associationDetails.dependent === true);
+						}, next);
+					},
+					(next) => {
+						let now = new Datetime();
+						let attributesToUpdate = {};
+						attributesToUpdate[inflect("deletedAt").snake.toString()] = now.toDate();
+						this.constructor.database
+							.update(attributesToUpdate)
+							.into(this.tableName)
+							.where(this.primaryKey, "=", this[this.primaryKey])
+							.results((error, results) => {
+								if(error) {
+									next(error);
+								} else if (results === 0) {
+									next(new Error(`${this.constructor.name} with ${this.primaryKey} ${this[this.primaryKey]} cannot be soft deleted because it doesn't exists.`));
+								} else {
+									next();
+								}
+							});
+					}
+				], (errors, results) => {
+					callback(errors, results);
+				});
+			} else {
+				throw new Error(`Cannot delete the ${this.constructor.name} because the primary key is not set.`);
+			}
+		} else {
+			throw new Error("Not implemented.");
+		}
+	}
+
 	save(callback) {
 		if (!this.constructor.database) { throw new Error("Cannot save without Model.database set."); }
 
-		async.series([
+		flowsync.series([
 			(next) => {
 				this.beforeValidation(next);
 			},
@@ -601,7 +658,7 @@ export default class Model {
 					let updateAttributes = {};
 
 					for (let attributeName in attributes) {
-						if (attributeName !== "id") {
+						if (attributeName !== this.primaryKey) {
 							updateAttributes[attributeName] = attributes[attributeName];
 						}
 					}
@@ -609,12 +666,27 @@ export default class Model {
 					this.constructor.database
 						.update(updateAttributes)
 						.into(this.tableName)
-						.where("id", "=", this[this.primaryKey])
+						.where(this.primaryKey, "=", this[this.primaryKey])
 						.results(next);
 				}
 			},
 			(next) => {
-				this[callDeep]("save", next);
+				//disabling this rule because break is not necessary when return is present
+				/* eslint-disable no-fallthrough */
+				this[callDeep]("save", (associationDetails) => {
+					switch(associationDetails.type) {
+						case "hasOne":
+							return true;
+						case "hasMany":
+							if(associationDetails.through === undefined) {
+								return true;
+							} else {
+								return false;
+							}
+						case "belongsTo":
+							return false;
+					}
+				}, next);
 			},
 			(next) => {
 				this.afterSave(next);
@@ -647,6 +719,14 @@ export default class Model {
 	validate() {}
 
 	initialize() {}
+
+	toJSON() {
+		if(Model.jsonFormatter && typeof Model.jsonFormatter === "function") {
+			return Model.jsonFormatter(this);
+		} else {
+			return this.attributes;
+		}
+	}
 
 	/**
 	 * Private Functionality
@@ -694,21 +774,27 @@ export default class Model {
 	 * @param {String} functionName The name of the function that you want to fire deeply.
 	 * @param {function(errors, results)} Function called at the end of the operation.
 	 */
-	[callDeep] (methodName, callback) {
+	[callDeep] (methodName, predicate, callback) {
 		const associationNames = Object.keys(this.associations);
 
-		async.mapParallel(
+		flowsync.mapParallel(
 			associationNames,
 			(associationName, next) => {
 
 				const associationDetails = this.associations[associationName];
 
 				switch(associationDetails.type) {
+					case "belongsTo":
 					case "hasOne":
 						const model = this[associationName];
 						if(model) {
 							//pass the associationDetails.whereArgs to the function
-							model[methodName](next);
+							const result = predicate(associationDetails);
+							if(result) {
+								model[methodName](next);
+							} else {
+								next();
+							}
 						} else {
 							next();
 						}
@@ -717,12 +803,17 @@ export default class Model {
 					case "hasMany":
 						const collection = this[associationName];
 						//collection set, and not many to many (nothing in that case)
-						if (collection && associationDetails.through === undefined) {
+						if (collection) {
 							//let array = [].slice.call(collection);
-							async.eachParallel(
+							flowsync.eachParallel(
 								collection,
 								(collectionModel, finishSubStep) => {
-									collectionModel[methodName](finishSubStep);
+									const result = predicate(associationDetails);
+									if(result) {
+										collectionModel[methodName](finishSubStep);
+									} else {
+										next();
+									}
 								},
 								next
 							);
@@ -730,9 +821,6 @@ export default class Model {
 							next(); //collection not set
 						}
 						break;
-
-					case "belongsTo":
-						next();
 				}
 			}, (errors, results) => {
 				callback(errors, results);
@@ -918,18 +1006,29 @@ export default class Model {
 	}
 }
 
-const ambiguous = Symbol();
+const ambiguous = Symbol(),
+	dependent = Symbol();
 
 export class AssociationSetter {
 	constructor(association) {
 		this.association = association;
 
-		if (association.type === "belongsTo") {
-			Object.defineProperties(this, {
-				"ambiguous": {
-					get: this[ambiguous]
-				}
-			});
+		switch(association.type) {
+			case "belongsTo":
+				Object.defineProperties(this, {
+					"ambiguous": {
+						get: this[ambiguous]
+					}
+				});
+				break;
+			case "hasOne":
+			case "hasMany":
+				Object.defineProperties(this, {
+					"dependent": {
+						get: this[dependent]
+					}
+				});
+				break;
 		}
 	}
 
@@ -962,11 +1061,15 @@ export class AssociationSetter {
 	[ambiguous]() {
 		this.association.ambiguous = true;
 	}
+
+	[dependent]() {
+		this.association.dependent = true;
+	}
 }
 
 Object.defineProperties(Model, {
-	"all": {
-		get: function getAll() {
+	"find": {
+		get: function modelFind() {
 			let modelQuery = new ModelQuery(Model.database);
 			return modelQuery.find(this);
 		}

@@ -59,9 +59,7 @@ define(["require"] , function (require) {
 
 # Getting Started
 
-## More insights
-
-In order to say something, you should know that `dovima()` ... (add your test here)
+You should create on some directory a config
 
 # How to Contribute
 
@@ -78,5 +76,3 @@ It's easy to run the test suite locally, and *highly recommended* if you're usin
 ```
 npm test
 ```
-
-
