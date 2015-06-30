@@ -136,7 +136,7 @@ You can relate models with the `hasOne`, `hasMany` and `belongsTo` methods provi
 Also Dovima let's you add validation to the models property by writing a simple `validate` method. You can call the `ensure(propertyName, validator)` method and that will receive the property name on the model to execute the validator. For validations there are some provided within Dovima (isPresent) and some provided by the [proven](https://github.com/FreeAllMedia/proven) package. Validations can be sync or async and new ones can be created anytime by using the same interface.
 
 ### Soft delete
-When you write your Model class you can mark it as a softDelete able Model, case in which it will add the logical deletion behavior, so then when you delete it, it will be an update and it will be excluded from regular model queries except if you find explicitly the deleted ones. See below on find for that example.
+When you write your Model class you can mark it as a soft delete able Model by calling the `this.softDelete` property on the `initialize` method, case in which it will add the logical deletion behavior, so then when you delete it, it will be an update and it will be excluded from regular model queries except if you find explicitly the deleted ones. See below on find for that example.
 
 ### Find models
 Finding will return the error and the result collection using the node callback convention (error, data).

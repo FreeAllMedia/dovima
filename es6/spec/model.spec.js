@@ -5,7 +5,7 @@ const sinon = require("sinon");
 
 //import MultiError from "../../multiError/multiError.js";
 import Database from "almaden";
-import {Collection} from "../../";
+import Collection from "../lib/collection.js";
 import Model, {AssociationSetter} from "../lib/model.js";
 import {ModelQuery} from "../lib/modelFinder.js";
 import {isPresent} from "../../";
