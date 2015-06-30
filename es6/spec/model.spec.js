@@ -1218,12 +1218,12 @@ describe("Model(attributes, options)", () => {
 
 					beforeEach(() => {
 						Model.database.mock({
-							[/update `accounts` set `deleted_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 1/]:
+							[/update `accounts` set `deleted_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 1/]:
 								1
 						});
 
 						userDeleteQuerySpy = Model.database.spy(
-							/update `forum_users` set `deleted_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 2/,
+							/update `forum_users` set `deleted_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 2/,
 							1);
 
 						account.forumUser = forumUser;
@@ -1242,12 +1242,12 @@ describe("Model(attributes, options)", () => {
 
 					beforeEach(() => {
 						Model.database.mock({
-							[/update `forum_users` set `deleted_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 2/]:
+							[/update `forum_users` set `deleted_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 2/]:
 								1
 						});
 
 						postDeleteQuerySpy = Model.database.spy(
-							/update `posts` set `deleted_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 3/,
+							/update `posts` set `deleted_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 3/,
 							1);
 
 						forumUser.posts.push(post);
@@ -1295,7 +1295,7 @@ describe("Model(attributes, options)", () => {
 						beforeEach(() => {
 							post.id = 1;
 							Model.database.mock({
-								[/update `posts` set `deleted_at` = \'1969-12-31 [0-9][0-9]:00:00.000\' where `id` = 1/]:
+								[/update `posts` set `deleted_at` = \'19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000\' where `id` = 1/]:
 									1
 							});
 						});
@@ -1316,7 +1316,7 @@ describe("Model(attributes, options)", () => {
 							beforeEach(() => {
 								post.id = 1;
 								Model.database.mock({
-									[/update `posts` set `deleted_at` = \'1969-12-31 [0-9][0-9]:00:00.000\' where `id` = 1/]:
+									[/update `posts` set `deleted_at` = \'19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000\' where `id` = 1/]:
 										0
 								});
 							});
@@ -1612,13 +1612,13 @@ describe("Model(attributes, options)", () => {
 						user.photos.push(photo);
 
 						let regularExpressions = {
-							insertPhotos: /insert into `photos` \(`created_at`, `user_id`\) values \('1969-12-31 [0-9][0-9]:00:00.000', 1\)/,
-							updateUser: /update `users` set `age` = 35, `has_children` = false, `name` = 'Bob Builder', `updated_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 1/,
-							insertWheels: /insert into `wheels` \(`created_at`, `truck_id`\) values \('1969-12-31 [0-9][0-9]:00:00\.000', 1\)/,
-							insertSteeringWheel: /insert into `steering_wheels` \(`created_at`, `truck_id`\) values \('1969-12-31 [0-9][0-9]:00:00.000', 1\)/,
-							insertTruck: /insert into `trucks` (`created_at`) values ('1969-12-31 [0-24]:00:00.000')/,
-							updateTruck: /update `trucks` set `updated_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 1/,
-							updateWheels: /update `wheels` set `created_at` = '1969-12-31 [0-9][0-9]:00:00.000', `truck_id` = 1, `updated_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 1/
+							insertPhotos: /insert into `photos` \(`created_at`, `user_id`\) values \('19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000', 1\)/,
+							updateUser: /update `users` set `age` = 35, `has_children` = false, `name` = 'Bob Builder', `updated_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 1/,
+							insertWheels: /insert into `wheels` \(`created_at`, `truck_id`\) values \('19[0-9][0-9]-12-31 [0-9][0-9]:00:00\.000', 1\)/,
+							insertSteeringWheel: /insert into `steering_wheels` \(`created_at`, `truck_id`\) values \('19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000', 1\)/,
+							insertTruck: /insert into `trucks` (`created_at`) values ('19[0-9][0-9]-12-31 [0-24]:00:00.000')/,
+							updateTruck: /update `trucks` set `updated_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 1/,
+							updateWheels: /update `wheels` set `created_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000', `truck_id` = 1, `updated_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 1/
 						};
 
 						Model.database.mock({
@@ -1795,7 +1795,7 @@ describe("Model(attributes, options)", () => {
 							Model.database.update = sinon.spy(Model.database.update);
 
 							let regularExpressions = {
-								updateModel: /update `models` set `updated_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 1/
+								updateModel: /update `models` set `updated_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 1/
 							};
 
 							Model.database.mock({
@@ -1815,7 +1815,7 @@ describe("Model(attributes, options)", () => {
 							Model.database.insert = sinon.spy(Model.database.insert);
 
 							let regularExpressions = {
-								insertModel: /insert into `models` \(`created_at`\) values \('1969-12-31 [0-9][0-9]:00:00.000'\)/
+								insertModel: /insert into `models` \(`created_at`\) values \('19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000'\)/
 							};
 
 							Model.database.mock({

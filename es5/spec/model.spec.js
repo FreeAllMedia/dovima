@@ -1314,9 +1314,9 @@ describe("Model(attributes, options)", function () {
 					var userDeleteQuerySpy = undefined;
 
 					beforeEach(function () {
-						_libModelJs2["default"].database.mock(_defineProperty({}, /update `accounts` set `deleted_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 1/, 1));
+						_libModelJs2["default"].database.mock(_defineProperty({}, /update `accounts` set `deleted_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 1/, 1));
 
-						userDeleteQuerySpy = _libModelJs2["default"].database.spy(/update `forum_users` set `deleted_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 2/, 1);
+						userDeleteQuerySpy = _libModelJs2["default"].database.spy(/update `forum_users` set `deleted_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 2/, 1);
 
 						account.forumUser = forumUser;
 					});
@@ -1333,9 +1333,9 @@ describe("Model(attributes, options)", function () {
 					var postDeleteQuerySpy = undefined;
 
 					beforeEach(function () {
-						_libModelJs2["default"].database.mock(_defineProperty({}, /update `forum_users` set `deleted_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 2/, 1));
+						_libModelJs2["default"].database.mock(_defineProperty({}, /update `forum_users` set `deleted_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 2/, 1));
 
-						postDeleteQuerySpy = _libModelJs2["default"].database.spy(/update `posts` set `deleted_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 3/, 1);
+						postDeleteQuerySpy = _libModelJs2["default"].database.spy(/update `posts` set `deleted_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 3/, 1);
 
 						forumUser.posts.push(post);
 					});
@@ -1405,7 +1405,7 @@ describe("Model(attributes, options)", function () {
 					describe("(when primaryKey is set)", function () {
 						beforeEach(function () {
 							post.id = 1;
-							_libModelJs2["default"].database.mock(_defineProperty({}, /update `posts` set `deleted_at` = \'1969-12-31 [0-9][0-9]:00:00.000\' where `id` = 1/, 1));
+							_libModelJs2["default"].database.mock(_defineProperty({}, /update `posts` set `deleted_at` = \'19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000\' where `id` = 1/, 1));
 						});
 
 						it("should not throw when calling delete", function () {
@@ -1423,7 +1423,7 @@ describe("Model(attributes, options)", function () {
 						describe("(when primary key is set but not exists)", function () {
 							beforeEach(function () {
 								post.id = 1;
-								_libModelJs2["default"].database.mock(_defineProperty({}, /update `posts` set `deleted_at` = \'1969-12-31 [0-9][0-9]:00:00.000\' where `id` = 1/, 0));
+								_libModelJs2["default"].database.mock(_defineProperty({}, /update `posts` set `deleted_at` = \'19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000\' where `id` = 1/, 0));
 							});
 
 							it("should return an error", function () {
@@ -1732,13 +1732,13 @@ describe("Model(attributes, options)", function () {
 						user.photos.push(photo);
 
 						var regularExpressions = {
-							insertPhotos: /insert into `photos` \(`created_at`, `user_id`\) values \('1969-12-31 [0-9][0-9]:00:00.000', 1\)/,
-							updateUser: /update `users` set `age` = 35, `has_children` = false, `name` = 'Bob Builder', `updated_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 1/,
-							insertWheels: /insert into `wheels` \(`created_at`, `truck_id`\) values \('1969-12-31 [0-9][0-9]:00:00\.000', 1\)/,
-							insertSteeringWheel: /insert into `steering_wheels` \(`created_at`, `truck_id`\) values \('1969-12-31 [0-9][0-9]:00:00.000', 1\)/,
-							insertTruck: /insert into `trucks` (`created_at`) values ('1969-12-31 [0-24]:00:00.000')/,
-							updateTruck: /update `trucks` set `updated_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 1/,
-							updateWheels: /update `wheels` set `created_at` = '1969-12-31 [0-9][0-9]:00:00.000', `truck_id` = 1, `updated_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 1/
+							insertPhotos: /insert into `photos` \(`created_at`, `user_id`\) values \('19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000', 1\)/,
+							updateUser: /update `users` set `age` = 35, `has_children` = false, `name` = 'Bob Builder', `updated_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 1/,
+							insertWheels: /insert into `wheels` \(`created_at`, `truck_id`\) values \('19[0-9][0-9]-12-31 [0-9][0-9]:00:00\.000', 1\)/,
+							insertSteeringWheel: /insert into `steering_wheels` \(`created_at`, `truck_id`\) values \('19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000', 1\)/,
+							insertTruck: /insert into `trucks` (`created_at`) values ('19[0-9][0-9]-12-31 [0-24]:00:00.000')/,
+							updateTruck: /update `trucks` set `updated_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 1/,
+							updateWheels: /update `wheels` set `created_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000', `truck_id` = 1, `updated_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 1/
 						};
 
 						_libModelJs2["default"].database.mock((_Model$database$mock5 = {}, _defineProperty(_Model$database$mock5, regularExpressions.insertPhotos, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateUser, []), _defineProperty(_Model$database$mock5, regularExpressions.insertWheels, [1]), _defineProperty(_Model$database$mock5, regularExpressions.insertSteeringWheel, [1]), _defineProperty(_Model$database$mock5, regularExpressions.insertTruck, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateTruck, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateWheels, [1]), _Model$database$mock5));
@@ -1980,7 +1980,7 @@ describe("Model(attributes, options)", function () {
 							_libModelJs2["default"].database.update = sinon.spy(_libModelJs2["default"].database.update);
 
 							var regularExpressions = {
-								updateModel: /update `models` set `updated_at` = '1969-12-31 [0-9][0-9]:00:00.000' where `id` = 1/
+								updateModel: /update `models` set `updated_at` = '19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000' where `id` = 1/
 							};
 
 							_libModelJs2["default"].database.mock(_defineProperty({}, regularExpressions.updateModel, [{}]));
@@ -1997,7 +1997,7 @@ describe("Model(attributes, options)", function () {
 							_libModelJs2["default"].database.insert = sinon.spy(_libModelJs2["default"].database.insert);
 
 							var regularExpressions = {
-								insertModel: /insert into `models` \(`created_at`\) values \('1969-12-31 [0-9][0-9]:00:00.000'\)/
+								insertModel: /insert into `models` \(`created_at`\) values \('19[0-9][0-9]-12-31 [0-9][0-9]:00:00.000'\)/
 							};
 
 							_libModelJs2["default"].database.mock(_defineProperty({}, regularExpressions.insertModel, [{}]));
