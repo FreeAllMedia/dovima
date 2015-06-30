@@ -73,9 +73,35 @@ exports["default"] = ModelFinder;
 
 var ModelQuery = (function () {
 	function ModelQuery(database) {
+		var _this = this;
+
 		_classCallCheck(this, ModelQuery);
 
 		this._database = database;
+		Object.defineProperties(this, {
+			"_one": {
+				enumerable: false,
+				writable: true,
+				value: false
+			},
+			"one": {
+				get: function get() {
+					_this._one = true;
+					return _this;
+				}
+			},
+			"deleted": {
+				get: function get() {
+					_this._query.whereNotNull((0, _jargon2["default"])("deletedAt").snake.toString());
+					return _this;
+				}
+			},
+			"all": {
+				get: function get() {
+					return _this;
+				}
+			}
+		});
 	}
 
 	_createClass(ModelQuery, [{
@@ -158,13 +184,18 @@ var ModelQuery = (function () {
 		value: function limit() {
 			var _query6;
 
+			this._one = false;
 			(_query6 = this._query).limit.apply(_query6, arguments);
 			return this;
 		}
 	}, {
 		key: "results",
 		value: function results(callback) {
-			var _this = this;
+			var _this2 = this;
+
+			if (this._one) {
+				this.limit(1);
+			}
 
 			this._query.results(function (error, rows) {
 				if (!rows) {
@@ -175,14 +206,14 @@ var ModelQuery = (function () {
 					}
 				}
 
-				if (_this.countResults) {
+				if (_this2.countResults) {
 					callback(error, rows[0].rowCount);
 				} else {
 					(function () {
-						var models = new _collectionJs2["default"](_this.ModelConstructor);
+						var models = new _collectionJs2["default"](_this2.ModelConstructor);
 
 						rows.forEach(function (row) {
-							models.push(new _this.ModelConstructor(row));
+							models.push(new _this2.ModelConstructor(row));
 						});
 
 						callback(error, models);

@@ -2,7 +2,7 @@ const validateDependencies = Symbol();
 import inflect from "jargon";
 
 export default class ModelFinder {
-	constructor(database) {		
+	constructor(database) {
 		Object.defineProperties(this, {
 			"_database": {
 				value: database,
@@ -40,6 +40,30 @@ export default class ModelFinder {
 export class ModelQuery {
 	constructor(database) {
 		this._database = database;
+		Object.defineProperties(this, {
+			"_one": {
+				enumerable: false,
+				writable: true,
+				value: false
+			},
+			"one": {
+				get: () => {
+					this._one = true;
+					return this;
+				}
+			},
+			"deleted": {
+				get: () => {
+					this._query.whereNotNull(inflect("deletedAt").snake.toString());
+					return this;
+				}
+			},
+			"all": {
+				get: () => {
+					return this;
+				}
+			}
+		});
 	}
 
 	find(ModelConstructor) {
@@ -102,11 +126,16 @@ export class ModelQuery {
 	}
 
 	limit(...options) {
+		this._one = false;
 		this._query.limit(...options);
 		return this;
 	}
 
 	results(callback) {
+		if(this._one) {
+			this.limit(1);
+		}
+
 		this._query.results((error, rows) => {
 			if(!rows) {
 				if(error) {

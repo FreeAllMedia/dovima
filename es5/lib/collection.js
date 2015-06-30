@@ -70,9 +70,7 @@ var Collection = (function (_Array) {
 			models.forEach(function (model) {
 				if (_this.indexOf(model) === -1) {
 					if (_this.association) {
-						//proceed with the regular push
 						_get(Object.getPrototypeOf(Collection.prototype), "push", _this).call(_this, model);
-						//set inverse relationship
 						var pluralForeignName = (0, _jargon2["default"])(_this.association.foreignName).plural.toString();
 						if (model.hasOwnProperty(_this.association.foreignName)) {
 							if (model[_this.association.foreignName] !== _this.association.parent) {
@@ -80,31 +78,6 @@ var Collection = (function (_Array) {
 							}
 						} else if (model.hasOwnProperty(pluralForeignName)) {
 							model[pluralForeignName].push(_this.association.parent);
-						}
-						//if it has through, create the intermediate model
-						if (_this.association.through) {
-							//get through association
-							var throughAssociation = _this.association.parent.associations[_this.association.through];
-							if (!throughAssociation) {
-								var modelName = undefined;
-								if (model && model.constructor) {
-									modelName = model.constructor.name;
-								} else {
-									modelName = model;
-								}
-								throw new Error("Through association called " + _this.association.through + " not defined on model " + modelName);
-							}
-
-							//lookup if there is an existing through model... how?
-							var throughModel = new throughAssociation.constructor();
-							throughModel[_this.association.foreignName] = _this.association.parent;
-
-							// work in progress for future automations
-							// let throughAssociationPropertyName = model.associations[throughAssociationNameOnModel].foreignName;
-							// throughModel[this.association.foreignName] = this.association.parent;
-							// throughModel[throughAssociationPropertyName] = model;
-							// HERE I WILL NEED THE RELATIONSHIP BETWEEN MODEL and THROUGH MODEL...
-							// throughModel[this.association.parent.foreignName] = this.association.parent;
 						}
 					} else {
 						if (model instanceof _this._modelConstructor) {
