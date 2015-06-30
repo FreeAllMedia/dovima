@@ -5,10 +5,10 @@ const sinon = require("sinon");
 
 //import MultiError from "../../multiError/multiError.js";
 import Database from "almaden";
-import isPresent from "../lib/validation/isPresent.js";
-import Collection from "../lib/collection.js";
+import {Collection} from "../../";
 import Model, {AssociationSetter} from "../lib/model.js";
 import {ModelQuery} from "../lib/modelFinder.js";
+import {isPresent} from "../../";
 
 /* Test Configuration */
 //nothing from a real connection needed since we are mocking here
@@ -159,6 +159,12 @@ describe("Model(attributes, options)", () => {
 	});
 
 	afterEach(() => clock.restore());
+
+	describe("(module properties)", () => {
+		it("should provide the isPresent validation", () => {
+			(typeof isPresent).should.equal("function");
+		});
+	});
 
 	/**
 	 * Begin Testing
