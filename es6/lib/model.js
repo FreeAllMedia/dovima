@@ -609,19 +609,16 @@ export default class Model {
 							const hasInvalidAttributes = Object.keys(invalidAttributeList).length > 0;
 
 							if (hasInvalidAttributes) {
-								const multiError = new MultiError();
+								const errorPrefix = this.constructor.name + " is invalid";
+								const multiError = new MultiError([], errorPrefix);
 								for(let invalidAttributeName in invalidAttributeList) {
 									const invalidAttributeMessages = invalidAttributeList[invalidAttributeName];
 
-									const errorPrefix = this.constructor.name + " is invalid";
-
-									const attributesMultiError = new MultiError([], errorPrefix);
 									for(let index in invalidAttributeMessages) {
 										const invalidAttributeMessage = invalidAttributeMessages[index];
 										const error = new Error(`${invalidAttributeName} ${invalidAttributeMessage}`);
-										attributesMultiError.push(error);
+										multiError.push(error);
 									}
-									multiError.push(attributesMultiError);
 								}
 								next(multiError);
 							} else {

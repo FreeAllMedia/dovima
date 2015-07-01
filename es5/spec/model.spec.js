@@ -964,6 +964,20 @@ describe("Model(attributes, options)", function () {
 					});
 				});
 
+				it("should retun just one multi error object the appropiate number of errors", function (done) {
+					user.save(function (error) {
+						error.errors.length.should.equal(1);
+						done();
+					});
+				});
+
+				it("should retun just one multi error object the appropiate name", function (done) {
+					user.save(function (error) {
+						error.name.should.equal("User is invalid");
+						done();
+					});
+				});
+
 				it("should return an object containing all invalid attributes", function (done) {
 					user.invalidAttributes(function (attributes) {
 						attributes.should.eql({

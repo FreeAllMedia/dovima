@@ -831,6 +831,20 @@ describe("Model(attributes, options)", () => {
 					});
 				});
 
+				it("should retun just one multi error object the appropiate number of errors", done => {
+					user.save((error) => {
+						error.errors.length.should.equal(1);
+						done();
+					});
+				});
+
+				it("should retun just one multi error object the appropiate name", done => {
+					user.save((error) => {
+						error.name.should.equal("User is invalid");
+						done();
+					});
+				});
+
 				it("should return an object containing all invalid attributes", done => {
 					user.invalidAttributes((attributes) => {
 						attributes.should.eql({

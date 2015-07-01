@@ -662,19 +662,16 @@ var Model = (function () {
 							var hasInvalidAttributes = Object.keys(invalidAttributeList).length > 0;
 
 							if (hasInvalidAttributes) {
-								var multiError = new _blunder2["default"]();
+								var errorPrefix = _this6.constructor.name + " is invalid";
+								var multiError = new _blunder2["default"]([], errorPrefix);
 								for (var invalidAttributeName in invalidAttributeList) {
 									var invalidAttributeMessages = invalidAttributeList[invalidAttributeName];
 
-									var errorPrefix = _this6.constructor.name + " is invalid";
-
-									var attributesMultiError = new _blunder2["default"]([], errorPrefix);
 									for (var index in invalidAttributeMessages) {
 										var invalidAttributeMessage = invalidAttributeMessages[index];
 										var error = new Error(invalidAttributeName + " " + invalidAttributeMessage);
-										attributesMultiError.push(error);
+										multiError.push(error);
 									}
-									multiError.push(attributesMultiError);
 								}
 								next(multiError);
 							} else {
