@@ -870,13 +870,23 @@ export default class Model {
 
 		const privateAssociationName = "_" + associationDetails.name;
 
+		const implicitAssociationName = `${associationDetails.name}Id`;
+		const privateImplicitAssociationName = `_${implicitAssociationName}`;
+
 		/* Association Setter By Type */
 
-		let setterFunction;
+		let setterFunction,
+			implicitSetterFunction;
 
 		switch(associationDetails.type) {
 			case "hasOne":
 				this[privateAssociationName] = null;
+
+				implicitSetterFunction = (newId) => {
+					//reset the association when assign associationId
+					this[privateImplicitAssociationName] = newId;
+					this[privateAssociationName] = null;
+				}
 
 				setterFunction = (newModel) => {
 					if (newModel && this[privateAssociationName] !== newModel) {
@@ -885,6 +895,7 @@ export default class Model {
 						}
 
 						this[privateAssociationName] = newModel;
+						this[privateImplicitAssociationName] = newModel.id;
 
 						newModel[association.foreignName] = this;
 					}
@@ -893,6 +904,12 @@ export default class Model {
 			case "belongsTo":
 				this[privateAssociationName] = null;
 
+				implicitSetterFunction = (newId) => {
+					//reset the association when assign associationId
+					this[privateImplicitAssociationName] = newId;
+					this[privateAssociationName] = null;
+				}
+
 				setterFunction = (newModel) => {
 					if (newModel && this[privateAssociationName] !== newModel) {
 						if(!(newModel instanceof Model)) {
@@ -900,7 +917,7 @@ export default class Model {
 						}
 
 						this[privateAssociationName] = newModel;
-						this[association.foreignId] = newModel.id;
+						this[privateImplicitAssociationName] = newModel.id;
 
 						const pluralForeignName = inflect(association.foreignName).plural.toString();
 
@@ -937,26 +954,53 @@ export default class Model {
 				throw new Error("Unknown association type.");
 		}
 
-		Object.defineProperty(
-			this,
-			privateAssociationName,
-			{
+		let newProperties = {};
+		newProperties[privateAssociationName] = {
+			enumerable: false,
+			writable: true
+		};
+		newProperties[associationDetails.name] = {
+			enumerable: true,
+			set: setterFunction,
+			get: () => {
+				return this[privateAssociationName];
+			}
+		}
+		if(implicitSetterFunction) {
+			newProperties[privateImplicitAssociationName] = {
 				enumerable: false,
 				writable: true
-			}
-		);
-
-		Object.defineProperty(
-			this,
-			associationDetails.name,
-			{
+			};
+			newProperties[implicitAssociationName] = {
 				enumerable: true,
-				set: setterFunction,
+				set: implicitSetterFunction,
 				get: () => {
-					return this[privateAssociationName];
+					return this[privateImplicitAssociationName];
 				}
-			}
-		);
+			};
+		}
+		Object.defineProperties(this, newProperties);
+
+		// Object.defineProperty(
+		// 	this,
+		// 	privateAssociationName,
+		// 	{
+		// 		enumerable: false,
+		// 		writable: true
+		// 	}
+		// );
+
+		// Object.defineProperty(
+		// 	this,
+		// 	associationDetails.name,
+		// 	{
+		// 		enumerable: true,
+		// 		set: setterFunction,
+		// 		get: () => {
+		// 			return this[privateAssociationName];
+		// 		}
+		// 	}
+		// );
 
 		this[associationDetails.name] = associationDetails.value;
 

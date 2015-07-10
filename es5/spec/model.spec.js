@@ -263,7 +263,10 @@ describe("Model(attributes, options)", function () {
 			id: 1,
 			name: "Bob Builder",
 			age: 35,
-			hasChildren: false
+			hasChildren: false,
+			addressId: undefined,
+			primaryPhotoId: undefined,
+			postalCodeId: undefined
 		};
 
 		user = new User(userAttributes);
@@ -302,7 +305,7 @@ describe("Model(attributes, options)", function () {
 
 		describe(".properties", function () {
 			it("should return the name of all attributes plus associations on the model", function () {
-				user.properties.should.eql(["address", "postalCode", "photos", "primaryPhoto", "photoLikes", "likedPhotos", "comments", "deletedComments", "id", "name", "age", "hasChildren"]);
+				user.properties.should.eql(["address", "addressId", "postalCode", "postalCodeId", "photos", "primaryPhoto", "primaryPhotoId", "photoLikes", "likedPhotos", "comments", "deletedComments", "id", "name", "age", "hasChildren"]);
 			});
 		});
 
@@ -666,6 +669,20 @@ describe("Model(attributes, options)", function () {
 					wheel.truckId.should.eql(truck.id);
 				});
 
+				it("should reset the association when a new id is set onto the model", function () {
+					truck.id = 1;
+					wheel.truck = truck;
+					wheel.truckId = 2;
+					(wheel.truck == null).should.be["true"];
+				});
+
+				it("should reset the associationId when a new model is set onto the model", function () {
+					truck.id = 1;
+					wheel.truckId = 2;
+					wheel.truck = truck;
+					wheel.truckId.should.not.equal(2);
+				});
+
 				it("should add a model just once on the parent", function () {
 					truck.id = 1;
 					wheel.truck = truck;
@@ -769,6 +786,24 @@ describe("Model(attributes, options)", function () {
 
 			it("should return an association setter", function () {
 				truck.hasOne("steeringWheel", SteeringWheel).should.be.instanceOf(_libModelJs.AssociationSetter);
+			});
+
+			it("should reset the association when a new id is set onto the model", function () {
+				truck.hasOne("steeringWheel", SteeringWheel);
+				var steeringWheel = new SteeringWheel();
+				steeringWheel.id = 1;
+				truck.steeringWheel = steeringWheel;
+				truck.steeringWheelId = 2;
+				(truck.steeringWheel == null).should.be["true"];
+			});
+
+			it("should reset the associationId when a new model is set onto the model", function () {
+				truck.hasOne("steeringWheel", SteeringWheel);
+				var steeringWheel = new SteeringWheel();
+				steeringWheel.id = 1;
+				truck.steeringWheelId = 2;
+				truck.steeringWheel = steeringWheel;
+				truck.steeringWheelId.should.not.equal(2);
 			});
 
 			it("should accept a custom error message", function () {
@@ -1755,11 +1790,12 @@ describe("Model(attributes, options)", function () {
 							insertWheels: /insert into `wheels` \(`created_at`, `truck_id`\) values \('19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00\.000', 1\)/,
 							insertSteeringWheel: /insert into `steering_wheels` \(`created_at`, `truck_id`\) values \('19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000', 1\)/,
 							insertTruck: /insert into `trucks` (`created_at`) values ('19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-24]:00:00.000')/,
-							updateTruck: /update `trucks` set `updated_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/,
+							updateTruck: /update `trucks` set `steering_wheel_id` = 1, `updated_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/,
+							updateSteeringWheel: /update `steering_wheels` set `truck_id` = 1, `updated_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/,
 							updateWheels: /update `wheels` set `created_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000', `truck_id` = 1, `updated_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/
 						};
 
-						_libModelJs2["default"].database.mock((_Model$database$mock5 = {}, _defineProperty(_Model$database$mock5, regularExpressions.insertPhotos, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateUser, []), _defineProperty(_Model$database$mock5, regularExpressions.insertWheels, [1]), _defineProperty(_Model$database$mock5, regularExpressions.insertSteeringWheel, [1]), _defineProperty(_Model$database$mock5, regularExpressions.insertTruck, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateTruck, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateWheels, [1]), _Model$database$mock5));
+						_libModelJs2["default"].database.mock((_Model$database$mock5 = {}, _defineProperty(_Model$database$mock5, regularExpressions.insertPhotos, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateUser, []), _defineProperty(_Model$database$mock5, regularExpressions.insertWheels, [1]), _defineProperty(_Model$database$mock5, regularExpressions.insertSteeringWheel, [1]), _defineProperty(_Model$database$mock5, regularExpressions.insertTruck, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateTruck, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateSteeringWheel, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateWheels, [1]), _Model$database$mock5));
 					});
 
 					describe("(association operations)", function () {
@@ -1965,6 +2001,7 @@ describe("Model(attributes, options)", function () {
 								truck = new Truck({ id: 1 });
 								wheel = new Wheel();
 								steeringWheel = new SteeringWheel();
+								steeringWheel.id = 1;
 
 								truck.steeringWheel = steeringWheel;
 

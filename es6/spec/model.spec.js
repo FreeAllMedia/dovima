@@ -147,7 +147,10 @@ describe("Model(attributes, options)", () => {
 			id: 1,
 			name: "Bob Builder",
 			age: 35,
-			hasChildren: false
+			hasChildren: false,
+			addressId: undefined,
+			primaryPhotoId: undefined,
+			postalCodeId: undefined
 		};
 
 		user = new User(userAttributes);
@@ -186,9 +189,12 @@ describe("Model(attributes, options)", () => {
 			it("should return the name of all attributes plus associations on the model", () => {
 				user.properties.should.eql([
 					"address",
+					"addressId",
 					"postalCode",
+					"postalCodeId",
 					"photos",
 					"primaryPhoto",
+					"primaryPhotoId",
 					"photoLikes",
 					"likedPhotos",
 					"comments",
@@ -496,6 +502,20 @@ describe("Model(attributes, options)", () => {
 					wheel.truckId.should.eql(truck.id);
 				});
 
+				it("should reset the association when a new id is set onto the model", () => {
+					truck.id = 1;
+					wheel.truck = truck;
+					wheel.truckId = 2;
+					(wheel.truck == null).should.be.true;
+				});
+
+				it("should reset the associationId when a new model is set onto the model", () => {
+					truck.id = 1;
+					wheel.truckId = 2;
+					wheel.truck = truck;
+					wheel.truckId.should.not.equal(2);
+				});
+
 				it("should add a model just once on the parent", () => {
 					truck.id = 1;
 					wheel.truck = truck;
@@ -601,6 +621,26 @@ describe("Model(attributes, options)", () => {
 				truck
 					.hasOne("steeringWheel", SteeringWheel)
 					.should.be.instanceOf(AssociationSetter);
+			});
+
+			it("should reset the association when a new id is set onto the model", () => {
+				truck
+					.hasOne("steeringWheel", SteeringWheel);
+				let steeringWheel = new SteeringWheel();
+				steeringWheel.id = 1;
+				truck.steeringWheel = steeringWheel;
+				truck.steeringWheelId = 2;
+				(truck.steeringWheel == null).should.be.true;
+			});
+
+			it("should reset the associationId when a new model is set onto the model", () => {
+				truck
+					.hasOne("steeringWheel", SteeringWheel);
+				let steeringWheel = new SteeringWheel();
+				steeringWheel.id = 1;
+				truck.steeringWheelId = 2;
+				truck.steeringWheel = steeringWheel;
+				truck.steeringWheelId.should.not.equal(2);
 			});
 
 			it("should accept a custom error message", () => {
@@ -1637,7 +1677,8 @@ describe("Model(attributes, options)", () => {
 							insertWheels: /insert into `wheels` \(`created_at`, `truck_id`\) values \('19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00\.000', 1\)/,
 							insertSteeringWheel: /insert into `steering_wheels` \(`created_at`, `truck_id`\) values \('19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000', 1\)/,
 							insertTruck: /insert into `trucks` (`created_at`) values ('19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-24]:00:00.000')/,
-							updateTruck: /update `trucks` set `updated_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/,
+							updateTruck: /update `trucks` set `steering_wheel_id` = 1, `updated_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/,
+							updateSteeringWheel: /update `steering_wheels` set `truck_id` = 1, `updated_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/,
 							updateWheels: /update `wheels` set `created_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000', `truck_id` = 1, `updated_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/
 						};
 
@@ -1653,6 +1694,8 @@ describe("Model(attributes, options)", () => {
 							[regularExpressions.insertTruck]:
 								[1],
 							[regularExpressions.updateTruck]:
+								[1],
+							[regularExpressions.updateSteeringWheel]:
 								[1],
 							[regularExpressions.updateWheels]:
 								[1]
@@ -1782,6 +1825,7 @@ describe("Model(attributes, options)", () => {
 								truck = new Truck({id: 1});
 								wheel = new Wheel();
 								steeringWheel = new SteeringWheel();
+								steeringWheel.id = 1;
 
 								truck.steeringWheel = steeringWheel;
 
