@@ -233,7 +233,7 @@ export default class Model {
 			);
 		};
 
-		flowsync.mapSeries(
+		flowsync.mapParallel(
 			attributeNamesWithValidators,
 			performValidationsForAttribute,
 			compileInvalidAttributeList

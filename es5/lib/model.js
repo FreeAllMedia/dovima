@@ -295,7 +295,7 @@ var Model = (function () {
 				flowsync.mapParallel(attributeValidations, performValidation, compileValidatorResponses);
 			};
 
-			flowsync.mapSeries(attributeNamesWithValidators, performValidationsForAttribute, compileInvalidAttributeList);
+			flowsync.mapParallel(attributeNamesWithValidators, performValidationsForAttribute, compileInvalidAttributeList);
 		}
 	}, {
 		key: "include",
