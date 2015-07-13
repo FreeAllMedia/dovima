@@ -375,6 +375,83 @@ describe("Model(attributes, options)", function () {
 				User.find.should.be.instanceOf(_libModelFinderJs.ModelQuery);
 			});
 
+			describe("(ModelQuery operations)", function () {
+				describe(".where", function () {
+					var querySpy = undefined;
+
+					beforeEach(function (done) {
+						querySpy = _libModelJs2["default"].database.spy("select * from `users` where `some_id` = 1", [1]);
+						User.find.where("someId", 1).results(function () {
+							done();
+						});
+					});
+
+					it("should convert camel case names to snake case names on a where", function () {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+
+				describe(".andWhere", function () {
+					var querySpy = undefined;
+
+					beforeEach(function (done) {
+						querySpy = _libModelJs2["default"].database.spy("select * from `users` where `some_id` = 1", [1]);
+						User.find.andWhere("someId", 1).results(function () {
+							done();
+						});
+					});
+
+					it("should convert camel case names to snake case names on a where", function () {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+
+				describe(".orWhere", function () {
+					var querySpy = undefined;
+
+					beforeEach(function (done) {
+						querySpy = _libModelJs2["default"].database.spy("select * from `users` where `some_id` = 1", [1]);
+						User.find.orWhere("someId", 1).results(function () {
+							done();
+						});
+					});
+
+					it("should convert camel case names to snake case names on a where", function () {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+
+				describe(".groupBy", function () {
+					var querySpy = undefined;
+
+					beforeEach(function (done) {
+						querySpy = _libModelJs2["default"].database.spy("select * from `users` group by `some_id`", [1]);
+						User.find.groupBy("someId").results(function () {
+							done();
+						});
+					});
+
+					it("should convert camel case names to snake case names on a where", function () {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+
+				describe(".orderBy", function () {
+					var querySpy = undefined;
+
+					beforeEach(function (done) {
+						querySpy = _libModelJs2["default"].database.spy("select * from `users` order by `some_id` asc", [1]);
+						User.find.orderBy("someId").results(function () {
+							done();
+						});
+					});
+
+					it("should convert camel case names to snake case names on a where", function () {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+			});
+
 			it("should return a collection", function () {
 				users.should.be.instanceOf(_libCollectionJs2["default"]);
 			});
