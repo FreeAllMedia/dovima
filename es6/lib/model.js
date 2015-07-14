@@ -5,6 +5,7 @@ const flowsync = require("flowsync");
 import MultiError from "blunder";
 import Datetime from "fleming";
 import inflect from "jargon";
+import Quirk from "quirk";
 
 import {ModelQuery} from "./modelFinder.js";
 
@@ -49,6 +50,13 @@ export default class Model {
 				enumerable: false,
 				writable: true,
 				value: []
+			},
+
+			"additionalAttributes": {
+				enumerable: false, //this fix db related issues
+				get: () => {
+					return this.constructor.attributes;
+				}
 			},
 
 			"isNew": {
@@ -746,13 +754,13 @@ export default class Model {
 	}
 
 	[attributes]() {
-		var attributeNames = {};
+		var attributes = {};
 		this.properties.forEach((propertyName) => {
 			if(!this._associations[propertyName]) {
-				attributeNames[propertyName] = this[propertyName];
+				attributes[propertyName] = this[propertyName];
 			}
 		});
-		return attributeNames;
+		return attributes;
 	}
 
 	[isNew]() {
@@ -1016,6 +1024,8 @@ export default class Model {
 	}
 
 	[getFieldAttributes]() {
+		//this, using quirk, will return target with the new attributes on it, useful to EXCLUDE them from here
+		//TODO: this.additionalAttributes.addAttributes(target); //magic line
 		let attributeNames = Object.keys(this.attributes);
 		let fieldAttributes = {};
 		attributeNames.forEach((attributeName) => {
@@ -1114,6 +1124,11 @@ Object.defineProperties(Model, {
 			let modelQuery = new ModelQuery(Model.database);
 			return modelQuery.find(this);
 		}
+	},
+	//problem here: can't assign property automatically to the concrete model to use it
+	//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/observe#Browser_compatibility
+	"attributes": {
+		value: new Quirk()
 	}
 });
 

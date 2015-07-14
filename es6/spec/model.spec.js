@@ -7,6 +7,7 @@ const sinon = require("sinon");
 import Database from "almaden";
 import Collection from "../lib/collection.js";
 import Model, {AssociationSetter} from "../lib/model.js";
+import Quirk from "quirk";
 import {ModelQuery} from "../lib/modelFinder.js";
 import {isPresent} from "../../";
 
@@ -248,6 +249,29 @@ describe("Model(attributes, options)", () => {
 	});
 
 	describe("(static properties)", () => {
+		describe(".attributes", () => {
+			it("should be an instance of Quirk", () => {
+				User.attributes.should.be.instanceOf(Quirk);
+			});
+
+			it("should be able to get the attributes from the regular methods", () => {
+				user.additionalAttributes.should.be.instanceOf(Quirk);
+			});
+
+			it("should be able to define a new static property to the model", () => {
+				User.attributes.specialAttribute = 2;
+				user.specialAttribute.should.equal(2);
+			});
+
+			it("should be able to define a new static property to the model", () => {
+				User.attributes.specialAttribute = function specialAttributeGetter() {
+					return this.id;
+				};
+				user = new User({id: 2});
+				user.specialAttribute.should.equal(2);
+			});
+		});
+
 		describe(".find", () => {
 			let users,
 				userCollection;

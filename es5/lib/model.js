@@ -27,6 +27,10 @@ var _jargon = require("jargon");
 
 var _jargon2 = _interopRequireDefault(_jargon);
 
+var _quirk = require("quirk");
+
+var _quirk2 = _interopRequireDefault(_quirk);
+
 var _modelFinderJs = require("./modelFinder.js");
 
 var _collectionJs = require("./collection.js");
@@ -80,6 +84,13 @@ var Model = (function () {
 				enumerable: false,
 				writable: true,
 				value: []
+			},
+
+			"additionalAttributes": {
+				enumerable: false, //this fix db related issues
+				get: function get() {
+					return _this.constructor.attributes;
+				}
 			},
 
 			"isNew": {
@@ -802,13 +813,13 @@ var Model = (function () {
 		value: function value() {
 			var _this7 = this;
 
-			var attributeNames = {};
+			var attributes = {};
 			this.properties.forEach(function (propertyName) {
 				if (!_this7._associations[propertyName]) {
-					attributeNames[propertyName] = _this7[propertyName];
+					attributes[propertyName] = _this7[propertyName];
 				}
 			});
-			return attributeNames;
+			return attributes;
 		}
 	}, {
 		key: isNew,
@@ -1205,5 +1216,10 @@ Object.defineProperties(Model, {
 			var modelQuery = new _modelFinderJs.ModelQuery(Model.database);
 			return modelQuery.find(this);
 		}
+	},
+	//problem here: if it's static on Model, it will be shared for every Model
+	//if it's static on Item, it will be inaccesible from Model methods to use that on save for eg
+	"attributes": {
+		value: new _quirk2["default"]()
 	}
 });

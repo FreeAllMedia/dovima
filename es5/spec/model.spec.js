@@ -32,6 +32,10 @@ var _libModelJs = require("../lib/model.js");
 
 var _libModelJs2 = _interopRequireDefault(_libModelJs);
 
+var _quirk = require("quirk");
+
+var _quirk2 = _interopRequireDefault(_quirk);
+
 var _libModelFinderJs = require("../lib/modelFinder.js");
 
 var _ = require("../../");
@@ -349,6 +353,29 @@ describe("Model(attributes, options)", function () {
 	});
 
 	describe("(static properties)", function () {
+		describe(".attributes", function () {
+			it("should be an instance of Quirk", function () {
+				User.attributes.should.be.instanceOf(_quirk2["default"]);
+			});
+
+			it("should be able to get the attributes from the regular methods", function () {
+				user.additionalAttributes.should.be.instanceOf(_quirk2["default"]);
+			});
+
+			it("should be able to define a new static property to the model", function () {
+				User.attributes.specialAttribute = 2;
+				user.specialAttribute.should.equal(2);
+			});
+
+			it("should be able to define a new static property to the model", function () {
+				User.attributes.specialAttribute = function specialAttributeGetter() {
+					return this.id;
+				};
+				user = new User({ id: 2 });
+				user.specialAttribute.should.equal(2);
+			});
+		});
+
 		describe(".find", function () {
 			var users = undefined,
 			    userCollection = undefined;
