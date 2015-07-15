@@ -27,6 +27,10 @@ var _jargon = require("jargon");
 
 var _jargon2 = _interopRequireDefault(_jargon);
 
+var _quirk = require("quirk");
+
+var _quirk2 = _interopRequireDefault(_quirk);
+
 var _modelFinderJs = require("./modelFinder.js");
 
 var _collectionJs = require("./collection.js");
@@ -80,6 +84,13 @@ var Model = (function () {
 				enumerable: false,
 				writable: true,
 				value: []
+			},
+
+			"additionalAttributes": {
+				enumerable: false, //this fix db related issues
+				get: function get() {
+					return _this.constructor.attributes;
+				}
 			},
 
 			"isNew": {
@@ -143,6 +154,9 @@ var Model = (function () {
 				}
 			}
 		});
+
+		//add the quirk to this instance
+		this.additionalAttributes.addAttributes(this);
 
 		this.associate();
 		this.validate();
@@ -802,13 +816,13 @@ var Model = (function () {
 		value: function value() {
 			var _this7 = this;
 
-			var attributeNames = {};
+			var attributes = {};
 			this.properties.forEach(function (propertyName) {
 				if (!_this7._associations[propertyName]) {
-					attributeNames[propertyName] = _this7[propertyName];
+					attributes[propertyName] = _this7[propertyName];
 				}
 			});
-			return attributeNames;
+			return attributes;
 		}
 	}, {
 		key: isNew,
@@ -1081,7 +1095,13 @@ var Model = (function () {
 			var attributeNames = Object.keys(this.attributes);
 			var fieldAttributes = {};
 			attributeNames.forEach(function (attributeName) {
-				fieldAttributes[(0, _jargon2["default"])(attributeName).snake.toString()] = _this10[attributeName];
+				var found = Object.keys(_this10.additionalAttributes).find(function (additionalAttributeName) {
+					return additionalAttributeName === attributeName;
+				});
+				//is just on db if is not an additional attribute
+				if (!found) {
+					fieldAttributes[(0, _jargon2["default"])(attributeName).snake.toString()] = _this10[attributeName];
+				}
 			});
 
 			//add belongsTo associations and remove others
@@ -1205,5 +1225,10 @@ Object.defineProperties(Model, {
 			var modelQuery = new _modelFinderJs.ModelQuery(Model.database);
 			return modelQuery.find(this);
 		}
+	},
+	//problem here: can't assign property automatically to the concrete model to use it
+	//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/observe#Browser_compatibility
+	"attributes": {
+		value: new _quirk2["default"]()
 	}
 });
