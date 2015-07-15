@@ -342,6 +342,98 @@ describe("Model(attributes, options)", () => {
 				User.find.should.be.instanceOf(ModelQuery);
 			});
 
+			describe("(ModelQuery operations)", () => {
+				describe(".where", () => {
+					let querySpy;
+
+					beforeEach(done => {
+						querySpy = Model.database.spy("select * from `users` where `some_id` = 1", [1]);
+						User
+							.find
+							.where("someId", 1)
+							.results(() => {
+								done();
+							});
+					});
+
+					it("should convert camel case names to snake case names on a where", () => {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+
+				describe(".andWhere", () => {
+					let querySpy;
+
+					beforeEach(done => {
+						querySpy = Model.database.spy("select * from `users` where `some_id` = 1", [1]);
+						User
+							.find
+							.andWhere("someId", 1)
+							.results(() => {
+								done();
+							});
+					});
+
+					it("should convert camel case names to snake case names on a where", () => {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+
+				describe(".orWhere", () => {
+					let querySpy;
+
+					beforeEach(done => {
+						querySpy = Model.database.spy("select * from `users` where `some_id` = 1", [1]);
+						User
+							.find
+							.orWhere("someId", 1)
+							.results(() => {
+								done();
+							});
+					});
+
+					it("should convert camel case names to snake case names on a where", () => {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+
+				describe(".groupBy", () => {
+					let querySpy;
+
+					beforeEach(done => {
+						querySpy = Model.database.spy("select * from `users` group by `some_id`", [1]);
+						User
+							.find
+							.groupBy("someId")
+							.results(() => {
+								done();
+							});
+					});
+
+					it("should convert camel case names to snake case names on a where", () => {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+
+				describe(".orderBy", () => {
+					let querySpy;
+
+					beforeEach(done => {
+						querySpy = Model.database.spy("select * from `users` order by `some_id` asc", [1]);
+						User
+							.find
+							.orderBy("someId")
+							.results(() => {
+								done();
+							});
+					});
+
+					it("should convert camel case names to snake case names on a where", () => {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+			});
+
 			it("should return a collection", () => {
 				users.should.be.instanceOf(Collection);
 			});

@@ -20,7 +20,8 @@ var _collectionJs = require("./collection.js");
 
 var _collectionJs2 = _interopRequireDefault(_collectionJs);
 
-var validateDependencies = Symbol();
+var validateDependencies = Symbol(),
+    transformNames = Symbol();
 
 var ModelFinder = (function () {
 	function ModelFinder(database) {
@@ -128,22 +129,26 @@ var ModelQuery = (function () {
 			return this;
 		}
 	}, {
-		key: "where",
-		value: function where() {
-			var _query;
-
+		key: transformNames,
+		value: function value() {
 			for (var _len = arguments.length, options = Array(_len), _key = 0; _key < _len; _key++) {
 				options[_key] = arguments[_key];
 			}
 
-			var formattedOptions = options.map(function (option, index) {
+			return options.map(function (option, index) {
 				if (typeof option === "string" && index === 0) {
 					return (0, _jargon2["default"])(option).snake.toString();
 				} else {
 					return option;
 				}
 			});
+		}
+	}, {
+		key: "where",
+		value: function where() {
+			var _query;
 
+			var formattedOptions = this[transformNames].apply(this, arguments);
 			(_query = this._query).where.apply(_query, _toConsumableArray(formattedOptions));
 			return this;
 		}
@@ -152,7 +157,8 @@ var ModelQuery = (function () {
 		value: function andWhere() {
 			var _query2;
 
-			(_query2 = this._query).andWhere.apply(_query2, arguments);
+			var formattedOptions = this[transformNames].apply(this, arguments);
+			(_query2 = this._query).andWhere.apply(_query2, _toConsumableArray(formattedOptions));
 			return this;
 		}
 	}, {
@@ -160,7 +166,8 @@ var ModelQuery = (function () {
 		value: function orWhere() {
 			var _query3;
 
-			(_query3 = this._query).orWhere.apply(_query3, arguments);
+			var formattedOptions = this[transformNames].apply(this, arguments);
+			(_query3 = this._query).orWhere.apply(_query3, _toConsumableArray(formattedOptions));
 			return this;
 		}
 	}, {
@@ -168,7 +175,8 @@ var ModelQuery = (function () {
 		value: function groupBy() {
 			var _query4;
 
-			(_query4 = this._query).groupBy.apply(_query4, arguments);
+			var formattedOptions = this[transformNames].apply(this, arguments);
+			(_query4 = this._query).groupBy.apply(_query4, _toConsumableArray(formattedOptions));
 			return this;
 		}
 	}, {
@@ -176,7 +184,8 @@ var ModelQuery = (function () {
 		value: function orderBy() {
 			var _query5;
 
-			(_query5 = this._query).orderBy.apply(_query5, arguments);
+			var formattedOptions = this[transformNames].apply(this, arguments);
+			(_query5 = this._query).orderBy.apply(_query5, _toConsumableArray(formattedOptions));
 			return this;
 		}
 	}, {
