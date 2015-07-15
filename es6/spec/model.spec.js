@@ -7,6 +7,7 @@ const sinon = require("sinon");
 import Database from "almaden";
 import Collection from "../lib/collection.js";
 import Model, {AssociationSetter} from "../lib/model.js";
+import Quirk from "quirk";
 import {ModelQuery} from "../lib/modelFinder.js";
 import {isPresent} from "../../";
 
@@ -248,6 +249,69 @@ describe("Model(attributes, options)", () => {
 	});
 
 	describe("(static properties)", () => {
+		describe(".attributes", () => {
+			afterEach(() => {
+				delete User.attributes.specialAttribute; //so does not affect other tests
+				user = new User();
+			});
+
+			it("should be an instance of Quirk", () => {
+				User.attributes.should.be.instanceOf(Quirk);
+			});
+
+			it("should be able to get the attributes from the regular methods", () => {
+				user.additionalAttributes.should.be.instanceOf(Quirk);
+			});
+
+			it("should be able to define a new static property to the model", () => {
+				User.attributes.specialAttribute = 2;
+				user = new User();
+				user.specialAttribute.should.equal(2);
+			});
+
+			describe("(read only)", () => {
+				beforeEach(() => {
+					User.attributes.specialAttribute = function specialAttributeGetter() {
+						return this.id;
+					};
+					user = new User({id: 2});
+				});
+
+				it("should be able to define a new read only property to the model", () => {
+					user.specialAttribute.should.equal(2);
+				});
+
+				it("should throw when assign to a new read only property", () => {
+					() => {
+						user.specialAttribute = 3;
+					}.should.throw("Cannot set property");
+				});
+			});
+
+			describe("(getter and setter)", () => {
+				beforeEach(() => {
+					User.attributes.specialAttribute = {
+						get: function getSpecialAttribute() {
+							return this.id;
+						},
+						set: function setSpecialAttribute(newValue) {
+							this.id = newValue;
+						}
+					};
+					user = new User({id: 2});
+				});
+
+				it("should be able to define a new property with get and set to the model", () => {
+					user.specialAttribute.should.equal(2);
+				});
+
+				it("should be able to change a property with get and set to the model", () => {
+					user.specialAttribute = 3;
+					user.specialAttribute.should.equal(3);
+				});
+			});
+		});
+
 		describe(".find", () => {
 			let users,
 				userCollection;
