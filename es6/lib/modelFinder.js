@@ -1,0 +1,171 @@
+const validateDependencies = Symbol(),
+	transformNames = Symbol();
+import inflect from "jargon";
+
+export default class ModelFinder {
+	constructor(database) {
+		Object.defineProperties(this, {
+			"_database": {
+				value: database,
+				writable: true,
+				enumerable: false
+			}
+		});
+	}
+
+	find(ModelConstructor) {
+		this[validateDependencies]();
+
+		const query = new ModelQuery(this._database);
+
+		query.find(ModelConstructor);
+
+		return query;
+	}
+
+	count(ModelConstructor) {
+		this[validateDependencies]();
+
+		const query = new ModelQuery(this._database);
+
+		query.count(ModelConstructor);
+
+		return query;
+	}
+
+	[validateDependencies] () {
+		if (!this._database) { throw new Error("Cannot find models without a database set."); }
+	}
+}
+
+export class ModelQuery {
+	constructor(database) {
+		this._database = database;
+		Object.defineProperties(this, {
+			"_one": {
+				enumerable: false,
+				writable: true,
+				value: false
+			},
+			"one": {
+				get: () => {
+					this._one = true;
+					return this;
+				}
+			},
+			"deleted": {
+				get: () => {
+					this._query.whereNotNull(inflect("deletedAt").snake.toString());
+					return this;
+				}
+			},
+			"all": {
+				get: () => {
+					return this;
+				}
+			}
+		});
+	}
+
+	find(ModelConstructor) {
+		this.ModelConstructor = ModelConstructor;
+
+		const tempModel = new this.ModelConstructor();
+
+		this._query = this._database
+			.select("*")
+			.from(tempModel.tableName);
+
+		return this;
+	}
+
+	count(ModelConstructor) {
+		this.ModelConstructor = ModelConstructor;
+		this.countResults = true;
+
+		const tempModel = new this.ModelConstructor();
+
+		this._query = this._database
+			.select(null)
+			.count("* AS rowCount")
+			.from(tempModel.tableName);
+
+		return this;
+	}
+
+	[transformNames](...options) {
+		return options.map((option, index) => {
+			if (typeof option === "string" && index === 0) {
+				return inflect(option).snake.toString();
+			} else {
+				return option;
+			}
+		});
+	}
+
+	where(...options) {
+		const formattedOptions = this[transformNames](...options);
+		this._query.where(...formattedOptions);
+		return this;
+	}
+
+	andWhere(...options) {
+		const formattedOptions = this[transformNames](...options);
+		this._query.andWhere(...formattedOptions);
+		return this;
+	}
+
+	orWhere(...options) {
+		const formattedOptions = this[transformNames](...options);
+		this._query.orWhere(...formattedOptions);
+		return this;
+	}
+
+	groupBy(...options) {
+		const formattedOptions = this[transformNames](...options);
+		this._query.groupBy(...formattedOptions);
+		return this;
+	}
+
+	orderBy(...options) {
+		const formattedOptions = this[transformNames](...options);
+		this._query.orderBy(...formattedOptions);
+		return this;
+	}
+
+	limit(...options) {
+		this._one = false;
+		this._query.limit(...options);
+		return this;
+	}
+
+	results(callback) {
+		if(this._one) {
+			this.limit(1);
+		}
+
+		this._query.results((error, rows) => {
+			if(!rows) {
+				if(error) {
+					return callback(error);
+				} else {
+					return callback(new Error("No rows returned by database."));
+				}
+			}
+
+			if (this.countResults) {
+				callback(error, rows[0].rowCount);
+			} else {
+				const models = new Collection(this.ModelConstructor);
+
+				rows.forEach(row => {
+					models.push(new this.ModelConstructor(row));
+				});
+
+				callback(error, models);
+			}
+		});
+	}
+}
+
+import Collection from "./collection.js";

@@ -1,0 +1,17 @@
+language: node_js
+node_js:
+  - '0.12'
+  - '0.11'
+  - '0.10'
+  - iojs-v1
+  - iojs-v2
+script: npm test
+before_script:
+  - npm install
+after_success:
+  - ./node_modules/coveralls/bin/coveralls.js < ./lcov.info
+deploy:
+  provider: npm
+  email: fam-operations@freeallmedia.com
+  api_key:
+    - secure: t5bz+k2T767nMbK5bGoSrejELRTPx+ZODsfe4gU7TbHqW3zVGfkAWflnZhpzoLgsLKmk8i19MdvbKLiMueA4LGcY35mVWk/Q9HCyVic91GBjGCVxOoNE2H6siq3pBbR6kZgUUoZeEA63G/2Vtrx1JfksxvE91WgbfoTQifGgQ5Lo0yeGtInSNvP7xvMlnqRvEwHHWM+EzJgwCURGEP8/J+jgSImDyQZVE0hbkhyfXtOiRjspvh95W2ziz/xVU6Ba60unvIqhKbrLo2Iqnw23XzgjbvOEtzNs6xcySb32eiOB8iYAxUWTQApux1onZSOe0AktjioQQRBf9OTKfYVZPJToaPBkpYBA4QhriPIINl3ytpIqNql0NGG0lSrCuDmMMxuur0AqpiF2I9GaQCZGIyt5fcYpNaK83Olkn6QlqCg79kbjkF2KJl7qsPRqQ0Qc1ZXFG2SCzGjbhswcw3Oc5/lF5+V8T/0DnX6cLqWf9H+QDx39wSqC1aacBdOejb/K/QcLzIvyQAwyEfLpxfxZXBhUR2Ajyk1fBMT6jnuJPefYf7doMQgBHvNtI0JDms4Pew6wyGLodP3JwoxpAM4qETB00SLptpGaa9e0I6LnZU2vZI7OMOM+SSTaboHvivHkRmd0WaS8PEoW85pvUjknMa35pooYFGs0GXQPJtpXWKw=
