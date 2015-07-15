@@ -155,6 +155,9 @@ var Model = (function () {
 			}
 		});
 
+		//add the quirk to this instance
+		this.additionalAttributes.addAttributes(this);
+
 		this.associate();
 		this.validate();
 
@@ -1092,7 +1095,13 @@ var Model = (function () {
 			var attributeNames = Object.keys(this.attributes);
 			var fieldAttributes = {};
 			attributeNames.forEach(function (attributeName) {
-				fieldAttributes[(0, _jargon2["default"])(attributeName).snake.toString()] = _this10[attributeName];
+				var found = Object.keys(_this10.additionalAttributes).find(function (additionalAttributeName) {
+					return additionalAttributeName === attributeName;
+				});
+				//is just on db if is not an additional attribute
+				if (!found) {
+					fieldAttributes[(0, _jargon2["default"])(attributeName).snake.toString()] = _this10[attributeName];
+				}
 			});
 
 			//add belongsTo associations and remove others
@@ -1217,8 +1226,8 @@ Object.defineProperties(Model, {
 			return modelQuery.find(this);
 		}
 	},
-	//problem here: if it's static on Model, it will be shared for every Model
-	//if it's static on Item, it will be inaccesible from Model methods to use that on save for eg
+	//problem here: can't assign property automatically to the concrete model to use it
+	//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/observe#Browser_compatibility
 	"attributes": {
 		value: new _quirk2["default"]()
 	}

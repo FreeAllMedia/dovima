@@ -121,6 +121,9 @@ export default class Model {
 			}
 		});
 
+		//add the quirk to this instance
+		this.additionalAttributes.addAttributes(this);
+
 		this.associate();
 		this.validate();
 
@@ -1024,12 +1027,16 @@ export default class Model {
 	}
 
 	[getFieldAttributes]() {
-		//this, using quirk, will return target with the new attributes on it, useful to EXCLUDE them from here
-		//TODO: this.additionalAttributes.addAttributes(target); //magic line
 		let attributeNames = Object.keys(this.attributes);
 		let fieldAttributes = {};
 		attributeNames.forEach((attributeName) => {
-			fieldAttributes[inflect(attributeName).snake.toString()] = this[attributeName];
+			let found = Object.keys(this.additionalAttributes).find((additionalAttributeName) => {
+				return additionalAttributeName === attributeName;
+			});
+			//is just on db if is not an additional attribute
+			if(!found) {
+				fieldAttributes[inflect(attributeName).snake.toString()] = this[attributeName];
+			}
 		});
 
 		//add belongsTo associations and remove others

@@ -354,6 +354,11 @@ describe("Model(attributes, options)", function () {
 
 	describe("(static properties)", function () {
 		describe(".attributes", function () {
+			afterEach(function () {
+				delete User.attributes.specialAttribute; //so does not affect other tests
+				user = new User();
+			});
+
 			it("should be an instance of Quirk", function () {
 				User.attributes.should.be.instanceOf(_quirk2["default"]);
 			});
@@ -364,15 +369,50 @@ describe("Model(attributes, options)", function () {
 
 			it("should be able to define a new static property to the model", function () {
 				User.attributes.specialAttribute = 2;
+				user = new User();
 				user.specialAttribute.should.equal(2);
 			});
 
-			it("should be able to define a new static property to the model", function () {
-				User.attributes.specialAttribute = function specialAttributeGetter() {
-					return this.id;
-				};
-				user = new User({ id: 2 });
-				user.specialAttribute.should.equal(2);
+			describe("(read only)", function () {
+				beforeEach(function () {
+					User.attributes.specialAttribute = function specialAttributeGetter() {
+						return this.id;
+					};
+					user = new User({ id: 2 });
+				});
+
+				it("should be able to define a new read only property to the model", function () {
+					user.specialAttribute.should.equal(2);
+				});
+
+				it("should throw when assign to a new read only property", function () {
+					(function () {
+						user.specialAttribute = 3;
+					}).should["throw"]("Cannot set property");
+				});
+			});
+
+			describe("(getter and setter)", function () {
+				beforeEach(function () {
+					User.attributes.specialAttribute = {
+						get: function getSpecialAttribute() {
+							return this.id;
+						},
+						set: function setSpecialAttribute(newValue) {
+							this.id = newValue;
+						}
+					};
+					user = new User({ id: 2 });
+				});
+
+				it("should be able to define a new property with get and set to the model", function () {
+					user.specialAttribute.should.equal(2);
+				});
+
+				it("should be able to change a property with get and set to the model", function () {
+					user.specialAttribute = 3;
+					user.specialAttribute.should.equal(3);
+				});
 			});
 		});
 
