@@ -2086,20 +2086,4 @@ describe("Model(attributes, options)", () => {
 			});
 		});
 	});
-
-	describe("(exporting)", () => {
-		describe(".toJSON()", () => {
-			it("should return a plain unformatted model", () => {
-				user.toJSON().should.eql(userAttributes);
-			});
-
-			it("should return a formatted model if a formatter is set on Model.jsonFormatter", () => {
-				let newUserAttributes = {someCustomAttribute: "someCustomAttributeValue"};
-				Model.jsonFormatter = () => {
-					return newUserAttributes;
-				};
-				user.toJSON().should.eql(newUserAttributes);
-			});
-		});
-	});
 });
