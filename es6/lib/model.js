@@ -728,6 +728,10 @@ export default class Model {
 
 	initialize() {}
 
+	toJSON() {
+		return this.attributes;
+	}
+
 	/**
 	 * Private Functionality
 	 */

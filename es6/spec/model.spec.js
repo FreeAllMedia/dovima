@@ -2086,4 +2086,12 @@ describe("Model(attributes, options)", () => {
 			});
 		});
 	});
+
+	describe("(exporting)", () => {
+		describe(".toJSON()", () => {
+			it("should return a plain unformatted model", () => {
+				user.toJSON().should.eql(userAttributes);
+			});
+		});
+	});
 });

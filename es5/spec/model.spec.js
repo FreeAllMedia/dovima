@@ -2243,4 +2243,12 @@ describe("Model(attributes, options)", function () {
 			});
 		});
 	});
+
+	describe("(exporting)", function () {
+		describe(".toJSON()", function () {
+			it("should return a plain unformatted model", function () {
+				user.toJSON().should.eql(userAttributes);
+			});
+		});
+	});
 });

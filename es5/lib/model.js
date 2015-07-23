@@ -778,6 +778,11 @@ var Model = (function () {
 		key: "initialize",
 		value: function initialize() {}
 	}, {
+		key: "toJSON",
+		value: function toJSON() {
+			return this.attributes;
+		}
+	}, {
 		key: setAttributes,
 
 		/**
