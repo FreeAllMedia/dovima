@@ -5,6 +5,7 @@ const flowsync = require("flowsync");
 import MultiError from "blunder";
 import Datetime from "fleming";
 import inflect from "jargon";
+import Quirk from "quirk";
 
 import {ModelQuery} from "./modelFinder.js";
 
@@ -49,6 +50,13 @@ export default class Model {
 				enumerable: false,
 				writable: true,
 				value: []
+			},
+
+			"additionalAttributes": {
+				enumerable: false, //this fix db related issues
+				get: () => {
+					return this.constructor.attributes;
+				}
 			},
 
 			"isNew": {
@@ -112,6 +120,9 @@ export default class Model {
 				}
 			}
 		});
+
+		//add the quirk to this instance
+		this.additionalAttributes.addAttributes(this);
 
 		this.associate();
 		this.validate();
@@ -718,11 +729,7 @@ export default class Model {
 	initialize() {}
 
 	toJSON() {
-		if(Model.jsonFormatter && typeof Model.jsonFormatter === "function") {
-			return Model.jsonFormatter(this);
-		} else {
-			return this.attributes;
-		}
+		return this.attributes;
 	}
 
 	/**
@@ -746,13 +753,13 @@ export default class Model {
 	}
 
 	[attributes]() {
-		var attributeNames = {};
+		var attributes = {};
 		this.properties.forEach((propertyName) => {
 			if(!this._associations[propertyName]) {
-				attributeNames[propertyName] = this[propertyName];
+				attributes[propertyName] = this[propertyName];
 			}
 		});
-		return attributeNames;
+		return attributes;
 	}
 
 	[isNew]() {
@@ -1019,7 +1026,13 @@ export default class Model {
 		let attributeNames = Object.keys(this.attributes);
 		let fieldAttributes = {};
 		attributeNames.forEach((attributeName) => {
-			fieldAttributes[inflect(attributeName).snake.toString()] = this[attributeName];
+			let found = Object.keys(this.additionalAttributes).find((additionalAttributeName) => {
+				return additionalAttributeName === attributeName;
+			});
+			//is just on db if is not an additional attribute
+			if(!found) {
+				fieldAttributes[inflect(attributeName).snake.toString()] = this[attributeName];
+			}
 		});
 
 		//add belongsTo associations and remove others
@@ -1114,6 +1127,11 @@ Object.defineProperties(Model, {
 			let modelQuery = new ModelQuery(Model.database);
 			return modelQuery.find(this);
 		}
+	},
+	//problem here: can't assign property automatically to the concrete model to use it
+	//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/observe#Browser_compatibility
+	"attributes": {
+		value: new Quirk()
 	}
 });
 

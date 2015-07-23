@@ -1,4 +1,5 @@
-const validateDependencies = Symbol();
+const validateDependencies = Symbol(),
+	transformNames = Symbol();
 import inflect from "jargon";
 
 export default class ModelFinder {
@@ -92,36 +93,43 @@ export class ModelQuery {
 		return this;
 	}
 
-	where(...options) {
-		const formattedOptions = options.map((option, index) => {
+	[transformNames](...options) {
+		return options.map((option, index) => {
 			if (typeof option === "string" && index === 0) {
 				return inflect(option).snake.toString();
 			} else {
 				return option;
 			}
 		});
+	}
 
+	where(...options) {
+		const formattedOptions = this[transformNames](...options);
 		this._query.where(...formattedOptions);
 		return this;
 	}
 
 	andWhere(...options) {
-		this._query.andWhere(...options);
+		const formattedOptions = this[transformNames](...options);
+		this._query.andWhere(...formattedOptions);
 		return this;
 	}
 
 	orWhere(...options) {
-		this._query.orWhere(...options);
+		const formattedOptions = this[transformNames](...options);
+		this._query.orWhere(...formattedOptions);
 		return this;
 	}
 
 	groupBy(...options) {
-		this._query.groupBy(...options);
+		const formattedOptions = this[transformNames](...options);
+		this._query.groupBy(...formattedOptions);
 		return this;
 	}
 
 	orderBy(...options) {
-		this._query.orderBy(...options);
+		const formattedOptions = this[transformNames](...options);
+		this._query.orderBy(...formattedOptions);
 		return this;
 	}
 

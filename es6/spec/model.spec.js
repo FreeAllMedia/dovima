@@ -7,6 +7,7 @@ const sinon = require("sinon");
 import Database from "almaden";
 import Collection from "../lib/collection.js";
 import Model, {AssociationSetter} from "../lib/model.js";
+import Quirk from "quirk";
 import {ModelQuery} from "../lib/modelFinder.js";
 import {isPresent} from "../../";
 
@@ -248,6 +249,69 @@ describe("Model(attributes, options)", () => {
 	});
 
 	describe("(static properties)", () => {
+		describe(".attributes", () => {
+			afterEach(() => {
+				delete User.attributes.specialAttribute; //so does not affect other tests
+				user = new User();
+			});
+
+			it("should be an instance of Quirk", () => {
+				User.attributes.should.be.instanceOf(Quirk);
+			});
+
+			it("should be able to get the attributes from the regular methods", () => {
+				user.additionalAttributes.should.be.instanceOf(Quirk);
+			});
+
+			it("should be able to define a new static property to the model", () => {
+				User.attributes.specialAttribute = 2;
+				user = new User();
+				user.specialAttribute.should.equal(2);
+			});
+
+			describe("(read only)", () => {
+				beforeEach(() => {
+					User.attributes.specialAttribute = function specialAttributeGetter() {
+						return this.id;
+					};
+					user = new User({id: 2});
+				});
+
+				it("should be able to define a new read only property to the model", () => {
+					user.specialAttribute.should.equal(2);
+				});
+
+				it("should throw when assign to a new read only property", () => {
+					() => {
+						user.specialAttribute = 3;
+					}.should.throw("Cannot set property");
+				});
+			});
+
+			describe("(getter and setter)", () => {
+				beforeEach(() => {
+					User.attributes.specialAttribute = {
+						get: function getSpecialAttribute() {
+							return this.id;
+						},
+						set: function setSpecialAttribute(newValue) {
+							this.id = newValue;
+						}
+					};
+					user = new User({id: 2});
+				});
+
+				it("should be able to define a new property with get and set to the model", () => {
+					user.specialAttribute.should.equal(2);
+				});
+
+				it("should be able to change a property with get and set to the model", () => {
+					user.specialAttribute = 3;
+					user.specialAttribute.should.equal(3);
+				});
+			});
+		});
+
 		describe(".find", () => {
 			let users,
 				userCollection;
@@ -276,6 +340,98 @@ describe("Model(attributes, options)", () => {
 
 			it("should return a ModelQuery instance", () => {
 				User.find.should.be.instanceOf(ModelQuery);
+			});
+
+			describe("(ModelQuery operations)", () => {
+				describe(".where", () => {
+					let querySpy;
+
+					beforeEach(done => {
+						querySpy = Model.database.spy("select * from `users` where `some_id` = 1", [1]);
+						User
+							.find
+							.where("someId", 1)
+							.results(() => {
+								done();
+							});
+					});
+
+					it("should convert camel case names to snake case names on a where", () => {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+
+				describe(".andWhere", () => {
+					let querySpy;
+
+					beforeEach(done => {
+						querySpy = Model.database.spy("select * from `users` where `some_id` = 1", [1]);
+						User
+							.find
+							.andWhere("someId", 1)
+							.results(() => {
+								done();
+							});
+					});
+
+					it("should convert camel case names to snake case names on a where", () => {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+
+				describe(".orWhere", () => {
+					let querySpy;
+
+					beforeEach(done => {
+						querySpy = Model.database.spy("select * from `users` where `some_id` = 1", [1]);
+						User
+							.find
+							.orWhere("someId", 1)
+							.results(() => {
+								done();
+							});
+					});
+
+					it("should convert camel case names to snake case names on a where", () => {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+
+				describe(".groupBy", () => {
+					let querySpy;
+
+					beforeEach(done => {
+						querySpy = Model.database.spy("select * from `users` group by `some_id`", [1]);
+						User
+							.find
+							.groupBy("someId")
+							.results(() => {
+								done();
+							});
+					});
+
+					it("should convert camel case names to snake case names on a where", () => {
+						querySpy.callCount.should.equal(1);
+					});
+				});
+
+				describe(".orderBy", () => {
+					let querySpy;
+
+					beforeEach(done => {
+						querySpy = Model.database.spy("select * from `users` order by `some_id` asc", [1]);
+						User
+							.find
+							.orderBy("someId")
+							.results(() => {
+								done();
+							});
+					});
+
+					it("should convert camel case names to snake case names on a where", () => {
+						querySpy.callCount.should.equal(1);
+					});
+				});
 			});
 
 			it("should return a collection", () => {
@@ -1935,14 +2091,6 @@ describe("Model(attributes, options)", () => {
 		describe(".toJSON()", () => {
 			it("should return a plain unformatted model", () => {
 				user.toJSON().should.eql(userAttributes);
-			});
-
-			it("should return a formatted model if a formatter is set on Model.jsonFormatter", () => {
-				let newUserAttributes = {someCustomAttribute: "someCustomAttributeValue"};
-				Model.jsonFormatter = () => {
-					return newUserAttributes;
-				};
-				user.toJSON().should.eql(newUserAttributes);
 			});
 		});
 	});
