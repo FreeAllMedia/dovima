@@ -729,11 +729,7 @@ export default class Model {
 	initialize() {}
 
 	toJSON() {
-		if(Model.jsonFormatter && typeof Model.jsonFormatter === "function") {
-			return Model.jsonFormatter(this);
-		} else {
-			return this.attributes;
-		}
+		return this.attributes;
 	}
 
 	/**

@@ -780,11 +780,7 @@ var Model = (function () {
 	}, {
 		key: "toJSON",
 		value: function toJSON() {
-			if (Model.jsonFormatter && typeof Model.jsonFormatter === "function") {
-				return Model.jsonFormatter(this);
-			} else {
-				return this.attributes;
-			}
+			return this.attributes;
 		}
 	}, {
 		key: setAttributes,

@@ -2249,14 +2249,6 @@ describe("Model(attributes, options)", function () {
 			it("should return a plain unformatted model", function () {
 				user.toJSON().should.eql(userAttributes);
 			});
-
-			it("should return a formatted model if a formatter is set on Model.jsonFormatter", function () {
-				var newUserAttributes = { someCustomAttribute: "someCustomAttributeValue" };
-				_libModelJs2["default"].jsonFormatter = function () {
-					return newUserAttributes;
-				};
-				user.toJSON().should.eql(newUserAttributes);
-			});
 		});
 	});
 });
