@@ -778,15 +778,6 @@ var Model = (function () {
 		key: "initialize",
 		value: function initialize() {}
 	}, {
-		key: "toJSON",
-		value: function toJSON() {
-			if (Model.jsonFormatter && typeof Model.jsonFormatter === "function") {
-				return Model.jsonFormatter(this);
-			} else {
-				return this.attributes;
-			}
-		}
-	}, {
 		key: setAttributes,
 
 		/**
