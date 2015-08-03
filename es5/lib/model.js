@@ -1,3 +1,5 @@
+/* Component Dependencies */
+//
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -12,12 +14,9 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-/* Component Dependencies */
-//
+var _flowsync = require("flowsync");
 
-var _blunder = require("blunder");
-
-var _blunder2 = _interopRequireDefault(_blunder);
+var _flowsync2 = _interopRequireDefault(_flowsync);
 
 var _fleming = require("fleming");
 
@@ -38,8 +37,6 @@ var _collectionJs = require("./collection.js");
 var _collectionJs2 = _interopRequireDefault(_collectionJs);
 
 var _modelFinderJs2 = _interopRequireDefault(_modelFinderJs);
-
-var flowsync = require("flowsync");
 
 /* Private Method Symbols */
 var callDeep = Symbol(),
@@ -306,10 +303,10 @@ var Model = (function () {
 					done(null, cleanedMessages);
 				};
 
-				flowsync.mapParallel(attributeValidations, performValidation, compileValidatorResponses);
+				_flowsync2["default"].mapParallel(attributeValidations, performValidation, compileValidatorResponses);
 			};
 
-			flowsync.mapParallel(attributeNamesWithValidators, performValidationsForAttribute, compileInvalidAttributeList);
+			_flowsync2["default"].mapParallel(attributeNamesWithValidators, performValidationsForAttribute, compileInvalidAttributeList);
 		}
 	}, {
 		key: "include",
@@ -604,7 +601,7 @@ var Model = (function () {
 								}
 							});
 
-							flowsync.parallel(fetchTasks, function () {
+							_flowsync2["default"].parallel(fetchTasks, function () {
 								if (callback) {
 									callback(error, _this3);
 								}
@@ -629,7 +626,7 @@ var Model = (function () {
 				}
 
 				if (this[this.primaryKey]) {
-					flowsync.series([function (next) {
+					_flowsync2["default"].series([function (next) {
 						_this5[callDeep]("delete", function (associationDetails) {
 							return associationDetails.type !== "belongsTo" && associationDetails.dependent === true;
 						}, next);
@@ -665,7 +662,7 @@ var Model = (function () {
 				throw new Error("Cannot save without Model.database set.");
 			}
 
-			flowsync.series([function (next) {
+			_flowsync2["default"].series([function (next) {
 				_this6.beforeValidation(next);
 			}, function (next) {
 				_this6.isValid(function (valid) {
@@ -677,13 +674,14 @@ var Model = (function () {
 
 							if (hasInvalidAttributes) {
 								var errorPrefix = _this6.constructor.name + " is invalid";
-								var multiError = new _blunder2["default"]([], errorPrefix);
+								var multiError = [];
 								for (var invalidAttributeName in invalidAttributeList) {
 									var invalidAttributeMessages = invalidAttributeList[invalidAttributeName];
 
 									for (var index in invalidAttributeMessages) {
 										var invalidAttributeMessage = invalidAttributeMessages[index];
 										var error = new Error(invalidAttributeName + " " + invalidAttributeMessage);
+										error.name = errorPrefix;
 										multiError.push(error);
 									}
 								}
@@ -845,7 +843,7 @@ var Model = (function () {
 
 			var associationNames = Object.keys(this.associations);
 
-			flowsync.mapParallel(associationNames, function (associationName, next) {
+			_flowsync2["default"].mapParallel(associationNames, function (associationName, next) {
 
 				var associationDetails = _this8.associations[associationName];
 
@@ -871,7 +869,7 @@ var Model = (function () {
 						//collection set, and not many to many (nothing in that case)
 						if (collection) {
 							//let array = [].slice.call(collection);
-							flowsync.eachParallel(collection, function (collectionModel, finishSubStep) {
+							_flowsync2["default"].eachParallel(collection, function (collectionModel, finishSubStep) {
 								var result = predicate(associationDetails);
 								if (result) {
 									collectionModel[methodName](finishSubStep);

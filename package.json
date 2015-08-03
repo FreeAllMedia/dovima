@@ -1,6 +1,6 @@
 {
   "name": "dovima",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "ES6 generic model with lots of useful special features.",
   "main": "index.js",
   "scripts": {
@@ -35,7 +35,6 @@
   "homepage": "https://github.com/FreeAllMedia/dovima",
   "dependencies": {
     "almaden": "^0.1.0",
-    "blunder": "^0.1.0",
     "fleming": "^0.1.0",
     "flowsync": "^0.1.4",
     "jargon": "^0.1.14",

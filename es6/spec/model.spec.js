@@ -1028,15 +1028,15 @@ describe("Model(attributes, options)", () => {
 				});
 
 				it("should retun just one multi error object the appropiate number of errors", done => {
-					user.save((error) => {
-						error.errors.length.should.equal(1);
+					user.save((errors) => {
+						errors.length.should.equal(1);
 						done();
 					});
 				});
 
 				it("should retun just one multi error object the appropiate name", done => {
-					user.save((error) => {
-						error.name.should.equal("User is invalid");
+					user.save((errors) => {
+						errors[0].name.should.equal("User is invalid");
 						done();
 					});
 				});

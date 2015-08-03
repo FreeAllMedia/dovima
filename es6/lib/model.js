@@ -1,8 +1,6 @@
-const flowsync = require("flowsync");
-
 /* Component Dependencies */
 //
-import MultiError from "blunder";
+import flowsync from "flowsync";
 import Datetime from "fleming";
 import inflect from "jargon";
 import Quirk from "quirk";
@@ -621,13 +619,14 @@ export default class Model {
 
 							if (hasInvalidAttributes) {
 								const errorPrefix = this.constructor.name + " is invalid";
-								const multiError = new MultiError([], errorPrefix);
+								const multiError = [];
 								for(let invalidAttributeName in invalidAttributeList) {
 									const invalidAttributeMessages = invalidAttributeList[invalidAttributeName];
 
 									for(let index in invalidAttributeMessages) {
 										const invalidAttributeMessage = invalidAttributeMessages[index];
 										const error = new Error(`${invalidAttributeName} ${invalidAttributeMessage}`);
+										error.name = errorPrefix;
 										multiError.push(error);
 									}
 								}
