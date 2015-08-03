@@ -1144,15 +1144,15 @@ describe("Model(attributes, options)", function () {
 				});
 
 				it("should retun just one multi error object the appropiate number of errors", function (done) {
-					user.save(function (error) {
-						error.errors.length.should.equal(1);
+					user.save(function (errors) {
+						errors.length.should.equal(1);
 						done();
 					});
 				});
 
 				it("should retun just one multi error object the appropiate name", function (done) {
-					user.save(function (error) {
-						error.name.should.equal("User is invalid");
+					user.save(function (errors) {
+						errors[0].name.should.equal("User is invalid");
 						done();
 					});
 				});
@@ -2217,14 +2217,14 @@ describe("Model(attributes, options)", function () {
 					});
 
 					it("should call back with an error", function () {
-						user.save(function (error) {
-							error.should.be.instanceOf(Error);
+						user.save(function (errors) {
+							errors[0].should.be.instanceOf(Error);
 						});
 					});
 
 					it("should inform the user that the model is invalid", function () {
-						user.save(function (error) {
-							error.message.should.eql("photos must be present on User");
+						user.save(function (errors) {
+							errors[0].message.should.eql("photos must be present on User");
 						});
 					});
 				});

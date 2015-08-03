@@ -1028,15 +1028,15 @@ describe("Model(attributes, options)", () => {
 				});
 
 				it("should retun just one multi error object the appropiate number of errors", done => {
-					user.save((error) => {
-						error.errors.length.should.equal(1);
+					user.save((errors) => {
+						errors.length.should.equal(1);
 						done();
 					});
 				});
 
 				it("should retun just one multi error object the appropiate name", done => {
-					user.save((error) => {
-						error.name.should.equal("User is invalid");
+					user.save((errors) => {
+						errors[0].name.should.equal("User is invalid");
 						done();
 					});
 				});
@@ -2060,14 +2060,14 @@ describe("Model(attributes, options)", () => {
 					});
 
 					it("should call back with an error", () => {
-						user.save((error) => {
-							error.should.be.instanceOf(Error);
+						user.save((errors) => {
+							errors[0].should.be.instanceOf(Error);
 						});
 					});
 
 					it("should inform the user that the model is invalid", () => {
-						user.save((error) => {
-							error.message.should.eql("photos must be present on User");
+						user.save((errors) => {
+							errors[0].message.should.eql("photos must be present on User");
 						});
 					});
 				});
