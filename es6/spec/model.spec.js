@@ -2060,14 +2060,14 @@ describe("Model(attributes, options)", () => {
 					});
 
 					it("should call back with an error", () => {
-						user.save((error) => {
-							error.should.be.instanceOf(Error);
+						user.save((errors) => {
+							errors[0].should.be.instanceOf(Error);
 						});
 					});
 
 					it("should inform the user that the model is invalid", () => {
-						user.save((error) => {
-							error.message.should.eql("photos must be present on User");
+						user.save((errors) => {
+							errors[0].message.should.eql("photos must be present on User");
 						});
 					});
 				});
