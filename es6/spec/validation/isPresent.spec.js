@@ -1,5 +1,5 @@
 import isPresent from "../../lib/validation/isPresent.js";
-import Model from "../../lib/model.js";
+import Model from "../../../";
 import Database from "almaden";
 
 /* Test Configuration */

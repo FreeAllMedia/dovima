@@ -14,9 +14,9 @@ var _libValidationIsPresentJs = require("../../lib/validation/isPresent.js");
 
 var _libValidationIsPresentJs2 = _interopRequireDefault(_libValidationIsPresentJs);
 
-var _libModelJs = require("../../lib/model.js");
+var _ = require("../../../");
 
-var _libModelJs2 = _interopRequireDefault(_libModelJs);
+var _2 = _interopRequireDefault(_);
 
 var _almaden = require("almaden");
 
@@ -45,7 +45,7 @@ describe("isPresent(item, callback)", function () {
 		_inherits(Wheel, _Model);
 
 		return Wheel;
-	})(_libModelJs2["default"]);
+	})(_2["default"]);
 
 	var SteeringWheel = (function (_Model2) {
 		function SteeringWheel() {
@@ -57,7 +57,7 @@ describe("isPresent(item, callback)", function () {
 		_inherits(SteeringWheel, _Model2);
 
 		return SteeringWheel;
-	})(_libModelJs2["default"]);
+	})(_2["default"]);
 
 	var Street = (function (_Model3) {
 		function Street() {
@@ -76,7 +76,7 @@ describe("isPresent(item, callback)", function () {
 		}]);
 
 		return Street;
-	})(_libModelJs2["default"]);
+	})(_2["default"]);
 
 	var Truck = (function (_Model4) {
 		function Truck() {
@@ -104,7 +104,7 @@ describe("isPresent(item, callback)", function () {
 		}]);
 
 		return Truck;
-	})(_libModelJs2["default"]);
+	})(_2["default"]);
 
 	var truck = undefined,
 	    steeringWheel = undefined,
@@ -114,7 +114,7 @@ describe("isPresent(item, callback)", function () {
 
 	beforeEach(function () {
 
-		_libModelJs2["default"].database = new _almaden2["default"](databaseConfig);
+		_2["default"].database = new _almaden2["default"](databaseConfig);
 
 		truck = new Truck();
 		street = new Street();
@@ -182,7 +182,7 @@ describe("isPresent(item, callback)", function () {
 
 		describe("(on the database due to lazy loading)", function () {
 			beforeEach(function () {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select count(*) as `rowCount` from `wheels` where `truck_id` = 1": [{ rowCount: 1 }]
 				});
 				truck = new Truck();
@@ -223,7 +223,7 @@ describe("isPresent(item, callback)", function () {
 
 				describe("(on the database due to lazy loading)", function () {
 					beforeEach(function () {
-						_libModelJs2["default"].database.mock({
+						_2["default"].database.mock({
 							"select count(*) as `rowCount` from `wheels` where `truck_id` = 1": [{ rowCount: 0 }]
 						});
 						truck = new Truck();
@@ -276,13 +276,13 @@ describe("isPresent(item, callback)", function () {
 
 		describe("(when model not new)", function () {
 			beforeEach(function () {
-				_libModelJs2["default"].database.mock({});
+				_2["default"].database.mock({});
 			});
 
 			describe("(hasOne)", function () {
 				describe("(association not present in database)", function () {
 					beforeEach(function () {
-						_libModelJs2["default"].database.mock({
+						_2["default"].database.mock({
 							"select count(*) as `rowCount` from `steering_wheels` where `truck_id` = 1": [{ rowCount: 0 }]
 						});
 					});
@@ -297,7 +297,7 @@ describe("isPresent(item, callback)", function () {
 
 				describe("(association is present in database)", function () {
 					beforeEach(function () {
-						_libModelJs2["default"].database.mock({
+						_2["default"].database.mock({
 							"select count(*) as `rowCount` from `steering_wheels` where `truck_id` = 1": [{ rowCount: 1 }]
 						});
 					});

@@ -1,5 +1,4 @@
 /* Testing Dependencies */
-
 "use strict";
 
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
@@ -16,9 +15,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-//import MultiError from "../../multiError/multiError.js";
+var _sinon = require("sinon");
 
-//import MultiError from "../../multiError/multiError.js";
+var _sinon2 = _interopRequireDefault(_sinon);
 
 var _almaden = require("almaden");
 
@@ -28,9 +27,13 @@ var _libCollectionJs = require("../lib/collection.js");
 
 var _libCollectionJs2 = _interopRequireDefault(_libCollectionJs);
 
-var _libModelJs = require("../lib/model.js");
+var _ = require("../../");
 
-var _libModelJs2 = _interopRequireDefault(_libModelJs);
+var _2 = _interopRequireDefault(_);
+
+var _libAssociationSetterJs = require("../lib/associationSetter.js");
+
+var _libAssociationSetterJs2 = _interopRequireDefault(_libAssociationSetterJs);
 
 var _quirk = require("quirk");
 
@@ -38,209 +41,15 @@ var _quirk2 = _interopRequireDefault(_quirk);
 
 var _libModelFinderJs = require("../lib/modelFinder.js");
 
-var _ = require("../../");
+var _testClassesJs = require("./testClasses.js");
 
-var sinon = require("sinon");
+var _databaseConfigJson = require("./databaseConfig.json");
 
-/* Test Configuration */
-//nothing from a real connection needed since we are mocking here
-var databaseConfig = {
-	"debug": true,
-	"client": "mysql",
-	"connection": {},
-	"pool": {
-		"max": 2,
-		"min": 2
-	}
-};
+var _databaseConfigJson2 = _interopRequireDefault(_databaseConfigJson);
 
 var userFixtures = require("./fixtures/users.json");
 
 describe("Model(attributes, options)", function () {
-
-	/**
-  * Setup Model Examples
-  */
-
-	/* Simple Example */
-
-	var User = (function (_Model) {
-		function User() {
-			_classCallCheck(this, User);
-
-			_get(Object.getPrototypeOf(User.prototype), "constructor", this).apply(this, arguments);
-		}
-
-		_inherits(User, _Model);
-
-		_createClass(User, [{
-			key: "associate",
-			value: function associate() {
-				this.hasOne("address", Address);
-
-				this.hasOne("postalCode", PostalCode).through("address");
-
-				this.hasMany("photos", Photo);
-
-				// this.hasMany("deletedPhotos", Photo)
-				// 	.where("deletedAt", "!=", null);
-
-				this.hasOne("primaryPhoto", Photo).where("isPrimary", true);
-
-				this.hasMany("photoLikes", PhotoLike);
-				this.hasMany("likedPhotos", Photo).through("photoLikes");
-
-				this.hasMany("comments", Comment).through("photos");
-
-				this.hasMany("deletedComments", Comment).through("photos").where("comments.deletedAt", "!=", null);
-			}
-		}, {
-			key: "validate",
-			value: function validate() {
-				this.ensure("photos", _.isPresent);
-			}
-		}]);
-
-		return User;
-	})(_libModelJs2["default"]);
-
-	var Address = (function (_Model2) {
-		function Address() {
-			_classCallCheck(this, Address);
-
-			_get(Object.getPrototypeOf(Address.prototype), "constructor", this).apply(this, arguments);
-		}
-
-		_inherits(Address, _Model2);
-
-		_createClass(Address, [{
-			key: "associate",
-			value: function associate() {
-				this.belongsTo("user", User);
-				this.belongsTo("postalCode", PostalCode);
-			}
-		}, {
-			key: "validate",
-			value: function validate() {
-				this.ensure("photos", _.isPresent);
-			}
-		}]);
-
-		return Address;
-	})(_libModelJs2["default"]);
-
-	var PostalCode = (function (_Model3) {
-		function PostalCode() {
-			_classCallCheck(this, PostalCode);
-
-			_get(Object.getPrototypeOf(PostalCode.prototype), "constructor", this).apply(this, arguments);
-		}
-
-		_inherits(PostalCode, _Model3);
-
-		_createClass(PostalCode, [{
-			key: "associate",
-			value: function associate() {
-				this.hasMany("addresses");
-			}
-		}]);
-
-		return PostalCode;
-	})(_libModelJs2["default"]);
-
-	var PhotoLike = (function () {
-		function PhotoLike() {
-			_classCallCheck(this, PhotoLike);
-		}
-
-		_createClass(PhotoLike, [{
-			key: "associate",
-			value: function associate() {
-				this.belongsTo("user", User);
-				this.belongsTo("photo", User);
-			}
-		}, {
-			key: "validate",
-			value: function validate() {
-				this.ensure("user", _.isPresent);
-				this.ensure("photo", _.isPresent);
-			}
-		}]);
-
-		return PhotoLike;
-	})();
-
-	var Photo = (function (_Model4) {
-		function Photo() {
-			_classCallCheck(this, Photo);
-
-			_get(Object.getPrototypeOf(Photo.prototype), "constructor", this).apply(this, arguments);
-		}
-
-		_inherits(Photo, _Model4);
-
-		_createClass(Photo, [{
-			key: "associate",
-			value: function associate() {
-				this.belongsTo("user", User).ambiguous;
-
-				this.hasMany("comments", Comment);
-
-				this.hasMany("commentAuthors", User).through("comments").as("author");
-
-				this.hasMany("photoLikes", PhotoLike);
-
-				this.hasMany("likedByUsers", User).through("photoLikes");
-			}
-		}, {
-			key: "validate",
-			value: function validate() {
-				this.ensure("user", _.isPresent);
-			}
-		}]);
-
-		return Photo;
-	})(_libModelJs2["default"]);
-
-	var Comment = (function (_Model5) {
-		function Comment() {
-			_classCallCheck(this, Comment);
-
-			_get(Object.getPrototypeOf(Comment.prototype), "constructor", this).apply(this, arguments);
-		}
-
-		_inherits(Comment, _Model5);
-
-		_createClass(Comment, [{
-			key: "associate",
-			value: function associate() {
-				this.belongsTo("photo", Photo);
-				this.belongsTo("author", User);
-			}
-		}]);
-
-		return Comment;
-	})(_libModelJs2["default"]);
-
-	var Rating = (function (_Model6) {
-		function Rating() {
-			_classCallCheck(this, Rating);
-
-			_get(Object.getPrototypeOf(Rating.prototype), "constructor", this).apply(this, arguments);
-		}
-
-		_inherits(Rating, _Model6);
-
-		_createClass(Rating, [{
-			key: "associate",
-			value: function associate() {
-				this.belongsTo("owner", Comment).isPolymorphic;
-			}
-		}]);
-
-		return Rating;
-	})(_libModelJs2["default"]);
-
 	/**
   * Instantiate Model Examples
   */
@@ -249,19 +58,16 @@ describe("Model(attributes, options)", function () {
 	    user = undefined,
 	    userAttributes = undefined,
 	    photo = undefined,
-	    primaryPhoto = undefined,
-	    postalCode = undefined,
-	    address = undefined,
 	    comment = undefined,
 	    clock = undefined;
 
 	beforeEach(function () {
-		clock = sinon.useFakeTimers();
+		clock = _sinon2["default"].useFakeTimers();
 
-		_libModelJs2["default"].database = new _almaden2["default"](databaseConfig);
-		_libModelJs2["default"].database.mock({}); // Catch-all for database
+		_2["default"].database = new _almaden2["default"](_databaseConfigJson2["default"]);
+		_2["default"].database.mock({}); // Catch-all for database
 
-		model = new _libModelJs2["default"]();
+		model = new _2["default"]();
 
 		userAttributes = {
 			id: 1,
@@ -273,12 +79,9 @@ describe("Model(attributes, options)", function () {
 			postalCodeId: undefined
 		};
 
-		user = new User(userAttributes);
-		photo = new Photo();
-		primaryPhoto = new Photo();
-		comment = new Comment();
-		postalCode = new PostalCode();
-		address = new Address();
+		user = new _testClassesJs.User(userAttributes);
+		photo = new _testClassesJs.Photo();
+		comment = new _testClassesJs.Comment();
 	});
 
 	afterEach(function () {
@@ -301,7 +104,7 @@ describe("Model(attributes, options)", function () {
 				user.attributes.should.eql(userAttributes);
 			});
 			it("should assign the properties for the model", function () {
-				user = new User();
+				user = new _testClassesJs.User();
 				user.attributes = userAttributes;
 				user.attributes.should.eql(userAttributes);
 			});
@@ -355,12 +158,12 @@ describe("Model(attributes, options)", function () {
 	describe("(static properties)", function () {
 		describe(".attributes", function () {
 			afterEach(function () {
-				delete User.attributes.specialAttribute; //so does not affect other tests
-				user = new User();
+				delete _testClassesJs.User.attributes.specialAttribute; //so does not affect other tests
+				user = new _testClassesJs.User();
 			});
 
 			it("should be an instance of Quirk", function () {
-				User.attributes.should.be.instanceOf(_quirk2["default"]);
+				_testClassesJs.User.attributes.should.be.instanceOf(_quirk2["default"]);
 			});
 
 			it("should be able to get the attributes from the regular methods", function () {
@@ -368,17 +171,17 @@ describe("Model(attributes, options)", function () {
 			});
 
 			it("should be able to define a new static property to the model", function () {
-				User.attributes.specialAttribute = 2;
-				user = new User();
+				_testClassesJs.User.attributes.specialAttribute = 2;
+				user = new _testClassesJs.User();
 				user.specialAttribute.should.equal(2);
 			});
 
 			describe("(read only)", function () {
 				beforeEach(function () {
-					User.attributes.specialAttribute = function specialAttributeGetter() {
+					_testClassesJs.User.attributes.specialAttribute = function specialAttributeGetter() {
 						return this.id;
 					};
-					user = new User({ id: 2 });
+					user = new _testClassesJs.User({ id: 2 });
 				});
 
 				it("should be able to define a new read only property to the model", function () {
@@ -394,7 +197,7 @@ describe("Model(attributes, options)", function () {
 
 			describe("(getter and setter)", function () {
 				beforeEach(function () {
-					User.attributes.specialAttribute = {
+					_testClassesJs.User.attributes.specialAttribute = {
 						get: function getSpecialAttribute() {
 							return this.id;
 						},
@@ -402,7 +205,7 @@ describe("Model(attributes, options)", function () {
 							this.id = newValue;
 						}
 					};
-					user = new User({ id: 2 });
+					user = new _testClassesJs.User({ id: 2 });
 				});
 
 				it("should be able to define a new property with get and set to the model", function () {
@@ -421,25 +224,25 @@ describe("Model(attributes, options)", function () {
 			    userCollection = undefined;
 
 			before(function () {
-				userCollection = new _libCollectionJs2["default"](User);
+				userCollection = new _libCollectionJs2["default"](_testClassesJs.User);
 				userFixtures.forEach(function (userFiture) {
-					userCollection.push(new User(userFiture));
+					userCollection.push(new _testClassesJs.User(userFiture));
 				});
 			});
 
 			beforeEach(function (done) {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select * from `users` where `mom_id` = 1": userFixtures
 				});
 
-				User.find.where("momId", "=", 1).results(function (error, fetchedUsers) {
+				_testClassesJs.User.find.where("momId", "=", 1).results(function (error, fetchedUsers) {
 					users = fetchedUsers;
 					done();
 				});
 			});
 
 			it("should return a ModelQuery instance", function () {
-				User.find.should.be.instanceOf(_libModelFinderJs.ModelQuery);
+				_testClassesJs.User.find.should.be.instanceOf(_libModelFinderJs.ModelQuery);
 			});
 
 			describe("(ModelQuery operations)", function () {
@@ -447,8 +250,8 @@ describe("Model(attributes, options)", function () {
 					var querySpy = undefined;
 
 					beforeEach(function (done) {
-						querySpy = _libModelJs2["default"].database.spy("select * from `users` where `some_id` = 1", [1]);
-						User.find.where("someId", 1).results(function () {
+						querySpy = _2["default"].database.spy("select * from `users` where `some_id` = 1", [1]);
+						_testClassesJs.User.find.where("someId", 1).results(function () {
 							done();
 						});
 					});
@@ -462,8 +265,8 @@ describe("Model(attributes, options)", function () {
 					var querySpy = undefined;
 
 					beforeEach(function (done) {
-						querySpy = _libModelJs2["default"].database.spy("select * from `users` where `some_id` = 1", [1]);
-						User.find.andWhere("someId", 1).results(function () {
+						querySpy = _2["default"].database.spy("select * from `users` where `some_id` = 1", [1]);
+						_testClassesJs.User.find.andWhere("someId", 1).results(function () {
 							done();
 						});
 					});
@@ -477,8 +280,8 @@ describe("Model(attributes, options)", function () {
 					var querySpy = undefined;
 
 					beforeEach(function (done) {
-						querySpy = _libModelJs2["default"].database.spy("select * from `users` where `some_id` = 1", [1]);
-						User.find.orWhere("someId", 1).results(function () {
+						querySpy = _2["default"].database.spy("select * from `users` where `some_id` = 1", [1]);
+						_testClassesJs.User.find.orWhere("someId", 1).results(function () {
 							done();
 						});
 					});
@@ -492,8 +295,8 @@ describe("Model(attributes, options)", function () {
 					var querySpy = undefined;
 
 					beforeEach(function (done) {
-						querySpy = _libModelJs2["default"].database.spy("select * from `users` group by `some_id`", [1]);
-						User.find.groupBy("someId").results(function () {
+						querySpy = _2["default"].database.spy("select * from `users` group by `some_id`", [1]);
+						_testClassesJs.User.find.groupBy("someId").results(function () {
 							done();
 						});
 					});
@@ -507,8 +310,8 @@ describe("Model(attributes, options)", function () {
 					var querySpy = undefined;
 
 					beforeEach(function (done) {
-						querySpy = _libModelJs2["default"].database.spy("select * from `users` order by `some_id` asc", [1]);
-						User.find.orderBy("someId").results(function () {
+						querySpy = _2["default"].database.spy("select * from `users` order by `some_id` asc", [1]);
+						_testClassesJs.User.find.orderBy("someId").results(function () {
 							done();
 						});
 					});
@@ -533,11 +336,11 @@ describe("Model(attributes, options)", function () {
 
 			describe(".one", function () {
 				beforeEach(function (done) {
-					_libModelJs2["default"].database.mock({
+					_2["default"].database.mock({
 						"select * from `users` where `mom_id` = 1 limit 1": [userFixtures[0]]
 					});
 
-					User.find.one.where("momId", 1).results(function (error, fetchedUsers) {
+					_testClassesJs.User.find.one.where("momId", 1).results(function (error, fetchedUsers) {
 						users = fetchedUsers;
 						done();
 					});
@@ -550,7 +353,7 @@ describe("Model(attributes, options)", function () {
 
 			describe(".all", function () {
 				beforeEach(function (done) {
-					User.find.all.where("momId", 1).results(function (error, fetchedUsers) {
+					_testClassesJs.User.find.all.where("momId", 1).results(function (error, fetchedUsers) {
 						users = fetchedUsers;
 						done();
 					});
@@ -562,14 +365,14 @@ describe("Model(attributes, options)", function () {
 			});
 
 			describe(".deleted", function () {
-				var SoftUser = (function (_Model7) {
+				var SoftUser = (function (_Model) {
 					function SoftUser() {
 						_classCallCheck(this, SoftUser);
 
 						_get(Object.getPrototypeOf(SoftUser.prototype), "constructor", this).apply(this, arguments);
 					}
 
-					_inherits(SoftUser, _Model7);
+					_inherits(SoftUser, _Model);
 
 					_createClass(SoftUser, [{
 						key: "initialize",
@@ -579,10 +382,10 @@ describe("Model(attributes, options)", function () {
 					}]);
 
 					return SoftUser;
-				})(_libModelJs2["default"]);
+				})(_2["default"]);
 
 				beforeEach(function (done) {
-					_libModelJs2["default"].database.mock({
+					_2["default"].database.mock({
 						"select * from `soft_users` where `mom_id` = 1 and `deleted_at` is not null": userFixtures
 					});
 
@@ -608,14 +411,14 @@ describe("Model(attributes, options)", function () {
 		    validateSpy = undefined,
 		    associateSpy = undefined;
 
-		var Post = (function (_Model8) {
+		var Post = (function (_Model2) {
 			function Post() {
 				_classCallCheck(this, Post);
 
 				_get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
 			}
 
-			_inherits(Post, _Model8);
+			_inherits(Post, _Model2);
 
 			_createClass(Post, [{
 				key: "initialize",
@@ -635,12 +438,12 @@ describe("Model(attributes, options)", function () {
 			}]);
 
 			return Post;
-		})(_libModelJs2["default"]);
+		})(_2["default"]);
 
 		beforeEach(function () {
-			initializeSpy = sinon.spy();
-			validateSpy = sinon.spy();
-			associateSpy = sinon.spy();
+			initializeSpy = _sinon2["default"].spy();
+			validateSpy = _sinon2["default"].spy();
+			associateSpy = _sinon2["default"].spy();
 			post = new Post();
 		});
 
@@ -649,10 +452,10 @@ describe("Model(attributes, options)", function () {
 				initializeSpy.called.should.be["true"];
 			});
 			it("should be called after .associate", function () {
-				sinon.assert.callOrder(associateSpy, initializeSpy);
+				_sinon2["default"].assert.callOrder(associateSpy, initializeSpy);
 			});
 			it("should be called after .validate", function () {
-				sinon.assert.callOrder(validateSpy, initializeSpy);
+				_sinon2["default"].assert.callOrder(validateSpy, initializeSpy);
 			});
 		});
 
@@ -661,7 +464,7 @@ describe("Model(attributes, options)", function () {
 				validateSpy.called.should.be["true"];
 			});
 			it("should be called after .associate", function () {
-				sinon.assert.callOrder(associateSpy, validateSpy);
+				_sinon2["default"].assert.callOrder(associateSpy, validateSpy);
 			});
 		});
 
@@ -673,65 +476,65 @@ describe("Model(attributes, options)", function () {
 	});
 
 	describe("(Associations)", function () {
-		var Street = (function (_Model9) {
+		var Street = (function (_Model3) {
 			function Street() {
 				_classCallCheck(this, Street);
 
 				_get(Object.getPrototypeOf(Street.prototype), "constructor", this).apply(this, arguments);
 			}
 
-			_inherits(Street, _Model9);
+			_inherits(Street, _Model3);
 
 			return Street;
-		})(_libModelJs2["default"]);
+		})(_2["default"]);
 
-		var Driver = (function (_Model10) {
+		var Driver = (function (_Model4) {
 			function Driver() {
 				_classCallCheck(this, Driver);
 
 				_get(Object.getPrototypeOf(Driver.prototype), "constructor", this).apply(this, arguments);
 			}
 
-			_inherits(Driver, _Model10);
+			_inherits(Driver, _Model4);
 
 			return Driver;
-		})(_libModelJs2["default"]);
+		})(_2["default"]);
 
-		var Truck = (function (_Model11) {
+		var Truck = (function (_Model5) {
 			function Truck() {
 				_classCallCheck(this, Truck);
 
 				_get(Object.getPrototypeOf(Truck.prototype), "constructor", this).apply(this, arguments);
 			}
 
-			_inherits(Truck, _Model11);
+			_inherits(Truck, _Model5);
 
 			return Truck;
-		})(_libModelJs2["default"]);
+		})(_2["default"]);
 
-		var Wheel = (function (_Model12) {
+		var Wheel = (function (_Model6) {
 			function Wheel() {
 				_classCallCheck(this, Wheel);
 
 				_get(Object.getPrototypeOf(Wheel.prototype), "constructor", this).apply(this, arguments);
 			}
 
-			_inherits(Wheel, _Model12);
+			_inherits(Wheel, _Model6);
 
 			return Wheel;
-		})(_libModelJs2["default"]);
+		})(_2["default"]);
 
-		var SteeringWheel = (function (_Model13) {
+		var SteeringWheel = (function (_Model7) {
 			function SteeringWheel() {
 				_classCallCheck(this, SteeringWheel);
 
 				_get(Object.getPrototypeOf(SteeringWheel.prototype), "constructor", this).apply(this, arguments);
 			}
 
-			_inherits(SteeringWheel, _Model13);
+			_inherits(SteeringWheel, _Model7);
 
 			return SteeringWheel;
-		})(_libModelJs2["default"]);
+		})(_2["default"]);
 
 		var street = undefined,
 		    driver = undefined,
@@ -909,7 +712,7 @@ describe("Model(attributes, options)", function () {
 
 			beforeEach(function () {
 				associationName = "user";
-				associationConstructor = User;
+				associationConstructor = _testClassesJs.User;
 				model.hasOne(associationName, associationConstructor);
 			});
 
@@ -929,12 +732,12 @@ describe("Model(attributes, options)", function () {
 			});
 
 			it("should return an association setter", function () {
-				truck.hasOne("steeringWheel", SteeringWheel).should.be.instanceOf(_libModelJs.AssociationSetter);
+				truck.hasOne("steeringWheel", SteeringWheel).should.be.instanceOf(_libAssociationSetterJs2["default"]);
 			});
 
 			it("should reset the association when a new id is set onto the model", function () {
 				truck.hasOne("steeringWheel", SteeringWheel);
-				var steeringWheel = new SteeringWheel();
+				steeringWheel = new SteeringWheel();
 				steeringWheel.id = 1;
 				truck.steeringWheel = steeringWheel;
 				truck.steeringWheelId = 2;
@@ -943,7 +746,7 @@ describe("Model(attributes, options)", function () {
 
 			it("should reset the associationId when a new model is set onto the model", function () {
 				truck.hasOne("steeringWheel", SteeringWheel);
-				var steeringWheel = new SteeringWheel();
+				steeringWheel = new SteeringWheel();
 				steeringWheel.id = 1;
 				truck.steeringWheelId = 2;
 				truck.steeringWheel = steeringWheel;
@@ -970,23 +773,23 @@ describe("Model(attributes, options)", function () {
 
 				describe(".where(...conditions)", function () {
 					beforeEach(function () {
-						_libModelJs2["default"].database.mock({
+						_2["default"].database.mock({
 							"select * from `users` where `id` = 1 limit 1": [{ id: 1 }],
 							"select * from `photos` where `user_id` = 1 and (`is_favorite` = true) limit 1": [{
 								id: 1,
 								name: "Favorite Photo"
 							}]
 						});
-						user.hasOne("favoritePhoto", Photo).where("isFavorite", true);
+						user.hasOne("favoritePhoto", _testClassesJs.Photo).where("isFavorite", true);
 					});
 
 					it("should set more than one condition joined by AND", function (done) {
-						_libModelJs2["default"].database.mock({
+						_2["default"].database.mock({
 							"select * from `users` where `id` = 1 limit 1": [{ id: 1 }],
 							"select * from `photos` where `user_id` = 1 and (`is_favorite` = true and `is_face_photo` = true) limit 1": [{ name: "Favorite Face Photo" }]
 						});
 
-						user.hasOne("favoriteFacePhoto", Photo).where("isFavorite", true).andWhere("isFacePhoto", true);
+						user.hasOne("favoriteFacePhoto", _testClassesJs.Photo).where("isFavorite", true).andWhere("isFacePhoto", true);
 
 						user.include("favoriteFacePhoto").fetch(function () {
 							user.favoriteFacePhoto.name.should.eql("Favorite Face Photo");
@@ -1014,7 +817,7 @@ describe("Model(attributes, options)", function () {
 
 			beforeEach(function () {
 				associationName = "users";
-				associationConstructor = User;
+				associationConstructor = _testClassesJs.User;
 				model.hasMany(associationName, associationConstructor);
 			});
 
@@ -1058,12 +861,12 @@ describe("Model(attributes, options)", function () {
 				describe(".where(...conditions)", function () {
 					describe("(with one where condition)", function () {
 						beforeEach(function () {
-							_libModelJs2["default"].database.mock({
+							_2["default"].database.mock({
 								"select * from `users` where `id` = 1 limit 1": [{ id: 1 }],
 								"select * from `photos` where `user_id` = 1 and (`is_favorite` = true)": [{ id: 1, name: "Favorite Photo" }, { id: 2, name: "Another Favorite Photo" }, { id: 3, name: "Mostest Favoritest Photo" }]
 							});
 
-							user.hasMany("favoritePhotos", Photo).where("isFavorite", true);
+							user.hasMany("favoritePhotos", _testClassesJs.Photo).where("isFavorite", true);
 						});
 
 						it("should set the where conditions", function () {
@@ -1080,12 +883,12 @@ describe("Model(attributes, options)", function () {
 
 					describe("(with multiple where conditions)", function () {
 						beforeEach(function () {
-							_libModelJs2["default"].database.mock({
+							_2["default"].database.mock({
 								"select * from `users` where `id` = 1 limit 1": [{ id: 1 }],
 								"select * from `photos` where `user_id` = 1 and (`is_favorite` = true and `is_face_photo` = true)": [{ id: 1, name: "Favorite Face Photo" }, { id: 2, name: "Another Favorite Face Photo" }, { id: 3, name: "Mostest Favoritest Face Photo" }]
 							});
 
-							user.hasMany("favoriteFacePhotos", Photo).where("isFavorite", true).andWhere("isFacePhoto", true);
+							user.hasMany("favoriteFacePhotos", _testClassesJs.Photo).where("isFavorite", true).andWhere("isFacePhoto", true);
 						});
 
 						it("should set the where conditions", function () {
@@ -1103,16 +906,16 @@ describe("Model(attributes, options)", function () {
 
 				xdescribe(".through(associationName)", function () {
 					beforeEach(function () {
-						_libModelJs2["default"].database.mock({});
+						_2["default"].database.mock({});
 					});
 
 					it("should return the association set to allow further chaining", function () {
-						user.hasMany("comments", Comment).through("apiKey").should.be.instanceOf(_libModelJs.AssociationSetter);
+						user.hasMany("comments", _testClassesJs.Comment).through("apiKey").should.be.instanceOf(_libAssociationSetterJs2["default"]);
 					});
 
 					it("should fetch hasMany through associations", function (done) {
 						user.include("comments").fetch(function (error) {
-							user.comments.user.comments[0].instanceOf(Comment);
+							user.comments.user.comments[0].instanceOf(_testClassesJs.Comment);
 							done();
 						});
 					});
@@ -1138,7 +941,7 @@ describe("Model(attributes, options)", function () {
 			describe("(when any validations fail)", function () {
 				beforeEach(function () {
 					// Force database to fail isPresent on user.photos
-					_libModelJs2["default"].database.mock({
+					_2["default"].database.mock({
 						"select count(*) as `rowCount` from `photos` where `user_id` = 1": [{ rowCount: 0 }]
 					});
 				});
@@ -1185,7 +988,7 @@ describe("Model(attributes, options)", function () {
 			describe("(when any validations fail)", function () {
 				beforeEach(function () {
 					// Force database to fail isPresent on user.photos
-					_libModelJs2["default"].database.mock({
+					_2["default"].database.mock({
 						"select count(*) as `rowCount` from `photos` where `user_id` = 1": [{ rowCount: 0 }]
 					});
 				});
@@ -1237,7 +1040,7 @@ describe("Model(attributes, options)", function () {
 
 		describe(".as(associationName)", function () {
 			it("should set the referencing association name in a hasMany through belongsTo", function (done) {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select * from `photos` where `id` = 1 limit 1": [{}],
 					"select * from `comments` where `photo_id` = 1": [{ id: 1, "author_id": 5 }, { id: 2, "author_id": 6 }, { id: 3, "author_id": 7 }],
 					"select * from `users` where `id` in (5, 6, 7)": [{}, {}, {}]
@@ -1260,7 +1063,7 @@ describe("Model(attributes, options)", function () {
 			});
 
 			it("should throw an error if an association name is not found", function () {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select * from `users` where `id` = 1 limit 1": [userAttributes]
 				});
 				(function () {
@@ -1269,7 +1072,7 @@ describe("Model(attributes, options)", function () {
 			});
 
 			it("should throw an error if a belongs to association id is not set", function () {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select * from `comments` where `id` = 1 limit 1": [{ id: 1 }]
 				});
 
@@ -1284,7 +1087,7 @@ describe("Model(attributes, options)", function () {
 			});
 
 			it("should fetch belongsTo associations", function (done) {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select * from `photos` where `id` = 1 limit 1": [{ id: 1 }],
 					"select * from `users` where `id` = 1 limit 1": [{ id: 1, name: "Bob Barker" }]
 				});
@@ -1298,7 +1101,7 @@ describe("Model(attributes, options)", function () {
 			});
 
 			it("should fetch hasOne associations", function (done) {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select * from `users` where `id` = 1 limit 1": [userAttributes],
 					"select * from `photos` where `user_id` = 1 and (`is_primary` = true) limit 1": [{
 						name: "Primary Photo"
@@ -1312,7 +1115,7 @@ describe("Model(attributes, options)", function () {
 			});
 
 			it("should fetch hasMany associations", function (done) {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select * from `users` where `id` = 1 limit 1": [userAttributes],
 					"select * from `photos` where `user_id` = 1": [{ name: "Some Photo" }, { name: "Some Other Photo" }, { name: "Still Some Photo" }]
 				});
@@ -1324,7 +1127,7 @@ describe("Model(attributes, options)", function () {
 			});
 
 			it("should fetch hasOne through associations", function () {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select * from `users` where `id` = 1 limit 1": [{}],
 					"select * from `addresses` where `user_id` = 1 limit 1": [{
 						"user_id": 1,
@@ -1339,7 +1142,7 @@ describe("Model(attributes, options)", function () {
 			});
 
 			it("should fetch hasMany through hasMany associations", function (done) {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select * from `users` where `id` = 1 limit 1": [{ id: 1 }],
 					"select * from `photos` where `user_id` = 1": [{ id: 3 }, { id: 4 }, { id: 5 }],
 					"select * from `comments` where `photo_id` in (3, 4, 5)": [{}, {}, {}]
@@ -1352,7 +1155,7 @@ describe("Model(attributes, options)", function () {
 			});
 
 			it("should throw an error when the destination association is not found on the through model", function () {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select * from `users` where `id` = 1 limit 1": [{}],
 					"select * from `photos` where `user_id` = 1": [{ id: 3 }]
 				});
@@ -1371,7 +1174,7 @@ describe("Model(attributes, options)", function () {
 			});
 
 			it("should fetch hasMany through hasOne associations", function (done) {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select * from `photos` where `id` = 1 limit 1": [{}],
 					"select * from `comments` where `photo_id` = 1": [{ "author_id": 4 }, { "author_id": 5 }, { "author_id": 6 }],
 					"select * from `users` where `id` in (4, 5, 6)": [{}, {}, {}]
@@ -1386,7 +1189,7 @@ describe("Model(attributes, options)", function () {
 			});
 
 			xit("should fetch hasMany through belongsTo associations", function (done) {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select * from `users` where `id` = 1 limit 1": [{}]
 				});
 
@@ -1397,7 +1200,7 @@ describe("Model(attributes, options)", function () {
 			});
 
 			it("should fetch more than one association at once", function (done) {
-				_libModelJs2["default"].database.mock({
+				_2["default"].database.mock({
 					"select * from `users` where `id` = 1 limit 1": [userAttributes],
 					"select * from `photos` where `user_id` = 1 and (`is_primary` = true) limit 1": [{ name: "Primary Photo" }],
 					"select * from `photos` where `user_id` = 1": [{ name: "Some Photo" }, { name: "Some Other Photo" }, { name: "Still Some Photo" }, { name: "Primary Photo" }]
@@ -1412,14 +1215,14 @@ describe("Model(attributes, options)", function () {
 
 		describe(".delete(callback)", function () {
 			describe("(when dependent is declared on the association)", function () {
-				var Account = (function (_Model14) {
+				var Account = (function (_Model8) {
 					function Account() {
 						_classCallCheck(this, Account);
 
 						_get(Object.getPrototypeOf(Account.prototype), "constructor", this).apply(this, arguments);
 					}
 
-					_inherits(Account, _Model14);
+					_inherits(Account, _Model8);
 
 					_createClass(Account, [{
 						key: "initialize",
@@ -1434,16 +1237,16 @@ describe("Model(attributes, options)", function () {
 					}]);
 
 					return Account;
-				})(_libModelJs2["default"]);
+				})(_2["default"]);
 
-				var ForumUser = (function (_Model15) {
+				var ForumUser = (function (_Model9) {
 					function ForumUser() {
 						_classCallCheck(this, ForumUser);
 
 						_get(Object.getPrototypeOf(ForumUser.prototype), "constructor", this).apply(this, arguments);
 					}
 
-					_inherits(ForumUser, _Model15);
+					_inherits(ForumUser, _Model9);
 
 					_createClass(ForumUser, [{
 						key: "initialize",
@@ -1459,16 +1262,16 @@ describe("Model(attributes, options)", function () {
 					}]);
 
 					return ForumUser;
-				})(_libModelJs2["default"]);
+				})(_2["default"]);
 
-				var Post = (function (_Model16) {
+				var Post = (function (_Model10) {
 					function Post() {
 						_classCallCheck(this, Post);
 
 						_get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
 					}
 
-					_inherits(Post, _Model16);
+					_inherits(Post, _Model10);
 
 					_createClass(Post, [{
 						key: "initialize",
@@ -1483,7 +1286,7 @@ describe("Model(attributes, options)", function () {
 					}]);
 
 					return Post;
-				})(_libModelJs2["default"]);
+				})(_2["default"]);
 
 				var forumUser = undefined,
 				    account = undefined,
@@ -1511,9 +1314,9 @@ describe("Model(attributes, options)", function () {
 					var userDeleteQuerySpy = undefined;
 
 					beforeEach(function () {
-						_libModelJs2["default"].database.mock(_defineProperty({}, /update `accounts` set `deleted_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/, 1));
+						_2["default"].database.mock(_defineProperty({}, /update `accounts` set `deleted_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/, 1));
 
-						userDeleteQuerySpy = _libModelJs2["default"].database.spy(/update `forum_users` set `deleted_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 2/, 1);
+						userDeleteQuerySpy = _2["default"].database.spy(/update `forum_users` set `deleted_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 2/, 1);
 
 						account.forumUser = forumUser;
 					});
@@ -1530,9 +1333,9 @@ describe("Model(attributes, options)", function () {
 					var postDeleteQuerySpy = undefined;
 
 					beforeEach(function () {
-						_libModelJs2["default"].database.mock(_defineProperty({}, /update `forum_users` set `deleted_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 2/, 1));
+						_2["default"].database.mock(_defineProperty({}, /update `forum_users` set `deleted_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 2/, 1));
 
-						postDeleteQuerySpy = _libModelJs2["default"].database.spy(/update `posts` set `deleted_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 3/, 1);
+						postDeleteQuerySpy = _2["default"].database.spy(/update `posts` set `deleted_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 3/, 1);
 
 						forumUser.posts.push(post);
 					});
@@ -1547,17 +1350,17 @@ describe("Model(attributes, options)", function () {
 			});
 
 			describe("(when .softDelete is not called)", function () {
-				var Post = (function (_Model17) {
+				var Post = (function (_Model11) {
 					function Post() {
 						_classCallCheck(this, Post);
 
 						_get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
 					}
 
-					_inherits(Post, _Model17);
+					_inherits(Post, _Model11);
 
 					return Post;
-				})(_libModelJs2["default"]);
+				})(_2["default"]);
 
 				var post = undefined;
 
@@ -1575,14 +1378,14 @@ describe("Model(attributes, options)", function () {
 			describe("when softDelete called)", function () {
 				var post = undefined;
 
-				var Post = (function (_Model18) {
+				var Post = (function (_Model12) {
 					function Post() {
 						_classCallCheck(this, Post);
 
 						_get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
 					}
 
-					_inherits(Post, _Model18);
+					_inherits(Post, _Model12);
 
 					_createClass(Post, [{
 						key: "initialize",
@@ -1592,7 +1395,7 @@ describe("Model(attributes, options)", function () {
 					}]);
 
 					return Post;
-				})(_libModelJs2["default"]);
+				})(_2["default"]);
 
 				beforeEach(function () {
 					post = new Post();
@@ -1602,7 +1405,7 @@ describe("Model(attributes, options)", function () {
 					describe("(when primaryKey is set)", function () {
 						beforeEach(function () {
 							post.id = 1;
-							_libModelJs2["default"].database.mock(_defineProperty({}, /update `posts` set `deleted_at` = \'19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000\' where `id` = 1/, 1));
+							_2["default"].database.mock(_defineProperty({}, /update `posts` set `deleted_at` = \'19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000\' where `id` = 1/, 1));
 						});
 
 						it("should not throw when calling delete", function () {
@@ -1620,7 +1423,7 @@ describe("Model(attributes, options)", function () {
 						describe("(when primary key is set but not exists)", function () {
 							beforeEach(function () {
 								post.id = 1;
-								_libModelJs2["default"].database.mock(_defineProperty({}, /update `posts` set `deleted_at` = \'19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000\' where `id` = 1/, 0));
+								_2["default"].database.mock(_defineProperty({}, /update `posts` set `deleted_at` = \'19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000\' where `id` = 1/, 0));
 							});
 
 							it("should return an error", function () {
@@ -1642,7 +1445,7 @@ describe("Model(attributes, options)", function () {
 
 				describe("(Model.database not set)", function () {
 					beforeEach(function () {
-						delete _libModelJs2["default"].database;
+						delete _2["default"].database;
 					});
 
 					it("should throw an error", function () {
@@ -1650,595 +1453,6 @@ describe("Model(attributes, options)", function () {
 							post["delete"]();
 						}).should["throw"]("Cannot delete without Model.database set.");
 					});
-				});
-			});
-		});
-
-		describe(".fetch(callback)", function () {
-			describe("(Model.database is set)", function () {
-				beforeEach(function () {
-					_libModelJs2["default"].database.mock({
-						"select * from `users` where `id` = 1 limit 1": [userAttributes]
-					});
-				});
-
-				describe("(when model has a primary key set)", function () {
-					beforeEach(function () {
-						user = new User({
-							id: 1
-						});
-					});
-
-					it("should fetch a record from the correct table", function (done) {
-						user.fetch(function (error) {
-							user.attributes.should.eql(userAttributes);
-							done();
-						});
-					});
-
-					it("should fetch a record from the correct table", function (done) {
-						user.fetch(function (error) {
-							user.attributes.should.eql(userAttributes);
-							done();
-						});
-					});
-
-					describe("(when soft delete is enabled)", function () {
-						var post = undefined,
-						    deleteQuerySpy = undefined;
-
-						var Post = (function (_Model19) {
-							function Post() {
-								_classCallCheck(this, Post);
-
-								_get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
-							}
-
-							_inherits(Post, _Model19);
-
-							_createClass(Post, [{
-								key: "initialize",
-								value: function initialize() {
-									this.softDelete;
-								}
-							}]);
-
-							return Post;
-						})(_libModelJs2["default"]);
-
-						beforeEach(function () {
-							post = new Post({ id: 1 });
-							//querySpy
-							deleteQuerySpy = _libModelJs2["default"].database.spy("select * from `posts` where `id` = 1 and `deleted_at` is null limit 1", [{}]);
-						});
-
-						it("should add a where deleted is not null condition", function (done) {
-							post.fetch(function () {
-								deleteQuerySpy.callCount.should.equal(1);
-								done();
-							});
-						});
-					});
-				});
-
-				describe("(when model does not have a primary key set)", function () {
-					beforeEach(function () {
-						delete user.id;
-					});
-
-					it("should throw an error", function () {
-						(function () {
-							user.fetch();
-						}).should["throw"]("Cannot fetch this model by the 'id' field because it is not set.");
-					});
-				});
-
-				describe("(when there is no model with that id)", function () {
-					beforeEach(function () {
-						_libModelJs2["default"].database.mock({
-							"select * from `users` where `id` = 1 limit 1": []
-						});
-						user = new User({
-							id: 1
-						});
-					});
-
-					it("should throw an error on the callback", function (done) {
-						user.fetch(function (error) {
-							error.should.be.instanceOf(Error);
-							done();
-						});
-					});
-				});
-			});
-
-			describe("(Model.database not set)", function () {
-				beforeEach(function () {
-					delete _libModelJs2["default"].database;
-				});
-
-				it("should throw an error", function () {
-					(function () {
-						user.fetch();
-					}).should["throw"]("Cannot fetch without Model.database set.");
-				});
-			});
-		});
-
-		describe(".fetch(strategy, callback)", function () {
-			describe("(when the type of the strategy is a string)", function () {
-				describe("(Model.database is set)", function () {
-					beforeEach(function () {
-						_libModelJs2["default"].database.mock({
-							"select * from `users` where `name` = 'someuser' limit 1": [userAttributes]
-						});
-					});
-
-					describe("(when model has the specified attribute set)", function () {
-						beforeEach(function () {
-							user = new User({
-								name: "someuser"
-							});
-						});
-
-						it("should fetch a record from the correct table", function (done) {
-							user.fetch("name", function (error) {
-								user.attributes.should.eql(userAttributes);
-								done();
-							});
-						});
-
-						it("should fetch a record from the correct table", function (done) {
-							user.fetch("name", function (error) {
-								user.attributes.should.eql(userAttributes);
-								done();
-							});
-						});
-					});
-
-					describe("(when model does not have the specified attribute set)", function () {
-						beforeEach(function () {
-							delete user.name;
-						});
-
-						it("should throw an error", function () {
-							(function () {
-								user.fetch("name");
-							}).should["throw"]("Cannot fetch this model by the 'name' field because it is not set.");
-						});
-					});
-
-					describe("(when there is no model with the specified attribute)", function () {
-						beforeEach(function () {
-							_libModelJs2["default"].database.mock({
-								"select * from `users` where `name` = 'someuser' limit 1": []
-							});
-							user = new User({
-								name: "someuser"
-							});
-						});
-
-						it("should throw an error on the callback", function (done) {
-							user.fetch("name", function (error) {
-								error.should.be.instanceOf(Error);
-								done();
-							});
-						});
-					});
-				});
-
-				describe("(Model.database not set)", function () {
-					beforeEach(function () {
-						delete _libModelJs2["default"].database;
-					});
-
-					it("should throw an error", function () {
-						(function () {
-							user.fetch("name");
-						}).should["throw"]("Cannot fetch without Model.database set.");
-					});
-				});
-			});
-
-			describe("(when the type of the strategy is an array)", function () {
-				describe("(Model.database is set)", function () {
-					beforeEach(function () {
-						_libModelJs2["default"].database.mock({
-							"select * from `users` where `name` = 'someuser' and `lastName` = 'someuserLastName' limit 1": [userAttributes]
-						});
-					});
-
-					describe("(when model has the specified attribute set)", function () {
-						beforeEach(function () {
-							user = new User({
-								name: "someuser",
-								lastName: "someuserLastName"
-							});
-							userAttributes.lastName = "someuserLastName";
-						});
-
-						it("should fetch a record from the correct table", function (done) {
-							user.fetch(["name", "lastName"], function (error) {
-								user.attributes.should.eql(userAttributes);
-								done();
-							});
-						});
-
-						it("should fetch a record from the correct table", function (done) {
-							user.fetch(["name", "lastName"], function (error) {
-								user.attributes.should.eql(userAttributes);
-								done();
-							});
-						});
-					});
-
-					describe("(when model does not have one of the specified attributes set)", function () {
-						beforeEach(function () {
-							delete user.lastName;
-						});
-
-						it("should throw an error", function () {
-							(function () {
-								user.fetch(["name", "lastName"]);
-							}).should["throw"]("Cannot fetch this model by the 'lastName' field because it is not set.");
-						});
-					});
-
-					describe("(when there is no model with the specified attribute)", function () {
-						beforeEach(function () {
-							_libModelJs2["default"].database.mock({
-								"select * from `users` where `name` = 'someuser' and `lastName` = 'someuserLastName' limit 1": []
-							});
-							user = new User({
-								name: "someuser",
-								lastName: "someuserLastName"
-							});
-						});
-
-						it("should throw an error on the callback", function (done) {
-							user.fetch(["name", "lastName"], function (error) {
-								error.should.be.instanceOf(Error);
-								done();
-							});
-						});
-					});
-				});
-
-				describe("(Model.database not set)", function () {
-					beforeEach(function () {
-						delete _libModelJs2["default"].database;
-					});
-
-					it("should throw an error", function () {
-						(function () {
-							user.fetch("name");
-						}).should["throw"]("Cannot fetch without Model.database set.");
-					});
-				});
-			});
-		});
-
-		describe(".save(callback)", function () {
-			describe("(Model.database is set)", function () {
-				describe("(when the model has associations)", function () {
-
-					beforeEach(function () {
-						var _Model$database$mock5;
-
-						user.primaryPhoto = primaryPhoto;
-						user.photos.push(photo);
-
-						var regularExpressions = {
-							insertPhotos: /insert into `photos` \(`created_at`, `user_id`\) values \('19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000', 1\)/,
-							updateUser: /update `users` set `age` = 35, `has_children` = false, `name` = 'Bob Builder', `updated_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/,
-							insertWheels: /insert into `wheels` \(`created_at`, `truck_id`\) values \('19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00\.000', 1\)/,
-							insertSteeringWheel: /insert into `steering_wheels` \(`created_at`, `truck_id`\) values \('19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000', 1\)/,
-							insertTruck: /insert into `trucks` (`created_at`) values ('19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-24]:00:00.000')/,
-							updateTruck: /update `trucks` set `steering_wheel_id` = 1, `updated_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/,
-							updateSteeringWheel: /update `steering_wheels` set `truck_id` = 1, `updated_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/,
-							updateWheels: /update `wheels` set `created_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000', `truck_id` = 1, `updated_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/
-						};
-
-						_libModelJs2["default"].database.mock((_Model$database$mock5 = {}, _defineProperty(_Model$database$mock5, regularExpressions.insertPhotos, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateUser, []), _defineProperty(_Model$database$mock5, regularExpressions.insertWheels, [1]), _defineProperty(_Model$database$mock5, regularExpressions.insertSteeringWheel, [1]), _defineProperty(_Model$database$mock5, regularExpressions.insertTruck, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateTruck, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateSteeringWheel, [1]), _defineProperty(_Model$database$mock5, regularExpressions.updateWheels, [1]), _Model$database$mock5));
-					});
-
-					describe("(association operations)", function () {
-						var wheelSaveSpy = undefined,
-						    steeringWheelSaveSpy = undefined,
-						    truck = undefined,
-						    owner = undefined,
-						    wheel = undefined,
-						    steeringWheel = undefined,
-						    driverSeat = undefined,
-						    passengerSeat = undefined;
-
-						var TruckOwner = (function (_Model20) {
-							function TruckOwner() {
-								_classCallCheck(this, TruckOwner);
-
-								_get(Object.getPrototypeOf(TruckOwner.prototype), "constructor", this).apply(this, arguments);
-							}
-
-							_inherits(TruckOwner, _Model20);
-
-							_createClass(TruckOwner, [{
-								key: "associate",
-								value: function associate() {
-									this.belongsTo("truck");
-									this.belongsTo("owner");
-								}
-							}]);
-
-							return TruckOwner;
-						})(_libModelJs2["default"]);
-
-						var Truck = (function (_Model21) {
-							function Truck() {
-								_classCallCheck(this, Truck);
-
-								_get(Object.getPrototypeOf(Truck.prototype), "constructor", this).apply(this, arguments);
-							}
-
-							_inherits(Truck, _Model21);
-
-							_createClass(Truck, [{
-								key: "associate",
-								value: function associate() {
-									this.hasMany("truckOwners");
-									this.hasMany("owners", Owner).through("truckOwners");
-									this.hasMany("wheels", Wheel);
-									this.hasOne("steeringWheel", SteeringWheel);
-								}
-							}]);
-
-							return Truck;
-						})(_libModelJs2["default"]);
-
-						var Owner = (function (_Model22) {
-							function Owner() {
-								_classCallCheck(this, Owner);
-
-								_get(Object.getPrototypeOf(Owner.prototype), "constructor", this).apply(this, arguments);
-							}
-
-							_inherits(Owner, _Model22);
-
-							_createClass(Owner, [{
-								key: "associate",
-								value: function associate() {
-									this.hasMany("truckOwners", TruckOwner);
-									this.hasMany("trucks", Truck).through("truckOwners");
-								}
-							}]);
-
-							return Owner;
-						})(_libModelJs2["default"]);
-
-						var Wheel = (function (_Model23) {
-							function Wheel() {
-								_classCallCheck(this, Wheel);
-
-								_get(Object.getPrototypeOf(Wheel.prototype), "constructor", this).apply(this, arguments);
-							}
-
-							_inherits(Wheel, _Model23);
-
-							_createClass(Wheel, [{
-								key: "associate",
-								value: function associate() {
-									this.belongsTo("truck", Truck);
-								}
-							}, {
-								key: "save",
-								value: function save(callback) {
-									wheelSaveSpy(callback);
-									_get(Object.getPrototypeOf(Wheel.prototype), "save", this).call(this, callback);
-								}
-							}]);
-
-							return Wheel;
-						})(_libModelJs2["default"]);
-
-						var SteeringWheel = (function (_Model24) {
-							function SteeringWheel() {
-								_classCallCheck(this, SteeringWheel);
-
-								_get(Object.getPrototypeOf(SteeringWheel.prototype), "constructor", this).apply(this, arguments);
-							}
-
-							_inherits(SteeringWheel, _Model24);
-
-							_createClass(SteeringWheel, [{
-								key: "associate",
-								value: function associate() {
-									this.belongsTo("truck", Truck);
-								}
-							}, {
-								key: "save",
-								value: function save(callback) {
-									steeringWheelSaveSpy(callback);
-									_get(Object.getPrototypeOf(SteeringWheel.prototype), "save", this).call(this, callback);
-								}
-							}]);
-
-							return SteeringWheel;
-						})(_libModelJs2["default"]);
-
-						var Seat = (function (_Model25) {
-							function Seat() {
-								_classCallCheck(this, Seat);
-
-								_get(Object.getPrototypeOf(Seat.prototype), "constructor", this).apply(this, arguments);
-							}
-
-							_inherits(Seat, _Model25);
-
-							_createClass(Seat, [{
-								key: "associate",
-								value: function associate() {
-									this.belongsTo("truck", Truck);
-								}
-							}]);
-
-							return Seat;
-						})(_libModelJs2["default"]);
-
-						describe("(assignment)", function () {
-
-							beforeEach(function () {
-								wheelSaveSpy = sinon.spy();
-								steeringWheelSaveSpy = sinon.spy();
-
-								truck = new Truck();
-								owner = new Owner();
-								wheel = new Wheel();
-								steeringWheel = new SteeringWheel();
-
-								driverSeat = new Seat();
-								passengerSeat = new Seat();
-							});
-
-							it("should throw when assign a non model object to a belongsTo association", function () {
-								(function () {
-									steeringWheel.truck = {};
-								}).should["throw"]("Cannot set a non model entity onto this property. It should inherit from Model");
-							});
-
-							it("should throw when assign a non model object to a hasOne association", function () {
-								(function () {
-									truck.steeringWheel = {};
-								}).should["throw"]("Cannot set a non model entity onto this property. It should inherit from Model");
-							});
-
-							it("should associate a hasOne from a belongsTo", function () {
-								steeringWheel.truck = truck;
-								truck.should.have.property("steeringWheel");
-							});
-
-							// TODO: This is impossible as is
-							xit("should associate a hasMany from a belongsTo", function () {
-								wheel.truck = truck;
-								truck.wheels.length.should.equal(1);
-							});
-
-							it("should associate a belongsTo from a hasMany", function () {
-								truck.wheels.push(wheel);
-								wheel.truck.should.eql(truck);
-							});
-
-							it("should associate a hasMany from a hasMany", function () {
-								truck.owners.push(owner);
-								owner.trucks[0].should.eql(truck);
-							});
-
-							it("should associate a belongsTo from a hasOne", function () {
-								truck.steeringWheel = steeringWheel;
-								steeringWheel.truck.should.eql(truck);
-							});
-						});
-
-						describe("(propagation)", function () {
-							beforeEach(function () {
-								wheelSaveSpy = sinon.spy();
-								steeringWheelSaveSpy = sinon.spy();
-
-								truck = new Truck({ id: 1 });
-								wheel = new Wheel();
-								steeringWheel = new SteeringWheel();
-								steeringWheel.id = 1;
-
-								truck.steeringWheel = steeringWheel;
-
-								//TODO: wrap push on typed collection?
-								wheel.truck = truck;
-								truck.wheels.push(wheel);
-							});
-
-							it("should propagate .save() to hasOne associations", function (done) {
-								truck.save(function (error) {
-									steeringWheelSaveSpy.calledOnce.should.be["true"];
-									done();
-								});
-							});
-
-							it("should propagate .save() to hasMany associations", function (done) {
-								truck.save(function (error) {
-									wheelSaveSpy.called.should.be["true"];
-									done();
-								});
-							});
-						});
-					});
-				});
-
-				describe("(database updating)", function () {
-					describe("(model not new)", function () {
-						beforeEach(function () {
-							model.id = 1;
-
-							_libModelJs2["default"].database.update = sinon.spy(_libModelJs2["default"].database.update);
-
-							var regularExpressions = {
-								updateModel: /update `models` set `updated_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/
-							};
-
-							_libModelJs2["default"].database.mock(_defineProperty({}, regularExpressions.updateModel, [{}]));
-						});
-						it("should update the record the database", function () {
-							model.save(function (error) {
-								_libModelJs2["default"].database.update.called.should.be["true"];
-							});
-						});
-					});
-
-					describe("(model not new)", function () {
-						beforeEach(function () {
-							_libModelJs2["default"].database.insert = sinon.spy(_libModelJs2["default"].database.insert);
-
-							var regularExpressions = {
-								insertModel: /insert into `models` \(`created_at`\) values \('19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000'\)/
-							};
-
-							_libModelJs2["default"].database.mock(_defineProperty({}, regularExpressions.insertModel, [{}]));
-						});
-						it("should update the record the database", function () {
-							model.save(function (error) {
-								_libModelJs2["default"].database.insert.called.should.be["true"];
-							});
-						});
-					});
-				});
-
-				describe("(when model is invalid)", function () {
-					beforeEach(function () {
-						_libModelJs2["default"].database.mock({
-							"select count(*) as `rowCount` from `photos` where `user_id` = 1": [{ rowCount: 0 }]
-						});
-					});
-
-					it("should call back with an error", function () {
-						user.save(function (error) {
-							error.should.be.instanceOf(Error);
-						});
-					});
-
-					it("should inform the user that the model is invalid", function () {
-						user.save(function (error) {
-							error.message.should.eql("photos must be present on User");
-						});
-					});
-				});
-			});
-
-			describe("(without Model.database set)", function () {
-				beforeEach(function () {
-					delete _libModelJs2["default"].database;
-				});
-
-				it("should call back with an error", function () {
-					(function () {
-						user.save();
-					}).should["throw"]("Cannot save without Model.database set.");
 				});
 			});
 		});
