@@ -34,21 +34,17 @@ var _symbols2 = _interopRequireDefault(_symbols);
 
 //approach #2 to proxy method to a different file
 
-var _fetch = require("./fetch");
+var _fetchJs = require("./fetch.js");
 
-var _fetch2 = _interopRequireDefault(_fetch);
+var _fetchJs2 = _interopRequireDefault(_fetchJs);
 
-var _collectionJs = require("../collection.js");
+var _addAssociationJs = require("./addAssociation.js");
 
-var _collectionJs2 = _interopRequireDefault(_collectionJs);
+var _addAssociationJs2 = _interopRequireDefault(_addAssociationJs);
 
 var _modelFinderJs = require("../modelFinder.js");
 
 var _modelFinderJs2 = _interopRequireDefault(_modelFinderJs);
-
-var _associationSetterJs = require("../associationSetter.js");
-
-var _associationSetterJs2 = _interopRequireDefault(_associationSetterJs);
 
 /**
  * @class Model
@@ -500,194 +496,6 @@ var Model = (function () {
 			});
 		}
 	}, {
-		key: _symbols2["default"].addAssociation,
-
-		/**
-   * @example
-   * ```
-   * const associationDetails = {
-   *     name: "users",
-   *     type: "hasMany",
-   *     constructor: User
-   * };
-   *
-   * [addAssociation](associationDetails);
-   * ```
-   * @method addAssociation
-   * @param {Object.<String, *>} associationDetails Object containing association details in key/value pairs.
-   */
-		value: function value(associationDetails) {
-			var _this6 = this;
-
-			var association = {
-				parent: this,
-				type: associationDetails.type,
-				constructor: associationDetails.constructor
-			};
-
-			/* Default Values */
-
-			switch (associationDetails.type) {
-				case "hasOne":
-				case "hasMany":
-					association.foreignKey = (0, _jargon2["default"])(this.constructor.name).foreignKey.toString();
-					association.foreignId = (0, _jargon2["default"])(association.foreignKey).camel.toString();
-					break;
-				case "belongsTo":
-					association.foreignKey = (0, _jargon2["default"])(associationDetails.name).foreignKey.toString();
-					association.foreignId = (0, _jargon2["default"])(association.foreignKey).camel.toString();
-			}
-
-			// TODO: AS
-			association.foreignName = (0, _jargon2["default"])(this.constructor.name).camel.toString();
-
-			/* Override Values */
-
-			var associationSetter = new _associationSetterJs2["default"](association);
-
-			/* Set private space for value to be stored internally */
-
-			var privateAssociationName = "_" + associationDetails.name;
-
-			var implicitAssociationName = associationDetails.name + "Id";
-			var privateImplicitAssociationName = "_" + implicitAssociationName;
-
-			/* Association Setter By Type */
-
-			var setterFunction = undefined,
-			    implicitSetterFunction = undefined;
-
-			switch (associationDetails.type) {
-				case "hasOne":
-					this[privateAssociationName] = null;
-
-					implicitSetterFunction = function (newId) {
-						//reset the association when assign associationId
-						_this6[privateImplicitAssociationName] = newId;
-						_this6[privateAssociationName] = null;
-					};
-
-					setterFunction = function (newModel) {
-						if (newModel && _this6[privateAssociationName] !== newModel) {
-							if (!(newModel instanceof Model)) {
-								throw new Error("Cannot set a non model entity onto this property. It should inherit from Model");
-							}
-
-							_this6[privateAssociationName] = newModel;
-							_this6[privateImplicitAssociationName] = newModel.id;
-
-							newModel[association.foreignName] = _this6;
-						}
-					};
-					break;
-				case "belongsTo":
-					this[privateAssociationName] = null;
-
-					implicitSetterFunction = function (newId) {
-						//reset the association when assign associationId
-						_this6[privateImplicitAssociationName] = newId;
-						_this6[privateAssociationName] = null;
-					};
-
-					setterFunction = function (newModel) {
-						if (newModel && _this6[privateAssociationName] !== newModel) {
-							if (!(newModel instanceof Model)) {
-								throw new Error("Cannot set a non model entity onto this property. It should inherit from Model");
-							}
-
-							_this6[privateAssociationName] = newModel;
-							_this6[privateImplicitAssociationName] = newModel.id;
-
-							var pluralForeignName = (0, _jargon2["default"])(association.foreignName).plural.toString();
-
-							if (!association.ambiguous) {
-								if (newModel.hasOwnProperty(association.foreignName)) {
-									newModel[association.foreignName] = _this6;
-								} else if (newModel.hasOwnProperty(pluralForeignName)) {
-									//lookup is it exist and dont add it in that case
-									newModel[pluralForeignName].push(_this6);
-								} else {
-									throw new Error("Neither \"" + association.foreignName + "\" or \"" + pluralForeignName + "\" are valid associations on \"" + newModel.constructor.name + "\"");
-								}
-							}
-
-							// if (newModel[association.foreignName] instanceof Collection) {
-							// 	newModel[association.foreignName].push(this);
-							// } else {
-							// 	newModel[association.foreignName] = this;
-							// }
-						}
-					};
-					break;
-				case "hasMany":
-					/* Set to null by default */
-					this[privateAssociationName] = new _collectionJs2["default"](association);
-
-					setterFunction = function (newModel) {
-						if (newModel && _this6[privateAssociationName] !== newModel) {
-							_this6[privateAssociationName] = newModel;
-						}
-					};
-					break;
-				default:
-					throw new Error("Unknown association type.");
-			}
-
-			var newProperties = {};
-			newProperties[privateAssociationName] = {
-				enumerable: false,
-				writable: true
-			};
-			newProperties[associationDetails.name] = {
-				enumerable: true,
-				set: setterFunction,
-				get: function get() {
-					return _this6[privateAssociationName];
-				}
-			};
-			if (implicitSetterFunction) {
-				newProperties[privateImplicitAssociationName] = {
-					enumerable: false,
-					writable: true
-				};
-				newProperties[implicitAssociationName] = {
-					enumerable: true,
-					set: implicitSetterFunction,
-					get: function get() {
-						return _this6[privateImplicitAssociationName];
-					}
-				};
-			}
-			Object.defineProperties(this, newProperties);
-
-			// Object.defineProperty(
-			// 	this,
-			// 	privateAssociationName,
-			// 	{
-			// 		enumerable: false,
-			// 		writable: true
-			// 	}
-			// );
-
-			// Object.defineProperty(
-			// 	this,
-			// 	associationDetails.name,
-			// 	{
-			// 		enumerable: true,
-			// 		set: setterFunction,
-			// 		get: () => {
-			// 			return this[privateAssociationName];
-			// 		}
-			// 	}
-			// );
-
-			this[associationDetails.name] = associationDetails.value;
-
-			this._associations[associationDetails.name] = association;
-
-			return associationSetter;
-		}
-	}, {
 		key: _symbols2["default"].parseAttributesFromFields,
 		value: function value(record) {
 			for (var field in record) {
@@ -697,25 +505,25 @@ var Model = (function () {
 	}, {
 		key: _symbols2["default"].getFieldAttributes,
 		value: function value() {
-			var _this7 = this;
+			var _this6 = this;
 
 			var attributeNames = Object.keys(this.attributes);
 			var fieldAttributes = {};
 			attributeNames.forEach(function (attributeName) {
-				var found = Object.keys(_this7.additionalAttributes).find(function (additionalAttributeName) {
+				var found = Object.keys(_this6.additionalAttributes).find(function (additionalAttributeName) {
 					return additionalAttributeName === attributeName;
 				});
 				//is just on db if is not an additional attribute
 				if (!found) {
-					fieldAttributes[(0, _jargon2["default"])(attributeName).snake.toString()] = _this7[attributeName];
+					fieldAttributes[(0, _jargon2["default"])(attributeName).snake.toString()] = _this6[attributeName];
 				}
 			});
 
 			//add belongsTo associations and remove others
 			Object.keys(this.associations).forEach(function (associationName) {
-				var relatedModel = _this7[associationName];
+				var relatedModel = _this6[associationName];
 				var foreignKeyField = (0, _jargon2["default"])(associationName).foreignKey.toString();
-				if (_this7._associations[associationName].type === "belongsTo") {
+				if (_this6._associations[associationName].type === "belongsTo") {
 					//try with relatedModel and relatedModel.id
 					if (relatedModel && relatedModel.id) {
 						fieldAttributes[foreignKeyField] = relatedModel.id;
@@ -723,7 +531,7 @@ var Model = (function () {
 						//or just with the relatedModelId
 						//construct the snake with _id and then camelize it
 						var foreignIdAsAttribute = (0, _jargon2["default"])(foreignKeyField).camel.toString();
-						fieldAttributes[foreignKeyField] = _this7[foreignIdAsAttribute];
+						fieldAttributes[foreignKeyField] = _this6[foreignIdAsAttribute];
 					}
 				} else {
 					//console.log("getFieldAttributes delete on ", {on: this.constructor.name, associationName: associationName, foreignKeyField: foreignKeyField, relatedModel: relatedModel});
@@ -741,7 +549,9 @@ var Model = (function () {
 
 exports["default"] = Model;
 
-Object.assign(Model.prototype, { fetch: _fetch2["default"] });
+Object.assign(Model.prototype, { fetch: _fetchJs2["default"] });
+
+Model.prototype[_symbols2["default"].addAssociation] = _addAssociationJs2["default"];
 
 Object.defineProperties(Model, {
 	"find": {
