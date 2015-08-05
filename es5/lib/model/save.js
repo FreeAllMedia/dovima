@@ -23,96 +23,114 @@ var _symbols = require("./symbols");
 
 var _symbols2 = _interopRequireDefault(_symbols);
 
-function save(callback) {
+//private methods
+function propagate(callback) {
+  //disabling this rule because break is not necessary when return is present
+  /* eslint-disable no-fallthrough */
+  this[_symbols2["default"].callDeep]("save", function (associationDetails) {
+    switch (associationDetails.type) {
+      case "hasOne":
+        return true;
+      case "hasMany":
+        if (associationDetails.through === undefined) {
+          return true;
+        } else {
+          return false;
+        }
+      case "belongsTo":
+        return false;
+    }
+  }, callback);
+}
+
+function saveOrUpdate(callback) {
   var _this = this;
+
+  var now = new _fleming2["default"]();
+  if (this.isNew) {
+    this.createdAt = now.toDate();
+    var fieldAttributes = this[_symbols2["default"].getFieldAttributes]();
+
+    this.constructor.database.insert(fieldAttributes).into(this.tableName).results(function (error, ids) {
+      if (error) {
+        callback(error);
+      } else {
+        _this[_this.primaryKey] = ids[0];
+        callback();
+      }
+    });
+  } else {
+    this.updatedAt = now.toDate();
+    var attributes = this[_symbols2["default"].getFieldAttributes]();
+    var updateAttributes = {};
+
+    for (var attributeName in attributes) {
+      if (attributeName !== this.primaryKey) {
+        updateAttributes[attributeName] = attributes[attributeName];
+      }
+    }
+
+    this.constructor.database.update(updateAttributes).into(this.tableName).where(this.primaryKey, "=", this[this.primaryKey]).results(callback);
+  }
+}
+
+function validate(callback) {
+  var _this2 = this;
+
+  this.isValid(function (valid) {
+    if (valid) {
+      callback();
+    } else {
+      _this2.invalidAttributes(function (invalidAttributeList) {
+        var hasInvalidAttributes = Object.keys(invalidAttributeList).length > 0;
+
+        if (hasInvalidAttributes) {
+          var errorPrefix = _this2.constructor.name + " is invalid";
+          var multiError = new _blunder2["default"]([], errorPrefix);
+          for (var invalidAttributeName in invalidAttributeList) {
+            var invalidAttributeMessages = invalidAttributeList[invalidAttributeName];
+
+            for (var index in invalidAttributeMessages) {
+              var invalidAttributeMessage = invalidAttributeMessages[index];
+              var error = new Error(invalidAttributeName + " " + invalidAttributeMessage);
+              multiError.push(error);
+            }
+          }
+          callback(multiError);
+        } else {
+          callback();
+        }
+      });
+    }
+  });
+}
+
+//public save method
+
+function save(callback) {
+  var _this3 = this;
 
   if (!this.constructor.database) {
     throw new Error("Cannot save without Model.database set.");
   }
 
   _flowsync2["default"].series([function (next) {
-    _this.beforeValidation(next);
+    _this3.beforeValidation(next);
   }, function (next) {
-    _this.isValid(function (valid) {
-      if (valid) {
-        next();
-      } else {
-        _this.invalidAttributes(function (invalidAttributeList) {
-          var hasInvalidAttributes = Object.keys(invalidAttributeList).length > 0;
-
-          if (hasInvalidAttributes) {
-            var errorPrefix = _this.constructor.name + " is invalid";
-            var multiError = new _blunder2["default"]([], errorPrefix);
-            for (var invalidAttributeName in invalidAttributeList) {
-              var invalidAttributeMessages = invalidAttributeList[invalidAttributeName];
-
-              for (var index in invalidAttributeMessages) {
-                var invalidAttributeMessage = invalidAttributeMessages[index];
-                var error = new Error(invalidAttributeName + " " + invalidAttributeMessage);
-                multiError.push(error);
-              }
-            }
-            next(multiError);
-          } else {
-            next();
-          }
-        });
-      }
-    });
+    validate.call(_this3, next);
   }, function (next) {
-    _this.beforeSave(next);
+    _this3.beforeSave(next);
   }, function (next) {
-    if (_this.isNew) {
-      var now = new _fleming2["default"]();
-      _this.createdAt = now.toDate();
-      var fieldAttributes = _this[_symbols2["default"].getFieldAttributes]();
-
-      _this.constructor.database.insert(fieldAttributes).into(_this.tableName).results(function (error, ids) {
-        if (error) {
-          next(error);
-        } else {
-          _this[_this.primaryKey] = ids[0];
-          next();
-        }
-      });
-    } else {
-      var now = new _fleming2["default"]();
-      _this.updatedAt = now.toDate();
-      var attributes = _this[_symbols2["default"].getFieldAttributes]();
-      var updateAttributes = {};
-
-      for (var attributeName in attributes) {
-        if (attributeName !== _this.primaryKey) {
-          updateAttributes[attributeName] = attributes[attributeName];
-        }
-      }
-
-      _this.constructor.database.update(updateAttributes).into(_this.tableName).where(_this.primaryKey, "=", _this[_this.primaryKey]).results(next);
-    }
+    saveOrUpdate.call(_this3, next);
   }, function (next) {
-    //disabling this rule because break is not necessary when return is present
-    /* eslint-disable no-fallthrough */
-    _this[_symbols2["default"].callDeep]("save", function (associationDetails) {
-      switch (associationDetails.type) {
-        case "hasOne":
-          return true;
-        case "hasMany":
-          if (associationDetails.through === undefined) {
-            return true;
-          } else {
-            return false;
-          }
-        case "belongsTo":
-          return false;
-      }
-    }, next);
+    propagate.call(_this3, next);
   }, function (next) {
-    _this.afterSave(next);
+    _this3.afterSave(next);
   }], function (errors) {
     if (errors) {
       callback(errors);
     } else {
-      callback(undefined, _this);
+      callback(undefined, _this3);
     }
   });
 }

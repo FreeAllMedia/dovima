@@ -236,6 +236,7 @@ function fetchBy() {
             }
 
             fetchTasks.push(function (finished) {
+              //call the fetch function for the correct association type
               fetchByAssociations[association.type].call(_this5, associationName, associations, finished);
             });
           });
