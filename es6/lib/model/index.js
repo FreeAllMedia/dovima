@@ -282,11 +282,6 @@ export default class Model {
 		}
 	}
 
-	//approach #1 to proxy method to a different file
-	save(callback) {
-		require("./save").call(this, callback);
-	}
-
 	/* Stubbed methods for hooks */
 	beforeValidation(callback) {
 		callback();
@@ -454,12 +449,27 @@ export default class Model {
 	}
 }
 
-//approach #2 to proxy method to a different file
-import fetch from "./fetch.js";
-Object.assign(Model.prototype, {fetch: fetch});
+function joinClass(classObject, methods) {
+	//construct a object with the additional methods
+	let obj = {};
+	methods.forEach((method) => {
+		obj[method.name] = method.handler;
+	});
+	//add the additional methods to the prototype
+	Object.assign(classObject.prototype, obj);
+}
 
+//import additional methods from external files
+import fetch from "./fetch.js";
+import save from "./save.js";
 import addAssociation from "./addAssociation.js";
-Model.prototype[symbols.addAssociation] = addAssociation;
+
+joinClass(Model,
+	[
+		{name: "fetch", handler: fetch},
+		{name: "save", handler: save},
+		{name: symbols.addAssociation, handler: addAssociation}
+	]);
 
 Object.defineProperties(Model, {
 	"find": {

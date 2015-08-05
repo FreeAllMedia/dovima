@@ -32,11 +32,15 @@ var _symbols = require("./symbols");
 
 var _symbols2 = _interopRequireDefault(_symbols);
 
-//approach #2 to proxy method to a different file
+//import additional methods from external files
 
 var _fetchJs = require("./fetch.js");
 
 var _fetchJs2 = _interopRequireDefault(_fetchJs);
+
+var _saveJs = require("./save.js");
+
+var _saveJs2 = _interopRequireDefault(_saveJs);
 
 var _addAssociationJs = require("./addAssociation.js");
 
@@ -352,13 +356,6 @@ var Model = (function () {
 			}
 		}
 	}, {
-		key: "save",
-
-		//approach #1 to proxy method to a different file
-		value: function save(callback) {
-			require("./save").call(this, callback);
-		}
-	}, {
 		key: "beforeValidation",
 
 		/* Stubbed methods for hooks */
@@ -549,9 +546,17 @@ var Model = (function () {
 
 exports["default"] = Model;
 
-Object.assign(Model.prototype, { fetch: _fetchJs2["default"] });
+function joinClass(classObject, methods) {
+	//construct a object with the additional methods
+	var obj = {};
+	methods.forEach(function (method) {
+		obj[method.name] = method.handler;
+	});
+	//add the additional methods to the prototype
+	Object.assign(classObject.prototype, obj);
+}
 
-Model.prototype[_symbols2["default"].addAssociation] = _addAssociationJs2["default"];
+joinClass(Model, [{ name: "fetch", handler: _fetchJs2["default"] }, { name: "save", handler: _saveJs2["default"] }, { name: _symbols2["default"].addAssociation, handler: _addAssociationJs2["default"] }]);
 
 Object.defineProperties(Model, {
 	"find": {
