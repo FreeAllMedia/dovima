@@ -24,6 +24,109 @@ var _ = require("./");
 
 var _2 = _interopRequireDefault(_);
 
+//private functions
+function getSetterFunctionHasOne(association, privateAssociationName, privateImplicitAssociationName) {
+  var _this = this;
+
+  this[privateAssociationName] = null;
+
+  return function (newModel) {
+    if (newModel && _this[privateAssociationName] !== newModel) {
+      if (!(newModel instanceof _2["default"])) {
+        throw new Error("Cannot set a non model entity onto this property. It should inherit from Model");
+      }
+
+      _this[privateAssociationName] = newModel;
+      _this[privateImplicitAssociationName] = newModel.id;
+
+      newModel[association.foreignName] = _this;
+    }
+  };
+}
+
+function getImplicitSetterFunctionHasOne(association, privateAssociationName, privateImplicitAssociationName) {
+  var _this2 = this;
+
+  this[privateAssociationName] = null;
+
+  return function (newId) {
+    //reset the association when assign associationId
+    _this2[privateImplicitAssociationName] = newId;
+    _this2[privateAssociationName] = null;
+  };
+}
+
+function getSetterFunctionHasMany(association, privateAssociationName) {
+  var _this3 = this;
+
+  /* Set to null by default */
+  this[privateAssociationName] = new _collectionJs2["default"](association);
+
+  return function (newModel) {
+    if (newModel && _this3[privateAssociationName] !== newModel) {
+      _this3[privateAssociationName] = newModel;
+    }
+  };
+}
+
+function getImplicitSetterFunctionHasMany() {
+  return null;
+}
+
+function getSetterFunctionBelongsTo(association, privateAssociationName, privateImplicitAssociationName) {
+  var _this4 = this;
+
+  this[privateAssociationName] = null;
+
+  return function (newModel) {
+    if (newModel && _this4[privateAssociationName] !== newModel) {
+      if (!(newModel instanceof _2["default"])) {
+        throw new Error("Cannot set a non model entity onto this property. It should inherit from Model");
+      }
+
+      _this4[privateAssociationName] = newModel;
+      _this4[privateImplicitAssociationName] = newModel.id;
+
+      var pluralForeignName = (0, _jargon2["default"])(association.foreignName).plural.toString();
+
+      if (!association.ambiguous) {
+        if (newModel.hasOwnProperty(association.foreignName)) {
+          newModel[association.foreignName] = _this4;
+        } else if (newModel.hasOwnProperty(pluralForeignName)) {
+          //lookup is it exist and dont add it in that case
+          newModel[pluralForeignName].push(_this4);
+        } else {
+          throw new Error("Neither \"" + association.foreignName + "\" or \"" + pluralForeignName + "\" are valid associations on \"" + newModel.constructor.name + "\"");
+        }
+      }
+    }
+  };
+}
+
+function getImplicitSetterFunctionBelongsTo(association, privateAssociationName, privateImplicitAssociationName) {
+  var _this5 = this;
+
+  this[privateAssociationName] = null;
+
+  return function (newId) {
+    //reset the association when assign associationId
+    _this5[privateImplicitAssociationName] = newId;
+    _this5[privateAssociationName] = null;
+  };
+}
+
+var getSetterFunctionByAssociationType = {
+  "hasOne": getSetterFunctionHasOne,
+  "hasMany": getSetterFunctionHasMany,
+  "belongsTo": getSetterFunctionBelongsTo
+};
+
+var getImplicitSetterFunctionByAssociationType = {
+  "hasOne": getImplicitSetterFunctionHasOne,
+  "hasMany": getImplicitSetterFunctionHasMany,
+  "belongsTo": getImplicitSetterFunctionBelongsTo
+};
+
 /**
  * @example
  * ```
@@ -40,7 +143,7 @@ var _2 = _interopRequireDefault(_);
  */
 
 function addAssociation(associationDetails) {
-  var _this = this;
+  var _this6 = this;
 
   var association = {
     parent: this,
@@ -80,81 +183,8 @@ function addAssociation(associationDetails) {
   var setterFunction = undefined,
       implicitSetterFunction = undefined;
 
-  switch (associationDetails.type) {
-    case "hasOne":
-      this[privateAssociationName] = null;
-
-      implicitSetterFunction = function (newId) {
-        //reset the association when assign associationId
-        _this[privateImplicitAssociationName] = newId;
-        _this[privateAssociationName] = null;
-      };
-
-      setterFunction = function (newModel) {
-        if (newModel && _this[privateAssociationName] !== newModel) {
-          if (!(newModel instanceof _2["default"])) {
-            throw new Error("Cannot set a non model entity onto this property. It should inherit from Model");
-          }
-
-          _this[privateAssociationName] = newModel;
-          _this[privateImplicitAssociationName] = newModel.id;
-
-          newModel[association.foreignName] = _this;
-        }
-      };
-      break;
-    case "belongsTo":
-      this[privateAssociationName] = null;
-
-      implicitSetterFunction = function (newId) {
-        //reset the association when assign associationId
-        _this[privateImplicitAssociationName] = newId;
-        _this[privateAssociationName] = null;
-      };
-
-      setterFunction = function (newModel) {
-        if (newModel && _this[privateAssociationName] !== newModel) {
-          if (!(newModel instanceof _2["default"])) {
-            throw new Error("Cannot set a non model entity onto this property. It should inherit from Model");
-          }
-
-          _this[privateAssociationName] = newModel;
-          _this[privateImplicitAssociationName] = newModel.id;
-
-          var pluralForeignName = (0, _jargon2["default"])(association.foreignName).plural.toString();
-
-          if (!association.ambiguous) {
-            if (newModel.hasOwnProperty(association.foreignName)) {
-              newModel[association.foreignName] = _this;
-            } else if (newModel.hasOwnProperty(pluralForeignName)) {
-              //lookup is it exist and dont add it in that case
-              newModel[pluralForeignName].push(_this);
-            } else {
-              throw new Error("Neither \"" + association.foreignName + "\" or \"" + pluralForeignName + "\" are valid associations on \"" + newModel.constructor.name + "\"");
-            }
-          }
-
-          // if (newModel[association.foreignName] instanceof Collection) {
-          // 	newModel[association.foreignName].push(this);
-          // } else {
-          // 	newModel[association.foreignName] = this;
-          // }
-        }
-      };
-      break;
-    case "hasMany":
-      /* Set to null by default */
-      this[privateAssociationName] = new _collectionJs2["default"](association);
-
-      setterFunction = function (newModel) {
-        if (newModel && _this[privateAssociationName] !== newModel) {
-          _this[privateAssociationName] = newModel;
-        }
-      };
-      break;
-    default:
-      throw new Error("Unknown association type.");
-  }
+  setterFunction = getSetterFunctionByAssociationType[associationDetails.type].call(this, association, privateAssociationName, privateImplicitAssociationName);
+  implicitSetterFunction = getImplicitSetterFunctionByAssociationType[associationDetails.type].call(this, association, privateAssociationName, privateImplicitAssociationName);
 
   var newProperties = {};
   newProperties[privateAssociationName] = {
@@ -165,7 +195,7 @@ function addAssociation(associationDetails) {
     enumerable: true,
     set: setterFunction,
     get: function get() {
-      return _this[privateAssociationName];
+      return _this6[privateAssociationName];
     }
   };
   if (implicitSetterFunction) {
@@ -177,7 +207,7 @@ function addAssociation(associationDetails) {
       enumerable: true,
       set: implicitSetterFunction,
       get: function get() {
-        return _this[privateImplicitAssociationName];
+        return _this6[privateImplicitAssociationName];
       }
     };
   }
