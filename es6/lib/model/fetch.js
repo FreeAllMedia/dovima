@@ -79,6 +79,19 @@ function fetchByHasOne(associationName, associations, callback) {
   }
 }
 
+function fetchWhere(modelClass, key, conditionType, ids, target, callback) {
+  const modelFinder = new ModelFinder(this.constructor.database);
+  modelFinder
+    .find(modelClass)
+    .where(key, conditionType, ids)
+    .results((findErrors, resultModels) => {
+      resultModels.forEach((model) => {
+        target.push(model);
+      });
+      callback();
+    });
+}
+
 function fetchByHasMany(associationName, associations, callback) {
   const modelFinder = new ModelFinder(this.constructor.database);
   const association = associations[associationName];
@@ -106,45 +119,17 @@ function fetchByHasMany(associationName, associations, callback) {
           switch(destinationAssociation.type) {
             case "hasOne":
               modelIds = models.map(model => { return model[throughAssociation.foreignId]; });
-
-              modelFinder
-                .find(association.constructor)
-                .where(tempModel.primaryKey, "in", modelIds)
-                .results((findErrors, resultModels) => {
-                  resultModels.forEach((model) => {
-                    this[associationName].push(model);
-                  });
-                  callback();
-                });
-
+              fetchWhere.call(this, association.constructor, tempModel.primaryKey, "in", modelIds, this[associationName], callback);
               break;
 
             case "hasMany":
               modelIds = models.map(model => { return model[model.primaryKey]; });
-
-              modelFinder
-                .find(association.constructor)
-                .where(destinationAssociation.foreignId, "in", modelIds)
-                .results((findErrors, resultModels) => {
-                  resultModels.forEach((model) => {
-                    this[associationName].push(model);
-                  });
-                  callback();
-                });
+              fetchWhere.call(this, association.constructor, destinationAssociation.foreignId, "in", modelIds, this[associationName], callback);
               break;
+
             case "belongsTo":
               modelIds = models.map(model => { return model[destinationAssociation.foreignId]; });
-
-              modelFinder
-                .find(association.constructor)
-                .where(tempModel.primaryKey, "in", modelIds)
-                .results((findErrors, resultModels) => {
-                  resultModels.forEach((model) => {
-                    this[associationName].push(model);
-                  });
-                  callback();
-                });
-
+              fetchWhere.call(this, association.constructor, tempModel.primaryKey, "in", modelIds, this[associationName], callback);
               break;
           }
 
