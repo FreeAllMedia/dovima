@@ -11,6 +11,38 @@ var _modelFinderJs = require("../modelFinder.js");
 
 var _modelFinderJs2 = _interopRequireDefault(_modelFinderJs);
 
+function countAssociationHasMany(model, associationModel, association, resultDetails, callback) {
+	var modelFinder = new _modelFinderJs2["default"](model.constructor.database);
+	var collection = associationModel;
+	if (collection.length > 0) {
+		resultDetails.result = true;
+		callback(undefined, resultDetails);
+	} else {
+		if (model.isNew) {
+			//it does not have an id to look for
+			resultDetails.result = false;
+			callback(null, resultDetails);
+		} else {
+			modelFinder.count(association.constructor).where(association.foreignKey, "=", model.id).results(function (error, count) {
+				if (error) {
+					resultDetails.result = false;
+					callback(error, resultDetails);
+				} else {
+					var modelsFound = count > 0;
+
+					if (modelsFound) {
+						resultDetails.result = true;
+						callback(null, resultDetails);
+					} else {
+						resultDetails.result = false;
+						callback(null, resultDetails);
+					}
+				}
+			});
+		}
+	}
+}
+
 function isPresent(associationName, callback) {
 	var model = this;
 	var defaultErrorMessage = "must be present on " + model.constructor.name;
@@ -40,34 +72,7 @@ function isPresent(associationName, callback) {
 				callback(undefined, resultDetails);
 				break;
 			case "hasMany":
-				var collection = associationModel;
-				if (collection.length > 0) {
-					resultDetails.result = true;
-					callback(undefined, resultDetails);
-				} else {
-					if (model.isNew) {
-						//it does not have an id to look for
-						resultDetails.result = false;
-						callback(null, resultDetails);
-					} else {
-						modelFinder.count(association.constructor).where(association.foreignKey, "=", model.id).results(function (error, count) {
-							if (error) {
-								resultDetails.result = false;
-								callback(error, resultDetails);
-							} else {
-								var modelsFound = count > 0;
-
-								if (modelsFound) {
-									resultDetails.result = true;
-									callback(null, resultDetails);
-								} else {
-									resultDetails.result = false;
-									callback(null, resultDetails);
-								}
-							}
-						});
-					}
-				}
+				countAssociationHasMany.call(this, model, associationModel, association, resultDetails, callback);
 				break;
 			default:
 				throw new Error("Unknown association type");
