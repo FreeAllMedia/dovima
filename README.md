@@ -74,7 +74,7 @@ class Seat extends Model {
 
 # Quality and Compatibility
 
-[![Build Status](https://travis-ci.org/FreeAllMedia/dovima.png?branch=master)](https://travis-ci.org/FreeAllMedia/dovima) [![Coverage Status](https://coveralls.io/repos/FreeAllMedia/dovima/badge.svg)](https://coveralls.io/r/FreeAllMedia/dovima) [![Code Climate](https://codeclimate.com/github/FreeAllMedia/dovima/badges/gpa.svg)](https://codeclimate.com/github/FreeAllMedia/dovima) [![Dependency Status](https://david-dm.org/FreeAllMedia/dovima.png?theme=shields.io)](https://david-dm.org/FreeAllMedia/dovima?theme=shields.io) [![Dev Dependency Status](https://david-dm.org/FreeAllMedia/dovima/dev-status.svg)](https://david-dm.org/FreeAllMedia/dovima?theme=shields.io#info=devDependencies)
+[![Build Status](https://travis-ci.org/FreeAllMedia/dovima.png?branch=master)](https://travis-ci.org/FreeAllMedia/dovima) [![Coverage Status](https://coveralls.io/repos/FreeAllMedia/dovima/badge.svg)](https://coveralls.io/r/FreeAllMedia/dovima) [![Code Climate](https://codeclimate.com/github/FreeAllMedia/dovima/badges/gpa.svg)](https://codeclimate.com/github/FreeAllMedia/dovima) [![bitHound Score](https://www.bithound.io/github/FreeAllMedia/dovima/badges/score.svg)](https://www.bithound.io/github/FreeAllMedia/dovima) [![Dependency Status](https://david-dm.org/FreeAllMedia/dovima.png?theme=shields.io)](https://david-dm.org/FreeAllMedia/dovima?theme=shields.io) [![Dev Dependency Status](https://david-dm.org/FreeAllMedia/dovima/dev-status.svg)](https://david-dm.org/FreeAllMedia/dovima?theme=shields.io#info=devDependencies)
 
 *Every build and release is automatically tested on the following platforms:*
 
