@@ -1,7 +1,7 @@
 {
 	"source": {
 		"lib": "./es6/lib/**/*.js",
-		"spec": "./es6/spec/**/*.spec.js",
+		"spec": "./es6/spec/**/*.js",
 		"specAssets": [
 			"./es6/spec/**/*.json"
 		],

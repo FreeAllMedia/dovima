@@ -51,7 +51,7 @@ export default class Collection extends Array {
 							modelName = model;
 						}
 
-						throw TypeError(`The model ${modelName} is not an instance of ${this._modelConstructor.name}, therefore, it cannot be pushed to this collection.`);
+						throw new TypeError(`The model ${modelName} is not an instance of ${this._modelConstructor.name}, therefore, it cannot be pushed to this collection.`);
 					}
 				}
 			}
@@ -59,21 +59,21 @@ export default class Collection extends Array {
 	}
 
 	fetch(callback) {
+		function processWhereCondition(value) {
+			if (typeof value === "string") {
+				const snakeCasedValue = inflect(value).snake.toString();
+				return snakeCasedValue;
+			} else {
+				return value;
+			}
+		}
+
 		if(this.association) {
 			const modelFinder = new ModelFinder(this.association.constructor.database);
 
 			const query = modelFinder
 				.find(this.association.constructor)
 				.where(this.association.foreignKey, "=", this.association.parent.id);
-
-			function processWhereCondition(value) {
-				if (typeof value === "string") {
-					const snakeCasedValue = inflect(value).snake.toString();
-					return snakeCasedValue;
-				} else {
-					return value;
-				}
-			}
 
 			if (this.association.where) {
 				const processedWhereConditions = this.association.where.map(processWhereCondition);
@@ -104,4 +104,3 @@ export default class Collection extends Array {
 }
 
 import ModelFinder from "./modelFinder.js";
-import Model from "./model.js";

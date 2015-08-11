@@ -1,6 +1,6 @@
 {
   "name": "dovima",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "ES6 generic model with lots of useful special features.",
   "main": "index.js",
   "scripts": {
@@ -38,6 +38,7 @@
     "blunder": "^0.1.0",
     "fleming": "^0.1.0",
     "flowsync": "^0.1.4",
+    "incognito": "^0.1.2",
     "jargon": "^0.1.14",
     "quirk": "0.0.2"
   },
@@ -51,6 +52,7 @@
     "gulp-babel": "^5.1.0",
     "gulp-istanbul": "^0.10.0",
     "gulp-mocha": "^2.1.1",
+    "gulp-util": "^3.0.6",
     "karma": "^0.12.36",
     "karma-browserify": "^4.2.1",
     "karma-chai": "^0.1.0",
@@ -63,6 +65,8 @@
     "karma-safari-launcher": "^0.1.1",
     "karma-sauce-launcher": "^0.2.11",
     "mocha": "^2.2.5",
-    "sinon": "^1.15.4"
-  }
+    "sinon": "^1.15.4",
+    "superstack": "0.0.4"
+  },
+  "generatorVersion": "0.2.20"
 }

@@ -14,7 +14,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _jargon = require("jargon");
 
@@ -24,11 +24,9 @@ var _modelFinderJs = require("./modelFinder.js");
 
 var _modelFinderJs2 = _interopRequireDefault(_modelFinderJs);
 
-var _modelJs = require("./model.js");
-
-var _modelJs2 = _interopRequireDefault(_modelJs);
-
 var Collection = (function (_Array) {
+	_inherits(Collection, _Array);
+
 	function Collection(initialData) {
 		_classCallCheck(this, Collection);
 
@@ -55,8 +53,6 @@ var Collection = (function (_Array) {
 			}
 		});
 	}
-
-	_inherits(Collection, _Array);
 
 	_createClass(Collection, [{
 		key: "push",
@@ -90,7 +86,7 @@ var Collection = (function (_Array) {
 								modelName = model;
 							}
 
-							throw TypeError("The model " + modelName + " is not an instance of " + _this._modelConstructor.name + ", therefore, it cannot be pushed to this collection.");
+							throw new TypeError("The model " + modelName + " is not an instance of " + _this._modelConstructor.name + ", therefore, it cannot be pushed to this collection.");
 						}
 					}
 				}
@@ -101,48 +97,46 @@ var Collection = (function (_Array) {
 		value: function fetch(callback) {
 			var _this2 = this;
 
+			function processWhereCondition(value) {
+				if (typeof value === "string") {
+					var snakeCasedValue = (0, _jargon2["default"])(value).snake.toString();
+					return snakeCasedValue;
+				} else {
+					return value;
+				}
+			}
+
 			if (this.association) {
-				(function () {
-					var processWhereCondition = function processWhereCondition(value) {
-						if (typeof value === "string") {
-							var snakeCasedValue = (0, _jargon2["default"])(value).snake.toString();
-							return snakeCasedValue;
-						} else {
-							return value;
-						}
-					};
+				var modelFinder = new _modelFinderJs2["default"](this.association.constructor.database);
 
-					var modelFinder = new _modelFinderJs2["default"](_this2.association.constructor.database);
+				var query = modelFinder.find(this.association.constructor).where(this.association.foreignKey, "=", this.association.parent.id);
 
-					var query = modelFinder.find(_this2.association.constructor).where(_this2.association.foreignKey, "=", _this2.association.parent.id);
+				if (this.association.where) {
+					(function () {
+						var processedWhereConditions = _this2.association.where.map(processWhereCondition);
+						var self = _this2;
+						query.andWhere(function () {
+							var _this3 = this;
 
-					if (_this2.association.where) {
-						(function () {
-							var processedWhereConditions = _this2.association.where.map(processWhereCondition);
-							var self = _this2;
-							query.andWhere(function () {
-								var _this3 = this;
+							this.where.apply(this, _toConsumableArray(processedWhereConditions));
 
-								this.where.apply(this, _toConsumableArray(processedWhereConditions));
-
-								if (Array.isArray(self.association.andWhere)) {
-									self.association.andWhere.forEach(function (whereConditions) {
-										var processedAndWhereItem = whereConditions.map(processWhereCondition);
-										_this3.andWhere.apply(_this3, _toConsumableArray(processedAndWhereItem));
-									});
-								}
-							});
-						})();
-					}
-
-					query.results(function (error, models) {
-						_this2.splice(0, _this2.length);
-						models.forEach(function (model) {
-							_this2.push(model);
+							if (Array.isArray(self.association.andWhere)) {
+								self.association.andWhere.forEach(function (whereConditions) {
+									var processedAndWhereItem = whereConditions.map(processWhereCondition);
+									_this3.andWhere.apply(_this3, _toConsumableArray(processedAndWhereItem));
+								});
+							}
 						});
-						callback(error);
+					})();
+				}
+
+				query.results(function (error, models) {
+					_this2.splice(0, _this2.length);
+					models.forEach(function (model) {
+						_this2.push(model);
 					});
-				})();
+					callback(error);
+				});
 			} else {
 				throw new Error("Cannot fetch collection without an association set. Call Model.all instead.");
 			}
