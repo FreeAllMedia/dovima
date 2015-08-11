@@ -13,7 +13,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _sinon = require("sinon");
 
@@ -366,13 +366,13 @@ describe("Model(attributes, options)", function () {
 
 			describe(".deleted", function () {
 				var SoftUser = (function (_Model) {
+					_inherits(SoftUser, _Model);
+
 					function SoftUser() {
 						_classCallCheck(this, SoftUser);
 
 						_get(Object.getPrototypeOf(SoftUser.prototype), "constructor", this).apply(this, arguments);
 					}
-
-					_inherits(SoftUser, _Model);
 
 					_createClass(SoftUser, [{
 						key: "initialize",
@@ -412,13 +412,13 @@ describe("Model(attributes, options)", function () {
 		    associateSpy = undefined;
 
 		var Post = (function (_Model2) {
+			_inherits(Post, _Model2);
+
 			function Post() {
 				_classCallCheck(this, Post);
 
 				_get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
 			}
-
-			_inherits(Post, _Model2);
 
 			_createClass(Post, [{
 				key: "initialize",
@@ -477,61 +477,61 @@ describe("Model(attributes, options)", function () {
 
 	describe("(Associations)", function () {
 		var Street = (function (_Model3) {
+			_inherits(Street, _Model3);
+
 			function Street() {
 				_classCallCheck(this, Street);
 
 				_get(Object.getPrototypeOf(Street.prototype), "constructor", this).apply(this, arguments);
 			}
 
-			_inherits(Street, _Model3);
-
 			return Street;
 		})(_2["default"]);
 
 		var Driver = (function (_Model4) {
+			_inherits(Driver, _Model4);
+
 			function Driver() {
 				_classCallCheck(this, Driver);
 
 				_get(Object.getPrototypeOf(Driver.prototype), "constructor", this).apply(this, arguments);
 			}
 
-			_inherits(Driver, _Model4);
-
 			return Driver;
 		})(_2["default"]);
 
 		var Truck = (function (_Model5) {
+			_inherits(Truck, _Model5);
+
 			function Truck() {
 				_classCallCheck(this, Truck);
 
 				_get(Object.getPrototypeOf(Truck.prototype), "constructor", this).apply(this, arguments);
 			}
 
-			_inherits(Truck, _Model5);
-
 			return Truck;
 		})(_2["default"]);
 
 		var Wheel = (function (_Model6) {
+			_inherits(Wheel, _Model6);
+
 			function Wheel() {
 				_classCallCheck(this, Wheel);
 
 				_get(Object.getPrototypeOf(Wheel.prototype), "constructor", this).apply(this, arguments);
 			}
 
-			_inherits(Wheel, _Model6);
-
 			return Wheel;
 		})(_2["default"]);
 
 		var SteeringWheel = (function (_Model7) {
+			_inherits(SteeringWheel, _Model7);
+
 			function SteeringWheel() {
 				_classCallCheck(this, SteeringWheel);
 
 				_get(Object.getPrototypeOf(SteeringWheel.prototype), "constructor", this).apply(this, arguments);
 			}
-
-			_inherits(SteeringWheel, _Model7);
 
 			return SteeringWheel;
 		})(_2["default"]);
@@ -1083,7 +1083,9 @@ describe("Model(attributes, options)", function () {
 			});
 
 			it("should return the model to support chaining", function () {
-				user.include.apply(user, _toConsumableArray(associationNames)).should.equal(user);
+				var _user;
+
+				(_user = user).include.apply(_user, _toConsumableArray(associationNames)).should.equal(user);
 			});
 
 			it("should fetch belongsTo associations", function (done) {
@@ -1162,9 +1164,9 @@ describe("Model(attributes, options)", function () {
 
 				var Post = function Post() {
 					_classCallCheck(this, Post);
-				};
+				} // Needed to mock a through association that is incomplete
 
-				// Needed to mock a through association that is incomplete
+				;
 
 				(function () {
 					user.hasMany("posts", Post).through("photos");
@@ -1216,13 +1218,13 @@ describe("Model(attributes, options)", function () {
 		describe(".delete(callback)", function () {
 			describe("(when dependent is declared on the association)", function () {
 				var Account = (function (_Model8) {
+					_inherits(Account, _Model8);
+
 					function Account() {
 						_classCallCheck(this, Account);
 
 						_get(Object.getPrototypeOf(Account.prototype), "constructor", this).apply(this, arguments);
 					}
-
-					_inherits(Account, _Model8);
 
 					_createClass(Account, [{
 						key: "initialize",
@@ -1240,13 +1242,13 @@ describe("Model(attributes, options)", function () {
 				})(_2["default"]);
 
 				var ForumUser = (function (_Model9) {
+					_inherits(ForumUser, _Model9);
+
 					function ForumUser() {
 						_classCallCheck(this, ForumUser);
 
 						_get(Object.getPrototypeOf(ForumUser.prototype), "constructor", this).apply(this, arguments);
 					}
-
-					_inherits(ForumUser, _Model9);
 
 					_createClass(ForumUser, [{
 						key: "initialize",
@@ -1265,13 +1267,13 @@ describe("Model(attributes, options)", function () {
 				})(_2["default"]);
 
 				var Post = (function (_Model10) {
+					_inherits(Post, _Model10);
+
 					function Post() {
 						_classCallCheck(this, Post);
 
 						_get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
 					}
-
-					_inherits(Post, _Model10);
 
 					_createClass(Post, [{
 						key: "initialize",
@@ -1351,13 +1353,13 @@ describe("Model(attributes, options)", function () {
 
 			describe("(when .softDelete is not called)", function () {
 				var Post = (function (_Model11) {
+					_inherits(Post, _Model11);
+
 					function Post() {
 						_classCallCheck(this, Post);
 
 						_get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
 					}
-
-					_inherits(Post, _Model11);
 
 					return Post;
 				})(_2["default"]);
@@ -1379,13 +1381,13 @@ describe("Model(attributes, options)", function () {
 				var post = undefined;
 
 				var Post = (function (_Model12) {
+					_inherits(Post, _Model12);
+
 					function Post() {
 						_classCallCheck(this, Post);
 
 						_get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
 					}
-
-					_inherits(Post, _Model12);
 
 					_createClass(Post, [{
 						key: "initialize",

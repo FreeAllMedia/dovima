@@ -8,7 +8,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
@@ -97,13 +97,13 @@ describe(".save(callback)", function () {
             steeringWheel = undefined;
 
         var TruckOwner = (function (_Model) {
+          _inherits(TruckOwner, _Model);
+
           function TruckOwner() {
             _classCallCheck(this, TruckOwner);
 
             _get(Object.getPrototypeOf(TruckOwner.prototype), "constructor", this).apply(this, arguments);
           }
-
-          _inherits(TruckOwner, _Model);
 
           _createClass(TruckOwner, [{
             key: "associate",
@@ -117,13 +117,13 @@ describe(".save(callback)", function () {
         })(_2["default"]);
 
         var Truck = (function (_Model2) {
+          _inherits(Truck, _Model2);
+
           function Truck() {
             _classCallCheck(this, Truck);
 
             _get(Object.getPrototypeOf(Truck.prototype), "constructor", this).apply(this, arguments);
           }
-
-          _inherits(Truck, _Model2);
 
           _createClass(Truck, [{
             key: "associate",
@@ -139,13 +139,13 @@ describe(".save(callback)", function () {
         })(_2["default"]);
 
         var Owner = (function (_Model3) {
+          _inherits(Owner, _Model3);
+
           function Owner() {
             _classCallCheck(this, Owner);
 
             _get(Object.getPrototypeOf(Owner.prototype), "constructor", this).apply(this, arguments);
           }
-
-          _inherits(Owner, _Model3);
 
           _createClass(Owner, [{
             key: "associate",
@@ -159,13 +159,13 @@ describe(".save(callback)", function () {
         })(_2["default"]);
 
         var Wheel = (function (_Model4) {
+          _inherits(Wheel, _Model4);
+
           function Wheel() {
             _classCallCheck(this, Wheel);
 
             _get(Object.getPrototypeOf(Wheel.prototype), "constructor", this).apply(this, arguments);
           }
-
-          _inherits(Wheel, _Model4);
 
           _createClass(Wheel, [{
             key: "associate",
@@ -184,13 +184,13 @@ describe(".save(callback)", function () {
         })(_2["default"]);
 
         var SteeringWheel = (function (_Model5) {
+          _inherits(SteeringWheel, _Model5);
+
           function SteeringWheel() {
             _classCallCheck(this, SteeringWheel);
 
             _get(Object.getPrototypeOf(SteeringWheel.prototype), "constructor", this).apply(this, arguments);
           }
-
-          _inherits(SteeringWheel, _Model5);
 
           _createClass(SteeringWheel, [{
             key: "associate",

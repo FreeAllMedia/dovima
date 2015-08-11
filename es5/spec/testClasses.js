@@ -12,7 +12,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _ = require("../../");
 
@@ -25,13 +25,13 @@ var _2 = _interopRequireDefault(_);
 /* Simple Example */
 
 var User = (function (_Model) {
+  _inherits(User, _Model);
+
   function User() {
     _classCallCheck(this, User);
 
     _get(Object.getPrototypeOf(User.prototype), "constructor", this).apply(this, arguments);
   }
-
-  _inherits(User, _Model);
 
   _createClass(User, [{
     key: "associate",
@@ -67,13 +67,13 @@ var User = (function (_Model) {
 exports.User = User;
 
 var Address = (function (_Model2) {
+  _inherits(Address, _Model2);
+
   function Address() {
     _classCallCheck(this, Address);
 
     _get(Object.getPrototypeOf(Address.prototype), "constructor", this).apply(this, arguments);
   }
-
-  _inherits(Address, _Model2);
 
   _createClass(Address, [{
     key: "associate",
@@ -94,13 +94,13 @@ var Address = (function (_Model2) {
 exports.Address = Address;
 
 var PostalCode = (function (_Model3) {
+  _inherits(PostalCode, _Model3);
+
   function PostalCode() {
     _classCallCheck(this, PostalCode);
 
     _get(Object.getPrototypeOf(PostalCode.prototype), "constructor", this).apply(this, arguments);
   }
-
-  _inherits(PostalCode, _Model3);
 
   _createClass(PostalCode, [{
     key: "associate",
@@ -139,13 +139,13 @@ var PhotoLike = (function () {
 exports.PhotoLike = PhotoLike;
 
 var Photo = (function (_Model4) {
+  _inherits(Photo, _Model4);
+
   function Photo() {
     _classCallCheck(this, Photo);
 
     _get(Object.getPrototypeOf(Photo.prototype), "constructor", this).apply(this, arguments);
   }
-
-  _inherits(Photo, _Model4);
 
   _createClass(Photo, [{
     key: "associate",
@@ -173,13 +173,13 @@ var Photo = (function (_Model4) {
 exports.Photo = Photo;
 
 var Comment = (function (_Model5) {
+  _inherits(Comment, _Model5);
+
   function Comment() {
     _classCallCheck(this, Comment);
 
     _get(Object.getPrototypeOf(Comment.prototype), "constructor", this).apply(this, arguments);
   }
-
-  _inherits(Comment, _Model5);
 
   _createClass(Comment, [{
     key: "associate",

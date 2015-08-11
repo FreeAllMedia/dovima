@@ -8,7 +8,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 var _libValidationIsPresentJs = require("../../lib/validation/isPresent.js");
 
@@ -36,37 +36,37 @@ var databaseConfig = {
 
 describe("isPresent(item, callback)", function () {
 	var Wheel = (function (_Model) {
+		_inherits(Wheel, _Model);
+
 		function Wheel() {
 			_classCallCheck(this, Wheel);
 
 			_get(Object.getPrototypeOf(Wheel.prototype), "constructor", this).apply(this, arguments);
 		}
 
-		_inherits(Wheel, _Model);
-
 		return Wheel;
 	})(_2["default"]);
 
 	var SteeringWheel = (function (_Model2) {
+		_inherits(SteeringWheel, _Model2);
+
 		function SteeringWheel() {
 			_classCallCheck(this, SteeringWheel);
 
 			_get(Object.getPrototypeOf(SteeringWheel.prototype), "constructor", this).apply(this, arguments);
 		}
 
-		_inherits(SteeringWheel, _Model2);
-
 		return SteeringWheel;
 	})(_2["default"]);
 
 	var Street = (function (_Model3) {
+		_inherits(Street, _Model3);
+
 		function Street() {
 			_classCallCheck(this, Street);
 
 			_get(Object.getPrototypeOf(Street.prototype), "constructor", this).apply(this, arguments);
 		}
-
-		_inherits(Street, _Model3);
 
 		_createClass(Street, [{
 			key: "associate",
@@ -79,13 +79,13 @@ describe("isPresent(item, callback)", function () {
 	})(_2["default"]);
 
 	var Truck = (function (_Model4) {
+		_inherits(Truck, _Model4);
+
 		function Truck() {
 			_classCallCheck(this, Truck);
 
 			_get(Object.getPrototypeOf(Truck.prototype), "constructor", this).apply(this, arguments);
 		}
-
-		_inherits(Truck, _Model4);
 
 		_createClass(Truck, [{
 			key: "associate",

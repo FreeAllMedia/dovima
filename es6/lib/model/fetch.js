@@ -1,6 +1,6 @@
 import flowsync from "flowsync";
 import inflect from "jargon";
-
+import privateData from "incognito";
 import ModelFinder from "../modelFinder.js";
 import symbols from "./symbols";
 
@@ -176,7 +176,9 @@ function fetchBy(fields = [this.primaryKey], callback = undefined) {
     }
   }, this);
 
-  if(this._softDelete) {
+  const _ = privateData(this);
+
+  if(_._softDelete) {
     chain = chain.whereNull(inflect("deletedAt").snake.toString());
   }
 
@@ -188,13 +190,13 @@ function fetchBy(fields = [this.primaryKey], callback = undefined) {
       } else {
         this[symbols.parseAttributesFromFields](records[0]);
 
-        if (this._includeAssociations.length > 0) {
+        if (_._includeAssociations.length > 0) {
           const associations = this.associations;
 
           /* We'll be putting all of our Async tasks into this */
           const fetchTasks = [];
 
-          this._includeAssociations.forEach((associationName) => {
+          _._includeAssociations.forEach((associationName) => {
 
             const association = associations[associationName];
 

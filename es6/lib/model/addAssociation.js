@@ -2,6 +2,7 @@
 import inflect from "jargon";
 import AssociationSetter from "../associationSetter.js";
 import Collection from "../collection.js";
+import privateData from "incognito";
 
 //private functions
 function getSetterFunctionHasOne(association, privateAssociationName, privateImplicitAssociationName) {
@@ -202,7 +203,7 @@ export default function addAssociation (associationDetails) {
 
   this[associationDetails.name] = associationDetails.value;
 
-  this._associations[associationDetails.name] = association;
+  privateData(this)._associations[associationDetails.name] = association;
 
   return associationSetter;
 }
