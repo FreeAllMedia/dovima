@@ -4,6 +4,7 @@ import flowsync from "flowsync";
 import Datetime from "fleming";
 import inflect from "jargon";
 import Quirk from "quirk";
+import privateData from "incognito";
 
 import symbols from "./symbols";
 
@@ -17,25 +18,18 @@ export default class Model {
 	 * @constructor
 	 */
 	constructor(initialAttributes) {
-		[
-			"_validations",
-			"_associations"
-		].forEach((privatePropertyName) => {
-			Object.defineProperty(this, privatePropertyName, {
-				writable: true,
-				enumerable: false,
-				value: {}
-			});
-		});
+		const _ = privateData(this);
+		_._validations = {};
+		_._associations = {};
+		_._includeAssociations = [];
+		_._tableName = null;
+		_._primaryKey = null;
+		_._softDelete = null;
+
 		/**
 		 * Define dynamic properties
 		 */
 		Object.defineProperties(this, {
-			"_includeAssociations": {
-				enumerable: false,
-				writable: true,
-				value: []
-			},
 
 			"additionalAttributes": {
 				enumerable: false, //this fix db related issues
@@ -65,43 +59,27 @@ export default class Model {
 				get: this[symbols.validations]
 			},
 
-			"_tableName": {
-				enumerable: false,
-				writable: true
-			},
-
 			"tableName": {
 				get: () => {
-					return this._tableName || inflect(this.constructor.name).plural.snake.toString();
+					return _._tableName || inflect(this.constructor.name).plural.snake.toString();
 				},
 				set: (newTableName) => {
-					this._tableName = newTableName;
+					_._tableName = newTableName;
 				}
-			},
-
-			"_primaryKey": {
-				enumerable: false,
-				writable: true
 			},
 
 			"primaryKey": {
 				get: () => {
-					return this._primaryKey || "id";
+					return _._primaryKey || "id";
 				},
 				set: (newPrimaryKey) => {
-					this._primaryKey = newPrimaryKey;
+					_._primaryKey = newPrimaryKey;
 				}
-			},
-
-			"_softDelete": {
-				enumerable: false,
-				writable: true,
-				value: false
 			},
 
 			"softDelete": {
 				get: () => {
-					this._softDelete = true;
+					_._softDelete = true;
 				}
 			}
 		});
@@ -142,13 +120,14 @@ export default class Model {
 	}
 
 	ensure(attributeName, validatorFunction, validatorMessage) {
-		this._validations[attributeName] = this._validations[attributeName] || [];
+		const _ = privateData(this);
+		_._validations[attributeName] = _._validations[attributeName] || [];
 
 		let validatorDetails = {validator: validatorFunction};
 
 		if (validatorMessage) { validatorDetails.message = validatorMessage; }
 
-		this._validations[attributeName].push(validatorDetails);
+		_._validations[attributeName].push(validatorDetails);
 	}
 
 	/**
@@ -177,7 +156,8 @@ export default class Model {
 	 * @param  {Function(invalidAttributeList)} callback Callback returning the invalid attribute list.
 	 */
 	invalidAttributes(callback) {
-		const attributeNamesWithValidators = Object.keys(this._validations);
+		const _ = privateData(this);
+		const attributeNamesWithValidators = Object.keys(_._validations);
 
 		const compileInvalidAttributeList = (errors, validatorMessages) => {
 			if (errors) {
@@ -199,7 +179,7 @@ export default class Model {
 		};
 
 		const performValidationsForAttribute = (attributeName, done) => {
-			const attributeValidations = this._validations[attributeName];
+			const attributeValidations = _._validations[attributeName];
 
 			const performValidation = (validation, returnValue) => {
 				const validator = validation.validator;
@@ -237,12 +217,12 @@ export default class Model {
 	}
 
 	include(...associationNames) {
-		this._includeAssociations = associationNames;
+		privateData(this)._includeAssociations = associationNames;
 		return this;
 	}
 
 	delete(callback) {
-		if(this._softDelete) {
+		if(privateData(this)._softDelete) {
 			if (!this.constructor.database) { throw new Error("Cannot delete without Model.database set."); }
 
 			if(this[this.primaryKey]) {
@@ -314,7 +294,7 @@ export default class Model {
 	}
 
 	[symbols.associations]() {
-		return this._associations;
+		return privateData(this)._associations;
 	}
 
 	[symbols.properties]() {
@@ -322,13 +302,13 @@ export default class Model {
 	}
 
 	[symbols.validations]() {
-		return this._validations;
+		return privateData(this)._validations;
 	}
 
 	[symbols.attributes]() {
 		var attributes = {};
 		this.properties.forEach((propertyName) => {
-			if(!this._associations[propertyName]) {
+			if(!privateData(this)._associations[propertyName]) {
 				attributes[propertyName] = this[propertyName];
 			}
 		});
@@ -424,11 +404,13 @@ export default class Model {
 			}
 		});
 
+		const _ = privateData(this);
+
 		//add belongsTo associations and remove others
 		Object.keys(this.associations).forEach((associationName) => {
 			let relatedModel = this[associationName];
 			let foreignKeyField = inflect(associationName).foreignKey.toString();
-			if(this._associations[associationName].type === "belongsTo") {
+			if(_._associations[associationName].type === "belongsTo") {
 				//try with relatedModel and relatedModel.id
 				if(relatedModel && relatedModel.id) {
 					fieldAttributes[foreignKeyField] = relatedModel.id;

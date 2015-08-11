@@ -17,6 +17,10 @@ var _jargon = require("jargon");
 
 var _jargon2 = _interopRequireDefault(_jargon);
 
+var _incognito = require("incognito");
+
+var _incognito2 = _interopRequireDefault(_incognito);
+
 var _modelFinderJs = require("../modelFinder.js");
 
 var _modelFinderJs2 = _interopRequireDefault(_modelFinderJs);
@@ -181,8 +185,8 @@ function fetchByBelongsTo(associationName, associations, callback) {
 function fetchBy() {
   var _this5 = this;
 
-  var fields = arguments[0] === undefined ? [this.primaryKey] : arguments[0];
-  var callback = arguments[1] === undefined ? undefined : arguments[1];
+  var fields = arguments.length <= 0 || arguments[0] === undefined ? [this.primaryKey] : arguments[0];
+  var callback = arguments.length <= 1 || arguments[1] === undefined ? undefined : arguments[1];
 
   if (!this.constructor.database) {
     throw new Error("Cannot fetch without Model.database set.");
@@ -201,7 +205,9 @@ function fetchBy() {
     }
   }, this);
 
-  if (this._softDelete) {
+  var _ = (0, _incognito2["default"])(this);
+
+  if (_._softDelete) {
     chain = chain.whereNull((0, _jargon2["default"])("deletedAt").snake.toString());
   }
 
@@ -211,14 +217,14 @@ function fetchBy() {
     } else {
       _this5[_symbols2["default"].parseAttributesFromFields](records[0]);
 
-      if (_this5._includeAssociations.length > 0) {
+      if (_._includeAssociations.length > 0) {
         (function () {
           var associations = _this5.associations;
 
           /* We'll be putting all of our Async tasks into this */
           var fetchTasks = [];
 
-          _this5._includeAssociations.forEach(function (associationName) {
+          _._includeAssociations.forEach(function (associationName) {
 
             var association = associations[associationName];
 

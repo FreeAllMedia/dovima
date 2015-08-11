@@ -20,11 +20,16 @@ var _collectionJs = require("../collection.js");
 
 var _collectionJs2 = _interopRequireDefault(_collectionJs);
 
+var _incognito = require("incognito");
+
+var _incognito2 = _interopRequireDefault(_incognito);
+
+//private functions
+
 var _ = require("./");
 
 var _2 = _interopRequireDefault(_);
 
-//private functions
 function getSetterFunctionHasOne(association, privateAssociationName, privateImplicitAssociationName) {
   var _this = this;
 
@@ -236,7 +241,7 @@ function addAssociation(associationDetails) {
 
   this[associationDetails.name] = associationDetails.value;
 
-  this._associations[associationDetails.name] = association;
+  (0, _incognito2["default"])(this)._associations[associationDetails.name] = association;
 
   return associationSetter;
 }

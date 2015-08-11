@@ -28,9 +28,17 @@ var _quirk = require("quirk");
 
 var _quirk2 = _interopRequireDefault(_quirk);
 
+var _incognito = require("incognito");
+
+var _incognito2 = _interopRequireDefault(_incognito);
+
 var _symbols = require("./symbols");
 
 var _symbols2 = _interopRequireDefault(_symbols);
+
+/**
+ * @class Model
+ */
 
 //import additional methods from external files
 
@@ -50,10 +58,6 @@ var _modelFinderJs = require("../modelFinder.js");
 
 var _modelFinderJs2 = _interopRequireDefault(_modelFinderJs);
 
-/**
- * @class Model
- */
-
 var Model = (function () {
 	/**
   * @param {Object.<String,*>} [initialAttributes] Provide default values for attributes by passing a Key-Value Object.
@@ -65,22 +69,18 @@ var Model = (function () {
 
 		_classCallCheck(this, Model);
 
-		["_validations", "_associations"].forEach(function (privatePropertyName) {
-			Object.defineProperty(_this, privatePropertyName, {
-				writable: true,
-				enumerable: false,
-				value: {}
-			});
-		});
+		var _ = (0, _incognito2["default"])(this);
+		_._validations = {};
+		_._associations = {};
+		_._includeAssociations = [];
+		_._tableName = null;
+		_._primaryKey = null;
+		_._softDelete = null;
+
 		/**
    * Define dynamic properties
    */
 		Object.defineProperties(this, {
-			"_includeAssociations": {
-				enumerable: false,
-				writable: true,
-				value: []
-			},
 
 			"additionalAttributes": {
 				enumerable: false, //this fix db related issues
@@ -110,43 +110,27 @@ var Model = (function () {
 				get: this[_symbols2["default"].validations]
 			},
 
-			"_tableName": {
-				enumerable: false,
-				writable: true
-			},
-
 			"tableName": {
 				get: function get() {
-					return _this._tableName || (0, _jargon2["default"])(_this.constructor.name).plural.snake.toString();
+					return _._tableName || (0, _jargon2["default"])(_this.constructor.name).plural.snake.toString();
 				},
 				set: function set(newTableName) {
-					_this._tableName = newTableName;
+					_._tableName = newTableName;
 				}
-			},
-
-			"_primaryKey": {
-				enumerable: false,
-				writable: true
 			},
 
 			"primaryKey": {
 				get: function get() {
-					return _this._primaryKey || "id";
+					return _._primaryKey || "id";
 				},
 				set: function set(newPrimaryKey) {
-					_this._primaryKey = newPrimaryKey;
+					_._primaryKey = newPrimaryKey;
 				}
-			},
-
-			"_softDelete": {
-				enumerable: false,
-				writable: true,
-				value: false
 			},
 
 			"softDelete": {
 				get: function get() {
-					_this._softDelete = true;
+					_._softDelete = true;
 				}
 			}
 		});
@@ -192,7 +176,8 @@ var Model = (function () {
 	}, {
 		key: "ensure",
 		value: function ensure(attributeName, validatorFunction, validatorMessage) {
-			this._validations[attributeName] = this._validations[attributeName] || [];
+			var _ = (0, _incognito2["default"])(this);
+			_._validations[attributeName] = _._validations[attributeName] || [];
 
 			var validatorDetails = { validator: validatorFunction };
 
@@ -200,10 +185,8 @@ var Model = (function () {
 				validatorDetails.message = validatorMessage;
 			}
 
-			this._validations[attributeName].push(validatorDetails);
+			_._validations[attributeName].push(validatorDetails);
 		}
-	}, {
-		key: "isValid",
 
 		/**
    * Return a boolean indicating whether the model is valid or not.
@@ -211,13 +194,13 @@ var Model = (function () {
    * @method isValid
    * @param  {Function(boolean)} callback Callback returning the boolean.
    */
+	}, {
+		key: "isValid",
 		value: function isValid(callback) {
 			this.invalidAttributes(function (invalidAttributeList) {
 				callback(Object.keys(invalidAttributeList).length === 0);
 			});
 		}
-	}, {
-		key: "invalidAttributes",
 
 		/**
    * Return an object containing all invalid attributes and their errors.
@@ -232,10 +215,13 @@ var Model = (function () {
    * @method invalidAttributes
    * @param  {Function(invalidAttributeList)} callback Callback returning the invalid attribute list.
    */
+	}, {
+		key: "invalidAttributes",
 		value: function invalidAttributes(callback) {
 			var _this2 = this;
 
-			var attributeNamesWithValidators = Object.keys(this._validations);
+			var _ = (0, _incognito2["default"])(this);
+			var attributeNamesWithValidators = Object.keys(_._validations);
 
 			var compileInvalidAttributeList = function compileInvalidAttributeList(errors, validatorMessages) {
 				if (errors) {
@@ -257,7 +243,7 @@ var Model = (function () {
 			};
 
 			var performValidationsForAttribute = function performValidationsForAttribute(attributeName, done) {
-				var attributeValidations = _this2._validations[attributeName];
+				var attributeValidations = _._validations[attributeName];
 
 				var performValidation = function performValidation(validation, returnValue) {
 					var validator = validation.validator;
@@ -314,7 +300,7 @@ var Model = (function () {
 				associationNames[_key] = arguments[_key];
 			}
 
-			this._includeAssociations = associationNames;
+			(0, _incognito2["default"])(this)._includeAssociations = associationNames;
 			return this;
 		}
 	}, {
@@ -322,7 +308,7 @@ var Model = (function () {
 		value: function _delete(callback) {
 			var _this3 = this;
 
-			if (this._softDelete) {
+			if ((0, _incognito2["default"])(this)._softDelete) {
 				if (!this.constructor.database) {
 					throw new Error("Cannot delete without Model.database set.");
 				}
@@ -355,10 +341,10 @@ var Model = (function () {
 				throw new Error("Not implemented.");
 			}
 		}
-	}, {
-		key: "beforeValidation",
 
 		/* Stubbed methods for hooks */
+	}, {
+		key: "beforeValidation",
 		value: function beforeValidation(callback) {
 			callback();
 		}
@@ -386,20 +372,20 @@ var Model = (function () {
 		value: function toJSON() {
 			return this.attributes;
 		}
-	}, {
-		key: _symbols2["default"].setAttributes,
 
 		/**
    * Private Functionality
    */
 
+	}, {
+		key: _symbols2["default"].setAttributes,
 		value: function value(newAttributes) {
 			this[_symbols2["default"].parseAttributesFromFields](newAttributes);
 		}
 	}, {
 		key: _symbols2["default"].associations,
 		value: function value() {
-			return this._associations;
+			return (0, _incognito2["default"])(this)._associations;
 		}
 	}, {
 		key: _symbols2["default"].properties,
@@ -409,7 +395,7 @@ var Model = (function () {
 	}, {
 		key: _symbols2["default"].validations,
 		value: function value() {
-			return this._validations;
+			return (0, _incognito2["default"])(this)._validations;
 		}
 	}, {
 		key: _symbols2["default"].attributes,
@@ -418,7 +404,7 @@ var Model = (function () {
 
 			var attributes = {};
 			this.properties.forEach(function (propertyName) {
-				if (!_this4._associations[propertyName]) {
+				if (!(0, _incognito2["default"])(_this4)._associations[propertyName]) {
 					attributes[propertyName] = _this4[propertyName];
 				}
 			});
@@ -433,8 +419,6 @@ var Model = (function () {
 				return true;
 			}
 		}
-	}, {
-		key: _symbols2["default"].callDeep,
 
 		/**
    * Call a function deeply through all associations
@@ -444,6 +428,8 @@ var Model = (function () {
    * @param {String} functionName The name of the function that you want to fire deeply.
    * @param {function(errors, results)} Function called at the end of the operation.
    */
+	}, {
+		key: _symbols2["default"].callDeep,
 		value: function value(methodName, predicate, callback) {
 			var _this5 = this;
 
@@ -516,11 +502,13 @@ var Model = (function () {
 				}
 			});
 
+			var _ = (0, _incognito2["default"])(this);
+
 			//add belongsTo associations and remove others
 			Object.keys(this.associations).forEach(function (associationName) {
 				var relatedModel = _this6[associationName];
 				var foreignKeyField = (0, _jargon2["default"])(associationName).foreignKey.toString();
-				if (_this6._associations[associationName].type === "belongsTo") {
+				if (_._associations[associationName].type === "belongsTo") {
 					//try with relatedModel and relatedModel.id
 					if (relatedModel && relatedModel.id) {
 						fieldAttributes[foreignKeyField] = relatedModel.id;
