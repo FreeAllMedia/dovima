@@ -1,6 +1,6 @@
 {
   "name": "dovima",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "ES6 generic model with lots of useful special features.",
   "main": "index.js",
   "scripts": {
@@ -40,14 +40,15 @@
     "flowsync": "^0.1.4",
     "incognito": "^0.1.2",
     "jargon": "^0.1.14",
+    "proven": "^0.1.0",
     "quirk": "0.0.2"
   },
   "devDependencies": {
     "babel": "^5.5.6",
-    "babel-eslint": "^3.1.23",
+    "babel-eslint": "^4.0.5",
     "chai": "^3.0.0",
     "coveralls": "^2.11.2",
-    "eslint": "^0.24.1",
+    "eslint": "^0.24.0",
     "gulp": "^3.9.0",
     "gulp-babel": "^5.1.0",
     "gulp-istanbul": "^0.10.0",

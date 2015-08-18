@@ -14,16 +14,12 @@ import databaseConfig from "./databaseConfig.json";
 let userFixtures = require("./fixtures/users.json");
 
 describe("Model(attributes, options)", () => {
-	/**
-	 * Instantiate Model Examples
-	 */
-
 	let model,
-		user,
-		userAttributes,
-		photo,
-		comment,
-		clock;
+			user,
+			userAttributes,
+			photo,
+			comment,
+			clock;
 
 	beforeEach(() => {
 		clock = sinon.useFakeTimers();
@@ -73,8 +69,10 @@ describe("Model(attributes, options)", () => {
 		});
 
 		describe(".properties", () => {
-			it("should return the name of all attributes plus associations on the model", () => {
-				user.properties.should.eql([
+			let properties;
+
+			beforeEach(() => {
+				properties = [
 					"address",
 					"addressId",
 					"postalCode",
@@ -90,7 +88,10 @@ describe("Model(attributes, options)", () => {
 					"name",
 					"age",
 					"hasChildren"
-				]);
+				];
+			});
+			it("should return the name of all attributes plus associations on the model", () => {
+				user.properties.should.eql(properties);
 			});
 		});
 
@@ -134,7 +135,7 @@ describe("Model(attributes, options)", () => {
 		});
 	});
 
-	describe("(static properties)", () => {
+	describe("(Static Properties)", () => {
 		describe(".attributes", () => {
 			afterEach(() => {
 				delete User.attributes.specialAttribute; //so does not affect other tests

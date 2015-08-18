@@ -23,6 +23,10 @@ var _symbols = require("./symbols");
 
 var _symbols2 = _interopRequireDefault(_symbols);
 
+var _util = require("util");
+
+var _util2 = _interopRequireDefault(_util);
+
 //private methods
 function propagate(callback) {
   //disabling this rule because break is not necessary when return is present

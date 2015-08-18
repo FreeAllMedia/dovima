@@ -111,8 +111,17 @@ describe("Model(attributes, options)", function () {
 		});
 
 		describe(".properties", function () {
+			var properties = undefined;
+
+			beforeEach(function () {
+				properties = ["address", "addressId", "postalCode", "postalCodeId", "photos", "primaryPhoto", "primaryPhotoId", "photoLikes", "likedPhotos", "comments", "deletedComments", "id", "name", "age", "hasChildren"];
+			});
 			it("should return the name of all attributes plus associations on the model", function () {
-				user.properties.should.eql(["address", "addressId", "postalCode", "postalCodeId", "photos", "primaryPhoto", "primaryPhotoId", "photoLikes", "likedPhotos", "comments", "deletedComments", "id", "name", "age", "hasChildren"]);
+				user.properties.should.eql(properties);
+			});
+			it("should not return 'database'", function () {
+				user.database = {};
+				user.properties.should.eql(properties);
 			});
 		});
 
@@ -155,7 +164,7 @@ describe("Model(attributes, options)", function () {
 		});
 	});
 
-	describe("(static properties)", function () {
+	describe("(Static Properties)", function () {
 		describe(".attributes", function () {
 			afterEach(function () {
 				delete _testClassesJs.User.attributes.specialAttribute; //so does not affect other tests

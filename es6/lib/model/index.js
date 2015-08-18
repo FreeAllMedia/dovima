@@ -8,10 +8,11 @@ import privateData from "incognito";
 
 import symbols from "./symbols";
 
+// TODO: Remove superfluous underscores from private data. _._validations should be _.validations
+
 /**
  * @class Model
  */
-
 export default class Model {
 	/**
 	 * @param {Object.<String,*>} [initialAttributes] Provide default values for attributes by passing a Key-Value Object.
@@ -431,6 +432,7 @@ export default class Model {
 	}
 }
 
+// TODO: Simplify this.
 function joinClass(classObject, methods) {
 	//construct a object with the additional methods
 	let obj = {};
@@ -446,12 +448,12 @@ import fetch from "./fetch.js";
 import save from "./save.js";
 import addAssociation from "./addAssociation.js";
 
-joinClass(Model,
-	[
-		{name: "fetch", handler: fetch},
-		{name: "save", handler: save},
-		{name: symbols.addAssociation, handler: addAssociation}
-	]);
+// TODO: Simplify. There's no need for "name" and "handler" keys.
+joinClass(Model, [
+	{name: "fetch", handler: fetch},
+	{name: "save", handler: save},
+	{name: symbols.addAssociation, handler: addAssociation}
+]);
 
 Object.defineProperties(Model, {
 	"find": {
