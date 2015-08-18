@@ -36,6 +36,8 @@ var _symbols = require("./symbols");
 
 var _symbols2 = _interopRequireDefault(_symbols);
 
+// TODO: Remove superfluous underscores from private data. _._validations should be _.validations
+
 /**
  * @class Model
  */
@@ -53,6 +55,8 @@ var _saveJs2 = _interopRequireDefault(_saveJs);
 var _addAssociationJs = require("./addAssociation.js");
 
 var _addAssociationJs2 = _interopRequireDefault(_addAssociationJs);
+
+// TODO: Simplify. There's no need for "name" and "handler" keys.
 
 var _modelFinderJs = require("../modelFinder.js");
 
@@ -145,6 +149,8 @@ var Model = (function () {
 
 		this.initialize();
 	}
+
+	// TODO: Simplify this.
 
 	_createClass(Model, [{
 		key: "hasOne",
@@ -390,7 +396,10 @@ var Model = (function () {
 	}, {
 		key: _symbols2["default"].properties,
 		value: function value() {
-			return Object.keys(this);
+			var cleanedProperties = Object.keys(this).filter(function (key) {
+				return key !== "database";
+			});
+			return cleanedProperties;
 		}
 	}, {
 		key: _symbols2["default"].validations,
@@ -533,7 +542,6 @@ var Model = (function () {
 })();
 
 exports["default"] = Model;
-
 function joinClass(classObject, methods) {
 	//construct a object with the additional methods
 	var obj = {};
@@ -542,9 +550,7 @@ function joinClass(classObject, methods) {
 	});
 	//add the additional methods to the prototype
 	Object.assign(classObject.prototype, obj);
-}
-
-joinClass(Model, [{ name: "fetch", handler: _fetchJs2["default"] }, { name: "save", handler: _saveJs2["default"] }, { name: _symbols2["default"].addAssociation, handler: _addAssociationJs2["default"] }]);
+}joinClass(Model, [{ name: "fetch", handler: _fetchJs2["default"] }, { name: "save", handler: _saveJs2["default"] }, { name: _symbols2["default"].addAssociation, handler: _addAssociationJs2["default"] }]);
 
 Object.defineProperties(Model, {
 	"find": {

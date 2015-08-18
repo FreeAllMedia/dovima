@@ -73,8 +73,10 @@ describe("Model(attributes, options)", () => {
 		});
 
 		describe(".properties", () => {
-			it("should return the name of all attributes plus associations on the model", () => {
-				user.properties.should.eql([
+			let properties;
+
+			beforeEach(() => {
+				properties = [
 					"address",
 					"addressId",
 					"postalCode",
@@ -90,7 +92,14 @@ describe("Model(attributes, options)", () => {
 					"name",
 					"age",
 					"hasChildren"
-				]);
+				];
+			});
+			it("should return the name of all attributes plus associations on the model", () => {
+				user.properties.should.eql(properties);
+			});
+			it("should not return 'database'", () => {
+				user.database = {};
+				user.properties.should.eql(properties);
 			});
 		});
 
@@ -134,7 +143,7 @@ describe("Model(attributes, options)", () => {
 		});
 	});
 
-	describe("(static properties)", () => {
+	describe("(Static Properties)", () => {
 		describe(".attributes", () => {
 			afterEach(() => {
 				delete User.attributes.specialAttribute; //so does not affect other tests
