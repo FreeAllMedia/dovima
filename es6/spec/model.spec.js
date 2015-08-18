@@ -14,16 +14,12 @@ import databaseConfig from "./databaseConfig.json";
 let userFixtures = require("./fixtures/users.json");
 
 describe("Model(attributes, options)", () => {
-	/**
-	 * Instantiate Model Examples
-	 */
-
 	let model,
-		user,
-		userAttributes,
-		photo,
-		comment,
-		clock;
+			user,
+			userAttributes,
+			photo,
+			comment,
+			clock;
 
 	beforeEach(() => {
 		clock = sinon.useFakeTimers();
@@ -95,10 +91,6 @@ describe("Model(attributes, options)", () => {
 				];
 			});
 			it("should return the name of all attributes plus associations on the model", () => {
-				user.properties.should.eql(properties);
-			});
-			it("should not return 'database'", () => {
-				user.database = {};
 				user.properties.should.eql(properties);
 			});
 		});

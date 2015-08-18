@@ -299,10 +299,7 @@ export default class Model {
 	}
 
 	[symbols.properties]() {
-		const cleanedProperties = Object.keys(this).filter((key) => {
-			return key !== "database";
-		});
-		return cleanedProperties;
+		return Object.keys(this);
 	}
 
 	[symbols.validations]() {

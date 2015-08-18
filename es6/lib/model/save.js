@@ -2,7 +2,6 @@ import flowsync from "flowsync";
 import MultiError from "blunder";
 import Datetime from "fleming";
 import symbols from "./symbols";
-import util from "util";
 
 //private methods
 function propagate(callback) {
