@@ -4,9 +4,6 @@ import Model from "../../../";
 import databaseConfig from "../databaseConfig.json";
 
 describe("Model(attributes, options)", () => {
-  let model,
-      attributes;
-
   beforeEach(() => {
     Model.database = new Database(databaseConfig);
 
@@ -129,10 +126,11 @@ describe("Model(attributes, options)", () => {
         post = new Post();
       });
 
-      it("should throw when calling delete", () => {
-        () => {
-          post.delete();
-        }.should.throw("Not implemented.");
+      it("should return an error", done => {
+        post.delete((error) => {
+          error.message.should.eql("Not implemented.");
+          done();
+        });
       });
     });
 
@@ -159,12 +157,6 @@ describe("Model(attributes, options)", () => {
             });
           });
 
-          it("should not throw when calling delete", () => {
-            () => {
-              post.delete(() => {});
-            }.should.not.throw();
-          });
-
           it("should return no error", () => {
             post.delete((error) => {
               (error == null).should.be.true;
@@ -189,10 +181,11 @@ describe("Model(attributes, options)", () => {
         });
 
         describe("(when primaryKey is not set)", () => {
-          it("should throw an error", () => {
-            () => {
-              post.delete(() => {});
-            }.should.throw("Cannot delete the Post because the primary key is not set.");
+          it("should throw an error", done => {
+            post.delete((error) => {
+              error.message.should.eql("Cannot delete the Post because the primary key is not set.");
+              done();
+            });
           });
         });
       });

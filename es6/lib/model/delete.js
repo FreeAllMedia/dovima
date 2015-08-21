@@ -70,10 +70,10 @@ function softDelete(callback) {
       callback(errors, results);
     });
   } else {
-    throw new Error(`Cannot delete the ${this.constructor.name} because the primary key is not set.`);
+    callback(new Error(`Cannot delete the ${this.constructor.name} because the primary key is not set.`));
   }
 }
 
 function hardDelete(callback) {
-  throw new Error("Not implemented.");
+  callback(new Error("Not implemented."));
 }

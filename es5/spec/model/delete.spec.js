@@ -29,9 +29,6 @@ var _databaseConfigJson = require("../databaseConfig.json");
 var _databaseConfigJson2 = _interopRequireDefault(_databaseConfigJson);
 
 describe("Model(attributes, options)", function () {
-  var model = undefined,
-      attributes = undefined;
-
   beforeEach(function () {
     _2["default"].database = new _almaden2["default"](_databaseConfigJson2["default"]);
 
@@ -193,10 +190,11 @@ describe("Model(attributes, options)", function () {
         post = new Post();
       });
 
-      it("should throw when calling delete", function () {
-        (function () {
-          post["delete"]();
-        }).should["throw"]("Not implemented.");
+      it("should return an error", function (done) {
+        post["delete"](function (error) {
+          error.message.should.eql("Not implemented.");
+          done();
+        });
       });
     });
 
@@ -233,12 +231,6 @@ describe("Model(attributes, options)", function () {
             _2["default"].database.mock(_defineProperty({}, /update `posts` set `deleted_at` = \'.*\' where `id` = 1/, 1));
           });
 
-          it("should not throw when calling delete", function () {
-            (function () {
-              post["delete"](function () {});
-            }).should.not["throw"]();
-          });
-
           it("should return no error", function () {
             post["delete"](function (error) {
               (error == null).should.be["true"];
@@ -260,10 +252,11 @@ describe("Model(attributes, options)", function () {
         });
 
         describe("(when primaryKey is not set)", function () {
-          it("should throw an error", function () {
-            (function () {
-              post["delete"](function () {});
-            }).should["throw"]("Cannot delete the Post because the primary key is not set.");
+          it("should throw an error", function (done) {
+            post["delete"](function (error) {
+              error.message.should.eql("Cannot delete the Post because the primary key is not set.");
+              done();
+            });
           });
         });
       });
