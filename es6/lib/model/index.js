@@ -32,13 +32,6 @@ export default class Model {
 		 */
 		Object.defineProperties(this, {
 
-			"additionalAttributes": {
-				enumerable: false, //this fix db related issues
-				get: () => {
-					return this.constructor.attributes;
-				}
-			},
-
 			"isNew": {
 				get: this[symbols.isNew]
 			},
@@ -84,9 +77,6 @@ export default class Model {
 				}
 			}
 		});
-
-		//add the quirk to this instance
-		this.additionalAttributes.addAttributes(this);
 
 		this.associate();
 		this.validate();
@@ -222,47 +212,6 @@ export default class Model {
 		return this;
 	}
 
-	delete(callback) {
-		if(privateData(this)._softDelete) {
-			if (!this.constructor.database) { throw new Error("Cannot delete without Model.database set."); }
-
-			if(this[this.primaryKey]) {
-				flowsync.series([
-					(next) => {
-						this[symbols.callDeep]("delete", (associationDetails) => {
-							return (associationDetails.type !== "belongsTo"
-								&& associationDetails.dependent === true);
-						}, next);
-					},
-					(next) => {
-						let now = new Datetime();
-						let attributesToUpdate = {};
-						attributesToUpdate[inflect("deletedAt").snake.toString()] = now.toDate();
-						this.constructor.database
-							.update(attributesToUpdate)
-							.into(this.tableName)
-							.where(this.primaryKey, "=", this[this.primaryKey])
-							.results((error, results) => {
-								if(error) {
-									next(error);
-								} else if (results === 0) {
-									next(new Error(`${this.constructor.name} with ${this.primaryKey} ${this[this.primaryKey]} cannot be soft deleted because it doesn't exists.`));
-								} else {
-									next();
-								}
-							});
-					}
-				], (errors, results) => {
-					callback(errors, results);
-				});
-			} else {
-				throw new Error(`Cannot delete the ${this.constructor.name} because the primary key is not set.`);
-			}
-		} else {
-			throw new Error("Not implemented.");
-		}
-	}
-
 	/* Stubbed methods for hooks */
 	beforeValidation(callback) {
 		callback();
@@ -273,6 +222,10 @@ export default class Model {
 	}
 
 	afterSave(callback) {
+		callback();
+	}
+
+	beforeDelete(callback) {
 		callback();
 	}
 
@@ -396,13 +349,7 @@ export default class Model {
 		let attributeNames = Object.keys(this.attributes);
 		let fieldAttributes = {};
 		attributeNames.forEach((attributeName) => {
-			let found = Object.keys(this.additionalAttributes).find((additionalAttributeName) => {
-				return additionalAttributeName === attributeName;
-			});
-			//is just on db if is not an additional attribute
-			if(!found) {
-				fieldAttributes[inflect(attributeName).snake.toString()] = this[attributeName];
-			}
+			fieldAttributes[inflect(attributeName).snake.toString()] = this[attributeName];
 		});
 
 		const _ = privateData(this);
@@ -432,28 +379,12 @@ export default class Model {
 	}
 }
 
-// TODO: Simplify this.
-function joinClass(classObject, methods) {
-	//construct a object with the additional methods
-	let obj = {};
-	methods.forEach((method) => {
-		obj[method.name] = method.handler;
-	});
-	//add the additional methods to the prototype
-	Object.assign(classObject.prototype, obj);
-}
-
-//import additional methods from external files
-import fetch from "./fetch.js";
-import save from "./save.js";
-import addAssociation from "./addAssociation.js";
-
-// TODO: Simplify. There's no need for "name" and "handler" keys.
-joinClass(Model, [
-	{name: "fetch", handler: fetch},
-	{name: "save", handler: save},
-	{name: symbols.addAssociation, handler: addAssociation}
-]);
+Object.assign(Model.prototype, {
+	"fetch": require("./fetch.js"),
+	"save": require("./save.js"),
+	"delete": require("./delete.js"),
+	[symbols.addAssociation]: require("./addAssociation.js")
+});
 
 Object.defineProperties(Model, {
 	"find": {
@@ -461,11 +392,6 @@ Object.defineProperties(Model, {
 			let modelQuery = new ModelFinder(Model.database);
 			return modelQuery.find(this);
 		}
-	},
-	//problem here: can't assign property automatically to the concrete model to use it
-	//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/observe#Browser_compatibility
-	"attributes": {
-		value: new Quirk()
 	}
 });
 
