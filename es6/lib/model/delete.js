@@ -20,10 +20,8 @@ export default function deleteSelf(callback) {
     (done) => {
       performDelete.call(this, done);
     }
-  ], (error) => {
-    console.log("ERROR", typeof error);
-    if (error) { throw error; }
-    callback();
+  ], (errors) => {
+    callback(errors);
   });
 }
 
@@ -72,11 +70,10 @@ function softDelete(callback) {
       callback(errors, results);
     });
   } else {
-    const error = new Error(`Cannot delete the ${this.constructor.name} because the primary key is not set.`);
-    callback(error);
+    callback(new Error(`Cannot delete the ${this.constructor.name} because the primary key is not set.`));
   }
 }
 
 function hardDelete(callback) {
-  throw new Error("Not implemented.");
+  callback(new Error("Not implemented."));
 }

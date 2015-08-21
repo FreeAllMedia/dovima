@@ -45,12 +45,8 @@ function deleteSelf(callback) {
     _this.beforeDelete(done);
   }, function (done) {
     performDelete.call(_this, done);
-  }], function (error) {
-    console.log("ERROR", typeof error);
-    if (error) {
-      throw error;
-    }
-    callback();
+  }], function (errors) {
+    callback(errors);
   });
 }
 
@@ -93,12 +89,11 @@ function softDelete(callback) {
       callback(errors, results);
     });
   } else {
-    var error = new Error("Cannot delete the " + this.constructor.name + " because the primary key is not set.");
-    callback(error);
+    callback(new Error("Cannot delete the " + this.constructor.name + " because the primary key is not set."));
   }
 }
 
 function hardDelete(callback) {
-  throw new Error("Not implemented.");
+  callback(new Error("Not implemented."));
 }
 module.exports = exports["default"];
