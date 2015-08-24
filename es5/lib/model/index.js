@@ -10,6 +10,8 @@ var _createClass = (function () { function defineProperties(target, props) { for
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var _flowsync = require("flowsync");
@@ -42,22 +44,6 @@ var _symbols2 = _interopRequireDefault(_symbols);
  * @class Model
  */
 
-//import additional methods from external files
-
-var _fetchJs = require("./fetch.js");
-
-var _fetchJs2 = _interopRequireDefault(_fetchJs);
-
-var _saveJs = require("./save.js");
-
-var _saveJs2 = _interopRequireDefault(_saveJs);
-
-var _addAssociationJs = require("./addAssociation.js");
-
-var _addAssociationJs2 = _interopRequireDefault(_addAssociationJs);
-
-// TODO: Simplify. There's no need for "name" and "handler" keys.
-
 var _modelFinderJs = require("../modelFinder.js");
 
 var _modelFinderJs2 = _interopRequireDefault(_modelFinderJs);
@@ -85,13 +71,6 @@ var Model = (function () {
    * Define dynamic properties
    */
 		Object.defineProperties(this, {
-
-			"additionalAttributes": {
-				enumerable: false, //this fix db related issues
-				get: function get() {
-					return _this.constructor.attributes;
-				}
-			},
 
 			"isNew": {
 				get: this[_symbols2["default"].isNew]
@@ -139,9 +118,6 @@ var Model = (function () {
 			}
 		});
 
-		//add the quirk to this instance
-		this.additionalAttributes.addAttributes(this);
-
 		this.associate();
 		this.validate();
 
@@ -149,8 +125,6 @@ var Model = (function () {
 
 		this.initialize();
 	}
-
-	// TODO: Simplify this.
 
 	_createClass(Model, [{
 		key: "hasOne",
@@ -309,44 +283,6 @@ var Model = (function () {
 			(0, _incognito2["default"])(this)._includeAssociations = associationNames;
 			return this;
 		}
-	}, {
-		key: "delete",
-		value: function _delete(callback) {
-			var _this3 = this;
-
-			if ((0, _incognito2["default"])(this)._softDelete) {
-				if (!this.constructor.database) {
-					throw new Error("Cannot delete without Model.database set.");
-				}
-
-				if (this[this.primaryKey]) {
-					_flowsync2["default"].series([function (next) {
-						_this3[_symbols2["default"].callDeep]("delete", function (associationDetails) {
-							return associationDetails.type !== "belongsTo" && associationDetails.dependent === true;
-						}, next);
-					}, function (next) {
-						var now = new _fleming2["default"]();
-						var attributesToUpdate = {};
-						attributesToUpdate[(0, _jargon2["default"])("deletedAt").snake.toString()] = now.toDate();
-						_this3.constructor.database.update(attributesToUpdate).into(_this3.tableName).where(_this3.primaryKey, "=", _this3[_this3.primaryKey]).results(function (error, results) {
-							if (error) {
-								next(error);
-							} else if (results === 0) {
-								next(new Error(_this3.constructor.name + " with " + _this3.primaryKey + " " + _this3[_this3.primaryKey] + " cannot be soft deleted because it doesn't exists."));
-							} else {
-								next();
-							}
-						});
-					}], function (errors, results) {
-						callback(errors, results);
-					});
-				} else {
-					throw new Error("Cannot delete the " + this.constructor.name + " because the primary key is not set.");
-				}
-			} else {
-				throw new Error("Not implemented.");
-			}
-		}
 
 		/* Stubbed methods for hooks */
 	}, {
@@ -362,6 +298,16 @@ var Model = (function () {
 	}, {
 		key: "afterSave",
 		value: function afterSave(callback) {
+			callback();
+		}
+	}, {
+		key: "beforeDelete",
+		value: function beforeDelete(callback) {
+			callback();
+		}
+	}, {
+		key: "afterDelete",
+		value: function afterDelete(callback) {
 			callback();
 		}
 	}, {
@@ -396,10 +342,7 @@ var Model = (function () {
 	}, {
 		key: _symbols2["default"].properties,
 		value: function value() {
-			var cleanedProperties = Object.keys(this).filter(function (key) {
-				return key !== "database";
-			});
-			return cleanedProperties;
+			return Object.keys(this);
 		}
 	}, {
 		key: _symbols2["default"].validations,
@@ -409,12 +352,12 @@ var Model = (function () {
 	}, {
 		key: _symbols2["default"].attributes,
 		value: function value() {
-			var _this4 = this;
+			var _this3 = this;
 
 			var attributes = {};
 			this.properties.forEach(function (propertyName) {
-				if (!(0, _incognito2["default"])(_this4)._associations[propertyName]) {
-					attributes[propertyName] = _this4[propertyName];
+				if (!(0, _incognito2["default"])(_this3)._associations[propertyName]) {
+					attributes[propertyName] = _this3[propertyName];
 				}
 			});
 			return attributes;
@@ -440,18 +383,18 @@ var Model = (function () {
 	}, {
 		key: _symbols2["default"].callDeep,
 		value: function value(methodName, predicate, callback) {
-			var _this5 = this;
+			var _this4 = this;
 
 			var associationNames = Object.keys(this.associations);
 
 			_flowsync2["default"].mapParallel(associationNames, function (associationName, next) {
 
-				var associationDetails = _this5.associations[associationName];
+				var associationDetails = _this4.associations[associationName];
 
 				switch (associationDetails.type) {
 					case "belongsTo":
 					case "hasOne":
-						var model = _this5[associationName];
+						var model = _this4[associationName];
 						if (model) {
 							//pass the associationDetails.whereArgs to the function
 							var result = predicate(associationDetails);
@@ -466,7 +409,7 @@ var Model = (function () {
 						break;
 
 					case "hasMany":
-						var collection = _this5[associationName];
+						var collection = _this4[associationName];
 						//collection set, and not many to many (nothing in that case)
 						if (collection) {
 							//let array = [].slice.call(collection);
@@ -497,25 +440,19 @@ var Model = (function () {
 	}, {
 		key: _symbols2["default"].getFieldAttributes,
 		value: function value() {
-			var _this6 = this;
+			var _this5 = this;
 
 			var attributeNames = Object.keys(this.attributes);
 			var fieldAttributes = {};
 			attributeNames.forEach(function (attributeName) {
-				var found = Object.keys(_this6.additionalAttributes).find(function (additionalAttributeName) {
-					return additionalAttributeName === attributeName;
-				});
-				//is just on db if is not an additional attribute
-				if (!found) {
-					fieldAttributes[(0, _jargon2["default"])(attributeName).snake.toString()] = _this6[attributeName];
-				}
+				fieldAttributes[(0, _jargon2["default"])(attributeName).snake.toString()] = _this5[attributeName];
 			});
 
 			var _ = (0, _incognito2["default"])(this);
 
 			//add belongsTo associations and remove others
 			Object.keys(this.associations).forEach(function (associationName) {
-				var relatedModel = _this6[associationName];
+				var relatedModel = _this5[associationName];
 				var foreignKeyField = (0, _jargon2["default"])(associationName).foreignKey.toString();
 				if (_._associations[associationName].type === "belongsTo") {
 					//try with relatedModel and relatedModel.id
@@ -525,7 +462,7 @@ var Model = (function () {
 						//or just with the relatedModelId
 						//construct the snake with _id and then camelize it
 						var foreignIdAsAttribute = (0, _jargon2["default"])(foreignKeyField).camel.toString();
-						fieldAttributes[foreignKeyField] = _this6[foreignIdAsAttribute];
+						fieldAttributes[foreignKeyField] = _this5[foreignIdAsAttribute];
 					}
 				} else {
 					//console.log("getFieldAttributes delete on ", {on: this.constructor.name, associationName: associationName, foreignKeyField: foreignKeyField, relatedModel: relatedModel});
@@ -542,15 +479,12 @@ var Model = (function () {
 })();
 
 exports["default"] = Model;
-function joinClass(classObject, methods) {
-	//construct a object with the additional methods
-	var obj = {};
-	methods.forEach(function (method) {
-		obj[method.name] = method.handler;
-	});
-	//add the additional methods to the prototype
-	Object.assign(classObject.prototype, obj);
-}joinClass(Model, [{ name: "fetch", handler: _fetchJs2["default"] }, { name: "save", handler: _saveJs2["default"] }, { name: _symbols2["default"].addAssociation, handler: _addAssociationJs2["default"] }]);
+
+Object.assign(Model.prototype, _defineProperty({
+	"fetch": require("./fetch.js"),
+	"save": require("./save.js"),
+	"delete": require("./delete.js")
+}, _symbols2["default"].addAssociation, require("./addAssociation.js")));
 
 Object.defineProperties(Model, {
 	"find": {
@@ -558,11 +492,6 @@ Object.defineProperties(Model, {
 			var modelQuery = new _modelFinderJs2["default"](Model.database);
 			return modelQuery.find(this);
 		}
-	},
-	//problem here: can't assign property automatically to the concrete model to use it
-	//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/observe#Browser_compatibility
-	"attributes": {
-		value: new _quirk2["default"]()
 	}
 });
 
