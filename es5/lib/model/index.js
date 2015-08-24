@@ -306,6 +306,11 @@ var Model = (function () {
 			callback();
 		}
 	}, {
+		key: "afterDelete",
+		value: function afterDelete(callback) {
+			callback();
+		}
+	}, {
 		key: "associate",
 		value: function associate() {}
 	}, {

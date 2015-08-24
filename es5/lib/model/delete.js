@@ -30,6 +30,8 @@ var _jargon2 = _interopRequireDefault(_jargon);
 /**
  * Delete the model according to the prescribed strategy.
  *
+ * Named "deleteSelf" because "delete" is a reserved keyword in JS.
+ *
  * @method deleteSelf
  * @param  {Function} callback
  */
@@ -45,6 +47,8 @@ function deleteSelf(callback) {
     _this.beforeDelete(done);
   }, function (done) {
     performDelete.call(_this, done);
+  }, function (done) {
+    _this.afterDelete(done);
   }], function (errors) {
     callback(errors);
   });

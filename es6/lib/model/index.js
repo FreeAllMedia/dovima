@@ -229,6 +229,10 @@ export default class Model {
 		callback();
 	}
 
+	afterDelete(callback) {
+		callback();
+	}
+
 	associate() {}
 
 	validate() {}

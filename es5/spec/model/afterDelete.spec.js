@@ -61,19 +61,19 @@ describe("Model(attributes, options)", function () {
       name: "Bob"
     });
 
-    // Turn beforeDelete and delete into a spies
-    user.constructor.prototype.beforeDelete = _sinon2["default"].spy(user.beforeDelete);
+    // Turn afterDelete and delete into a spies
+    user.constructor.prototype.afterDelete = _sinon2["default"].spy(user.afterDelete);
     //user.constructor.prototype.delete = sinon.spy(user.delete);
   });
 
-  describe(".beforeDelete(callback)", function () {
+  describe(".afterDelete(callback)", function () {
     it("should be called before .delete", function (done) {
       user["delete"](function () {
         // TODO: Need to get callOrder to work by breaking out the actual deleting method into a public method that is then called by .delete
-        //sinon.assert.callOrder(user.beforeDelete, deleteQuerySpy);
+        //sinon.assert.callOrder(user.afterDelete, deleteQuerySpy);
 
         // For now, we'll just check that it was called at all
-        user.beforeDelete.called.should.be["true"];
+        user.afterDelete.called.should.be["true"];
         done();
       });
     });

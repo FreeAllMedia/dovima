@@ -7,6 +7,8 @@ import inflect from "jargon";
 /**
  * Delete the model according to the prescribed strategy.
  *
+ * Named "deleteSelf" because "delete" is a reserved keyword in JS.
+ *
  * @method deleteSelf
  * @param  {Function} callback
  */
@@ -19,6 +21,9 @@ export default function deleteSelf(callback) {
     },
     (done) => {
       performDelete.call(this, done);
+    },
+    (done) => {
+      this.afterDelete(done);
     }
   ], (errors) => {
     callback(errors);
