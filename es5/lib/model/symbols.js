@@ -12,5 +12,6 @@ module.exports = {
 		properties: Symbol(),
 		validations: Symbol(),
 		isNew: Symbol(),
-		fetchBy: Symbol()
+		fetchBy: Symbol(),
+		getDatabase: Symbol()
 };

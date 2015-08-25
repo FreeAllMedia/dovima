@@ -13,7 +13,7 @@ import inflect from "jargon";
  * @param  {Function} callback
  */
 export default function deleteSelf(callback) {
-  if (!this.constructor.database) { throw new Error("Cannot delete without Model.database set."); }
+  if (!this[symbols.getDatabase]()) { throw new Error("Cannot delete without Model.database set."); }
 
   flowsync.series([
     (done) => {
@@ -57,7 +57,7 @@ function softDelete(callback) {
         let now = new Datetime();
         let attributesToUpdate = {};
         attributesToUpdate[inflect("deletedAt").snake.toString()] = now.toDate();
-        this.constructor.database
+        this[symbols.getDatabase]()
           .update(attributesToUpdate)
           .into(this.tableName)
           .where(this.primaryKey, "=", this[this.primaryKey])

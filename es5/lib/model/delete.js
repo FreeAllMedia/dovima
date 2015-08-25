@@ -39,7 +39,7 @@ var _jargon2 = _interopRequireDefault(_jargon);
 function deleteSelf(callback) {
   var _this = this;
 
-  if (!this.constructor.database) {
+  if (!this[_symbols2["default"].getDatabase]()) {
     throw new Error("Cannot delete without Model.database set.");
   }
 
@@ -80,7 +80,7 @@ function softDelete(callback) {
       var now = new _fleming2["default"]();
       var attributesToUpdate = {};
       attributesToUpdate[(0, _jargon2["default"])("deletedAt").snake.toString()] = now.toDate();
-      _this2.constructor.database.update(attributesToUpdate).into(_this2.tableName).where(_this2.primaryKey, "=", _this2[_this2.primaryKey]).results(function (error, results) {
+      _this2[_symbols2["default"].getDatabase]().update(attributesToUpdate).into(_this2.tableName).where(_this2.primaryKey, "=", _this2[_this2.primaryKey]).results(function (error, results) {
         if (error) {
           next(error);
         } else if (results === 0) {

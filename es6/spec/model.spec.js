@@ -335,6 +335,45 @@ describe("Model(attributes, options)", () => {
 					users.length.should.equal(5);
 				});
 			});
+
+			describe("(with a different database for a model)", () => {
+				class Car extends Model {}
+				let car,
+					database,
+					query;
+
+					describe("(static way)", () => {
+						beforeEach(() => {
+							database = new Database(databaseConfig);
+							Car.database = database;
+							query = database.spy("select * from `cars`", []);
+							car = new Car();
+						});
+
+						it("should use the specific model class database", (done) => {
+							Car.find.all.results(() => {
+								query.callCount.should.equal(1);
+								done();
+							});
+						});
+					});
+
+					describe("(instance way)", () => {
+						beforeEach(() => {
+							database = new Database(databaseConfig);
+							Car.database = null;
+							car = new Car({id: 2}, {database: database});
+							query = database.spy("select * from `cars` where `id` = 2 limit 1", []);
+						});
+
+						it("should use the specific model instance database", (done) => {
+							car.fetch(() => {
+								query.callCount.should.equal(1);
+								done();
+							});
+						});
+					});
+			});
 		});
 	});
 

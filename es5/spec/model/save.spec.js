@@ -355,7 +355,7 @@ describe("Model(attributes, options)", function () {
 
     describe("(Model.database is NOT set)", function () {
       beforeEach(function () {
-        delete _2["default"].database;
+        delete _2["default"]._database;
       });
 
       it("should call back with an error", function () {

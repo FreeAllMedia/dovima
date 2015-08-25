@@ -54,7 +54,7 @@ var Model = (function () {
   * @constructor
   */
 
-	function Model(initialAttributes) {
+	function Model(initialAttributes, options) {
 		var _this = this;
 
 		_classCallCheck(this, Model);
@@ -66,6 +66,10 @@ var Model = (function () {
 		_._tableName = null;
 		_._primaryKey = null;
 		_._softDelete = null;
+
+		if (options !== undefined) {
+			_._database = options.database;
+		}
 
 		/**
    * Define dynamic properties
@@ -328,7 +332,15 @@ var Model = (function () {
 		/**
    * Private Functionality
    */
-
+	}, {
+		key: _symbols2["default"].getDatabase,
+		value: function value() {
+			var database = (0, _incognito2["default"])(this)._database;
+			if (!database) {
+				database = this.constructor.database;
+			}
+			return database;
+		}
 	}, {
 		key: _symbols2["default"].setAttributes,
 		value: function value(newAttributes) {
@@ -487,9 +499,21 @@ Object.assign(Model.prototype, _defineProperty({
 }, _symbols2["default"].addAssociation, require("./addAssociation.js")));
 
 Object.defineProperties(Model, {
+	"database": {
+		get: function getDatabase() {
+			var database = this._database;
+			if (!database) {
+				database = Model._database;
+			}
+			return database;
+		},
+		set: function setDatabase(value) {
+			this._database = value;
+		}
+	},
 	"find": {
 		get: function modelFind() {
-			var modelQuery = new _modelFinderJs2["default"](Model.database);
+			var modelQuery = new _modelFinderJs2["default"](this.database);
 			return modelQuery.find(this);
 		}
 	}

@@ -155,7 +155,7 @@ describe(".fetch(callback)", function () {
 
   describe("(Model.database not set)", function () {
     beforeEach(function () {
-      delete _2["default"].database;
+      delete _2["default"]._database;
     });
 
     it("should throw an error", function () {
@@ -228,7 +228,7 @@ describe(".fetch(callback)", function () {
 
     describe("(Model.database not set)", function () {
       beforeEach(function () {
-        delete _2["default"].database;
+        delete _2["default"]._database;
       });
 
       it("should throw an error", function () {
@@ -305,7 +305,7 @@ describe(".fetch(callback)", function () {
 
     describe("(Model.database not set)", function () {
       beforeEach(function () {
-        delete _2["default"].database;
+        delete _2["default"]._database;
       });
 
       it("should throw an error", function () {
