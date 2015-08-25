@@ -1,6 +1,6 @@
 {
   "name": "dovima",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "description": "ES6 generic model with lots of useful special features.",
   "main": "index.js",
   "scripts": {
