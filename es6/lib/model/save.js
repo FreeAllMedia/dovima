@@ -1,6 +1,7 @@
 import flowsync from "flowsync";
 import MultiError from "blunder";
 import Datetime from "fleming";
+import privateData from "incognito";
 import symbols from "./symbols";
 
 //private methods
@@ -29,7 +30,7 @@ function saveOrUpdate(callback) {
     this.createdAt = now.toDate();
     let fieldAttributes = this[symbols.getFieldAttributes]();
 
-    this.constructor.database
+    this[symbols.getDatabase]()
       .insert(fieldAttributes)
       .into(this.tableName)
       .results((error, ids) => {
@@ -51,7 +52,7 @@ function saveOrUpdate(callback) {
       }
     }
 
-    this.constructor.database
+    this[symbols.getDatabase]()
       .update(updateAttributes)
       .into(this.tableName)
       .where(this.primaryKey, "=", this[this.primaryKey])
@@ -90,7 +91,7 @@ function validate(callback) {
 
 //public save method
 export default function save(callback) {
-  if (!this.constructor.database) { throw new Error("Cannot save without Model.database set."); }
+  if (!this[symbols.getDatabase]()) { throw new Error("Cannot save without Model.database set."); }
 
   flowsync.series([
     (next) => {

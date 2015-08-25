@@ -12,7 +12,7 @@ const fetchByAssociations = {
 };
 
 function fetchByHasOne(associationName, associations, callback) {
-  const modelFinder = new ModelFinder(this.constructor.database);
+  const modelFinder = new ModelFinder(this[symbols.getDatabase]());
   const association = associations[associationName];
   const ModelClass = association.constructor;
 
@@ -80,7 +80,7 @@ function fetchByHasOne(associationName, associations, callback) {
 }
 
 function fetchWhere(modelClass, key, conditionType, ids, target, callback) {
-  const modelFinder = new ModelFinder(this.constructor.database);
+  const modelFinder = new ModelFinder(this[symbols.getDatabase]());
   modelFinder
     .find(modelClass)
     .where(key, conditionType, ids)
@@ -93,14 +93,13 @@ function fetchWhere(modelClass, key, conditionType, ids, target, callback) {
 }
 
 function fetchByHasMany(associationName, associations, callback) {
-  const modelFinder = new ModelFinder(this.constructor.database);
   const association = associations[associationName];
 
   if (association.through) {
     const throughAssociation = associations[association.through];
 
-    modelFinder
-      .find(throughAssociation.constructor)
+    throughAssociation.constructor
+      .find
       .where(association.foreignId, this[this.primaryKey])
       .results((errors, models) => {
         if(models.length > 0) {
@@ -141,7 +140,7 @@ function fetchByHasMany(associationName, associations, callback) {
 }
 
 function fetchByBelongsTo(associationName, associations, callback) {
-  const modelFinder = new ModelFinder(this.constructor.database);
+  const modelFinder = new ModelFinder(this[symbols.getDatabase]());
   const association = associations[associationName];
 
   if (!this[association.foreignId]) {
@@ -161,9 +160,10 @@ function fetchByBelongsTo(associationName, associations, callback) {
 }
 
 function fetchBy(fields = [this.primaryKey], callback = undefined) {
-  if (!this.constructor.database) { throw new Error("Cannot fetch without Model.database set."); }
+  let database = this[symbols.getDatabase]();
+  if (!database) { throw new Error("Cannot fetch without Model.database set."); }
 
-  let chain = this.constructor.database
+  let chain = database
     .select("*")
     .from(this.tableName);
   fields.forEach((field, index) => {

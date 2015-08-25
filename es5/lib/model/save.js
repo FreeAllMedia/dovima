@@ -19,6 +19,10 @@ var _fleming = require("fleming");
 
 var _fleming2 = _interopRequireDefault(_fleming);
 
+var _incognito = require("incognito");
+
+var _incognito2 = _interopRequireDefault(_incognito);
+
 var _symbols = require("./symbols");
 
 var _symbols2 = _interopRequireDefault(_symbols);
@@ -51,7 +55,7 @@ function saveOrUpdate(callback) {
     this.createdAt = now.toDate();
     var fieldAttributes = this[_symbols2["default"].getFieldAttributes]();
 
-    this.constructor.database.insert(fieldAttributes).into(this.tableName).results(function (error, ids) {
+    this[_symbols2["default"].getDatabase]().insert(fieldAttributes).into(this.tableName).results(function (error, ids) {
       if (error) {
         callback(error);
       } else {
@@ -70,7 +74,7 @@ function saveOrUpdate(callback) {
       }
     }
 
-    this.constructor.database.update(updateAttributes).into(this.tableName).where(this.primaryKey, "=", this[this.primaryKey]).results(callback);
+    this[_symbols2["default"].getDatabase]().update(updateAttributes).into(this.tableName).where(this.primaryKey, "=", this[this.primaryKey]).results(callback);
   }
 }
 
@@ -110,7 +114,7 @@ function validate(callback) {
 function save(callback) {
   var _this3 = this;
 
-  if (!this.constructor.database) {
+  if (!this[_symbols2["default"].getDatabase]()) {
     throw new Error("Cannot save without Model.database set.");
   }
 

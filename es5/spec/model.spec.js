@@ -9,8 +9,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "d
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) arr2[i] = arr[i]; return arr2; } else { return Array.from(arr); } }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
@@ -50,10 +48,6 @@ var _databaseConfigJson2 = _interopRequireDefault(_databaseConfigJson);
 var userFixtures = require("./fixtures/users.json");
 
 describe("Model(attributes, options)", function () {
-	/**
-  * Instantiate Model Examples
-  */
-
 	var model = undefined,
 	    user = undefined,
 	    userAttributes = undefined,
@@ -111,8 +105,13 @@ describe("Model(attributes, options)", function () {
 		});
 
 		describe(".properties", function () {
+			var properties = undefined;
+
+			beforeEach(function () {
+				properties = ["address", "addressId", "postalCode", "postalCodeId", "photos", "primaryPhoto", "primaryPhotoId", "photoLikes", "likedPhotos", "comments", "deletedComments", "id", "name", "age", "hasChildren"];
+			});
 			it("should return the name of all attributes plus associations on the model", function () {
-				user.properties.should.eql(["address", "addressId", "postalCode", "postalCodeId", "photos", "primaryPhoto", "primaryPhotoId", "photoLikes", "likedPhotos", "comments", "deletedComments", "id", "name", "age", "hasChildren"]);
+				user.properties.should.eql(properties);
 			});
 		});
 
@@ -155,70 +154,7 @@ describe("Model(attributes, options)", function () {
 		});
 	});
 
-	describe("(static properties)", function () {
-		describe(".attributes", function () {
-			afterEach(function () {
-				delete _testClassesJs.User.attributes.specialAttribute; //so does not affect other tests
-				user = new _testClassesJs.User();
-			});
-
-			it("should be an instance of Quirk", function () {
-				_testClassesJs.User.attributes.should.be.instanceOf(_quirk2["default"]);
-			});
-
-			it("should be able to get the attributes from the regular methods", function () {
-				user.additionalAttributes.should.be.instanceOf(_quirk2["default"]);
-			});
-
-			it("should be able to define a new static property to the model", function () {
-				_testClassesJs.User.attributes.specialAttribute = 2;
-				user = new _testClassesJs.User();
-				user.specialAttribute.should.equal(2);
-			});
-
-			describe("(read only)", function () {
-				beforeEach(function () {
-					_testClassesJs.User.attributes.specialAttribute = function specialAttributeGetter() {
-						return this.id;
-					};
-					user = new _testClassesJs.User({ id: 2 });
-				});
-
-				it("should be able to define a new read only property to the model", function () {
-					user.specialAttribute.should.equal(2);
-				});
-
-				it("should throw when assign to a new read only property", function () {
-					(function () {
-						user.specialAttribute = 3;
-					}).should["throw"]("Cannot set property");
-				});
-			});
-
-			describe("(getter and setter)", function () {
-				beforeEach(function () {
-					_testClassesJs.User.attributes.specialAttribute = {
-						get: function getSpecialAttribute() {
-							return this.id;
-						},
-						set: function setSpecialAttribute(newValue) {
-							this.id = newValue;
-						}
-					};
-					user = new _testClassesJs.User({ id: 2 });
-				});
-
-				it("should be able to define a new property with get and set to the model", function () {
-					user.specialAttribute.should.equal(2);
-				});
-
-				it("should be able to change a property with get and set to the model", function () {
-					user.specialAttribute = 3;
-					user.specialAttribute.should.equal(3);
-				});
-			});
-		});
-
+	describe("(Static Properties)", function () {
 		describe(".find", function () {
 			var users = undefined,
 			    userCollection = undefined;
@@ -399,6 +335,56 @@ describe("Model(attributes, options)", function () {
 					users.length.should.equal(5);
 				});
 			});
+
+			describe("(with a different database for a model)", function () {
+				var Car = (function (_Model2) {
+					_inherits(Car, _Model2);
+
+					function Car() {
+						_classCallCheck(this, Car);
+
+						_get(Object.getPrototypeOf(Car.prototype), "constructor", this).apply(this, arguments);
+					}
+
+					return Car;
+				})(_2["default"]);
+
+				var car = undefined,
+				    database = undefined,
+				    query = undefined;
+
+				describe("(static way)", function () {
+					beforeEach(function () {
+						database = new _almaden2["default"](_databaseConfigJson2["default"]);
+						Car.database = database;
+						query = database.spy("select * from `cars`", []);
+						car = new Car();
+					});
+
+					it("should use the specific model class database", function (done) {
+						Car.find.all.results(function () {
+							query.callCount.should.equal(1);
+							done();
+						});
+					});
+				});
+
+				describe("(instance way)", function () {
+					beforeEach(function () {
+						database = new _almaden2["default"](_databaseConfigJson2["default"]);
+						Car.database = null;
+						car = new Car({ id: 2 }, { database: database });
+						query = database.spy("select * from `cars` where `id` = 2 limit 1", []);
+					});
+
+					it("should use the specific model instance database", function (done) {
+						car.fetch(function () {
+							query.callCount.should.equal(1);
+							done();
+						});
+					});
+				});
+			});
 		});
 	});
 
@@ -411,8 +397,8 @@ describe("Model(attributes, options)", function () {
 		    validateSpy = undefined,
 		    associateSpy = undefined;
 
-		var Post = (function (_Model2) {
-			_inherits(Post, _Model2);
+		var Post = (function (_Model3) {
+			_inherits(Post, _Model3);
 
 			function Post() {
 				_classCallCheck(this, Post);
@@ -476,8 +462,8 @@ describe("Model(attributes, options)", function () {
 	});
 
 	describe("(Associations)", function () {
-		var Street = (function (_Model3) {
-			_inherits(Street, _Model3);
+		var Street = (function (_Model4) {
+			_inherits(Street, _Model4);
 
 			function Street() {
 				_classCallCheck(this, Street);
@@ -488,8 +474,8 @@ describe("Model(attributes, options)", function () {
 			return Street;
 		})(_2["default"]);
 
-		var Driver = (function (_Model4) {
-			_inherits(Driver, _Model4);
+		var Driver = (function (_Model5) {
+			_inherits(Driver, _Model5);
 
 			function Driver() {
 				_classCallCheck(this, Driver);
@@ -500,8 +486,8 @@ describe("Model(attributes, options)", function () {
 			return Driver;
 		})(_2["default"]);
 
-		var Truck = (function (_Model5) {
-			_inherits(Truck, _Model5);
+		var Truck = (function (_Model6) {
+			_inherits(Truck, _Model6);
 
 			function Truck() {
 				_classCallCheck(this, Truck);
@@ -512,8 +498,8 @@ describe("Model(attributes, options)", function () {
 			return Truck;
 		})(_2["default"]);
 
-		var Wheel = (function (_Model6) {
-			_inherits(Wheel, _Model6);
+		var Wheel = (function (_Model7) {
+			_inherits(Wheel, _Model7);
 
 			function Wheel() {
 				_classCallCheck(this, Wheel);
@@ -524,8 +510,8 @@ describe("Model(attributes, options)", function () {
 			return Wheel;
 		})(_2["default"]);
 
-		var SteeringWheel = (function (_Model7) {
-			_inherits(SteeringWheel, _Model7);
+		var SteeringWheel = (function (_Model8) {
+			_inherits(SteeringWheel, _Model8);
 
 			function SteeringWheel() {
 				_classCallCheck(this, SteeringWheel);
@@ -1211,250 +1197,6 @@ describe("Model(attributes, options)", function () {
 				user.include("photos", "primaryPhoto").fetch(function (errors) {
 					[user.photos.length, user.primaryPhoto.name].should.eql([4, "Primary Photo"]);
 					done();
-				});
-			});
-		});
-
-		describe(".delete(callback)", function () {
-			describe("(when dependent is declared on the association)", function () {
-				var Account = (function (_Model8) {
-					_inherits(Account, _Model8);
-
-					function Account() {
-						_classCallCheck(this, Account);
-
-						_get(Object.getPrototypeOf(Account.prototype), "constructor", this).apply(this, arguments);
-					}
-
-					_createClass(Account, [{
-						key: "initialize",
-						value: function initialize() {
-							this.softDelete;
-						}
-					}, {
-						key: "associate",
-						value: function associate() {
-							this.hasOne("forumUser", ForumUser).dependent;
-						}
-					}]);
-
-					return Account;
-				})(_2["default"]);
-
-				var ForumUser = (function (_Model9) {
-					_inherits(ForumUser, _Model9);
-
-					function ForumUser() {
-						_classCallCheck(this, ForumUser);
-
-						_get(Object.getPrototypeOf(ForumUser.prototype), "constructor", this).apply(this, arguments);
-					}
-
-					_createClass(ForumUser, [{
-						key: "initialize",
-						value: function initialize() {
-							this.softDelete;
-						}
-					}, {
-						key: "associate",
-						value: function associate() {
-							this.hasMany("posts", Post).dependent;
-							this.belongsTo("account", Account).dependent;
-						}
-					}]);
-
-					return ForumUser;
-				})(_2["default"]);
-
-				var Post = (function (_Model10) {
-					_inherits(Post, _Model10);
-
-					function Post() {
-						_classCallCheck(this, Post);
-
-						_get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
-					}
-
-					_createClass(Post, [{
-						key: "initialize",
-						value: function initialize() {
-							this.softDelete;
-						}
-					}, {
-						key: "associate",
-						value: function associate() {
-							this.belongsTo("forumUser", ForumUser);
-						}
-					}]);
-
-					return Post;
-				})(_2["default"]);
-
-				var forumUser = undefined,
-				    account = undefined,
-				    post = undefined;
-
-				beforeEach(function () {
-					account = new Account({ id: 1 });
-					forumUser = new ForumUser({ id: 2 });
-					post = new Post({ id: 3 });
-				});
-
-				it("should add the association to .associations", function () {
-					account.associations.forumUser.should.eql({
-						parent: account,
-						type: "hasOne",
-						constructor: ForumUser,
-						foreignName: "account",
-						foreignId: "accountId",
-						foreignKey: "account_id",
-						dependent: true
-					});
-				});
-
-				describe("(on a hasOne)", function () {
-					var userDeleteQuerySpy = undefined;
-
-					beforeEach(function () {
-						_2["default"].database.mock(_defineProperty({}, /update `accounts` set `deleted_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 1/, 1));
-
-						userDeleteQuerySpy = _2["default"].database.spy(/update `forum_users` set `deleted_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 2/, 1);
-
-						account.forumUser = forumUser;
-					});
-
-					it("should propagate delete on those models", function (done) {
-						account["delete"](function () {
-							userDeleteQuerySpy.callCount.should.equal(1);
-							done();
-						});
-					});
-				});
-
-				describe("(on a hasMany)", function () {
-					var postDeleteQuerySpy = undefined;
-
-					beforeEach(function () {
-						_2["default"].database.mock(_defineProperty({}, /update `forum_users` set `deleted_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 2/, 1));
-
-						postDeleteQuerySpy = _2["default"].database.spy(/update `posts` set `deleted_at` = '19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000' where `id` = 3/, 1);
-
-						forumUser.posts.push(post);
-					});
-
-					it("should propagate delete on those models", function (done) {
-						forumUser["delete"](function () {
-							postDeleteQuerySpy.callCount.should.equal(1);
-							done();
-						});
-					});
-				});
-			});
-
-			describe("(when .softDelete is not called)", function () {
-				var Post = (function (_Model11) {
-					_inherits(Post, _Model11);
-
-					function Post() {
-						_classCallCheck(this, Post);
-
-						_get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
-					}
-
-					return Post;
-				})(_2["default"]);
-
-				var post = undefined;
-
-				beforeEach(function () {
-					post = new Post();
-				});
-
-				it("should throw when calling delete", function () {
-					(function () {
-						post["delete"]();
-					}).should["throw"]("Not implemented.");
-				});
-			});
-
-			describe("when softDelete called)", function () {
-				var post = undefined;
-
-				var Post = (function (_Model12) {
-					_inherits(Post, _Model12);
-
-					function Post() {
-						_classCallCheck(this, Post);
-
-						_get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
-					}
-
-					_createClass(Post, [{
-						key: "initialize",
-						value: function initialize() {
-							this.softDelete;
-						}
-					}]);
-
-					return Post;
-				})(_2["default"]);
-
-				beforeEach(function () {
-					post = new Post();
-				});
-
-				describe("(Model.database is set)", function () {
-					describe("(when primaryKey is set)", function () {
-						beforeEach(function () {
-							post.id = 1;
-							_2["default"].database.mock(_defineProperty({}, /update `posts` set `deleted_at` = \'19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000\' where `id` = 1/, 1));
-						});
-
-						it("should not throw when calling delete", function () {
-							(function () {
-								post["delete"](function () {});
-							}).should.not["throw"]();
-						});
-
-						it("should return no error", function () {
-							post["delete"](function (error) {
-								(error == null).should.be["true"];
-							});
-						});
-
-						describe("(when primary key is set but not exists)", function () {
-							beforeEach(function () {
-								post.id = 1;
-								_2["default"].database.mock(_defineProperty({}, /update `posts` set `deleted_at` = \'19[0-9][0-9]-[0-9][0-9]-[0-9][0-9] [0-9][0-9]:00:00.000\' where `id` = 1/, 0));
-							});
-
-							it("should return an error", function () {
-								post["delete"](function (error) {
-									error.should.eql(new Error("Post with id 1 cannot be soft deleted because it doesn't exists."));
-								});
-							});
-						});
-					});
-
-					describe("(when primaryKey is not set)", function () {
-						it("should throw an error", function () {
-							(function () {
-								post["delete"](function () {});
-							}).should["throw"]("Cannot delete the Post because the primary key is not set.");
-						});
-					});
-				});
-
-				describe("(Model.database not set)", function () {
-					beforeEach(function () {
-						delete _2["default"].database;
-					});
-
-					it("should throw an error", function () {
-						(function () {
-							post["delete"]();
-						}).should["throw"]("Cannot delete without Model.database set.");
-					});
 				});
 			});
 		});
