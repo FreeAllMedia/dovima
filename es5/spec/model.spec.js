@@ -335,6 +335,56 @@ describe("Model(attributes, options)", function () {
 					users.length.should.equal(5);
 				});
 			});
+
+			describe("(with a different database for a model)", function () {
+				var Car = (function (_Model2) {
+					_inherits(Car, _Model2);
+
+					function Car() {
+						_classCallCheck(this, Car);
+
+						_get(Object.getPrototypeOf(Car.prototype), "constructor", this).apply(this, arguments);
+					}
+
+					return Car;
+				})(_2["default"]);
+
+				var car = undefined,
+				    database = undefined,
+				    query = undefined;
+
+				describe("(static way)", function () {
+					beforeEach(function () {
+						database = new _almaden2["default"](_databaseConfigJson2["default"]);
+						Car.database = database;
+						query = database.spy("select * from `cars`", []);
+						car = new Car();
+					});
+
+					it("should use the specific model class database", function (done) {
+						Car.find.all.results(function () {
+							query.callCount.should.equal(1);
+							done();
+						});
+					});
+				});
+
+				describe("(instance way)", function () {
+					beforeEach(function () {
+						database = new _almaden2["default"](_databaseConfigJson2["default"]);
+						Car.database = null;
+						car = new Car({ id: 2 }, { database: database });
+						query = database.spy("select * from `cars` where `id` = 2 limit 1", []);
+					});
+
+					it("should use the specific model instance database", function (done) {
+						car.fetch(function () {
+							query.callCount.should.equal(1);
+							done();
+						});
+					});
+				});
+			});
 		});
 	});
 
@@ -347,8 +397,8 @@ describe("Model(attributes, options)", function () {
 		    validateSpy = undefined,
 		    associateSpy = undefined;
 
-		var Post = (function (_Model2) {
-			_inherits(Post, _Model2);
+		var Post = (function (_Model3) {
+			_inherits(Post, _Model3);
 
 			function Post() {
 				_classCallCheck(this, Post);
@@ -412,8 +462,8 @@ describe("Model(attributes, options)", function () {
 	});
 
 	describe("(Associations)", function () {
-		var Street = (function (_Model3) {
-			_inherits(Street, _Model3);
+		var Street = (function (_Model4) {
+			_inherits(Street, _Model4);
 
 			function Street() {
 				_classCallCheck(this, Street);
@@ -424,8 +474,8 @@ describe("Model(attributes, options)", function () {
 			return Street;
 		})(_2["default"]);
 
-		var Driver = (function (_Model4) {
-			_inherits(Driver, _Model4);
+		var Driver = (function (_Model5) {
+			_inherits(Driver, _Model5);
 
 			function Driver() {
 				_classCallCheck(this, Driver);
@@ -436,8 +486,8 @@ describe("Model(attributes, options)", function () {
 			return Driver;
 		})(_2["default"]);
 
-		var Truck = (function (_Model5) {
-			_inherits(Truck, _Model5);
+		var Truck = (function (_Model6) {
+			_inherits(Truck, _Model6);
 
 			function Truck() {
 				_classCallCheck(this, Truck);
@@ -448,8 +498,8 @@ describe("Model(attributes, options)", function () {
 			return Truck;
 		})(_2["default"]);
 
-		var Wheel = (function (_Model6) {
-			_inherits(Wheel, _Model6);
+		var Wheel = (function (_Model7) {
+			_inherits(Wheel, _Model7);
 
 			function Wheel() {
 				_classCallCheck(this, Wheel);
@@ -460,8 +510,8 @@ describe("Model(attributes, options)", function () {
 			return Wheel;
 		})(_2["default"]);
 
-		var SteeringWheel = (function (_Model7) {
-			_inherits(SteeringWheel, _Model7);
+		var SteeringWheel = (function (_Model8) {
+			_inherits(SteeringWheel, _Model8);
 
 			function SteeringWheel() {
 				_classCallCheck(this, SteeringWheel);

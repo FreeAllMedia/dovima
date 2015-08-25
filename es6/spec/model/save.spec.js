@@ -282,7 +282,7 @@ describe("Model(attributes, options)", () => {
 
     describe("(Model.database is NOT set)", () => {
       beforeEach(() => {
-        delete Model.database;
+        delete Model._database;
       });
 
       it("should call back with an error", () => {

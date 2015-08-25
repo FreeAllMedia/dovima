@@ -39,7 +39,7 @@ var fetchByAssociations = {
 function fetchByHasOne(associationName, associations, callback) {
   var _this = this;
 
-  var modelFinder = new _modelFinderJs2["default"](this.constructor.database);
+  var modelFinder = new _modelFinderJs2["default"](this[_symbols2["default"].getDatabase]());
   var association = associations[associationName];
   var ModelClass = association.constructor;
 
@@ -99,7 +99,7 @@ function fetchByHasOne(associationName, associations, callback) {
 }
 
 function fetchWhere(modelClass, key, conditionType, ids, target, callback) {
-  var modelFinder = new _modelFinderJs2["default"](this.constructor.database);
+  var modelFinder = new _modelFinderJs2["default"](this[_symbols2["default"].getDatabase]());
   modelFinder.find(modelClass).where(key, conditionType, ids).results(function (findErrors, resultModels) {
     resultModels.forEach(function (model) {
       target.push(model);
@@ -111,14 +111,13 @@ function fetchWhere(modelClass, key, conditionType, ids, target, callback) {
 function fetchByHasMany(associationName, associations, callback) {
   var _this3 = this;
 
-  var modelFinder = new _modelFinderJs2["default"](this.constructor.database);
   var association = associations[associationName];
 
   if (association.through) {
     (function () {
       var throughAssociation = associations[association.through];
 
-      modelFinder.find(throughAssociation.constructor).where(association.foreignId, _this3[_this3.primaryKey]).results(function (errors, models) {
+      throughAssociation.constructor.find.where(association.foreignId, _this3[_this3.primaryKey]).results(function (errors, models) {
         if (models.length > 0) {
           (function () {
             var foreignAssociationName = association.as || associationName;
@@ -167,7 +166,7 @@ function fetchByHasMany(associationName, associations, callback) {
 function fetchByBelongsTo(associationName, associations, callback) {
   var _this4 = this;
 
-  var modelFinder = new _modelFinderJs2["default"](this.constructor.database);
+  var modelFinder = new _modelFinderJs2["default"](this[_symbols2["default"].getDatabase]());
   var association = associations[associationName];
 
   if (!this[association.foreignId]) {
@@ -188,11 +187,12 @@ function fetchBy() {
   var fields = arguments.length <= 0 || arguments[0] === undefined ? [this.primaryKey] : arguments[0];
   var callback = arguments.length <= 1 || arguments[1] === undefined ? undefined : arguments[1];
 
-  if (!this.constructor.database) {
+  var database = this[_symbols2["default"].getDatabase]();
+  if (!database) {
     throw new Error("Cannot fetch without Model.database set.");
   }
 
-  var chain = this.constructor.database.select("*").from(this.tableName);
+  var chain = database.select("*").from(this.tableName);
   fields.forEach(function (field, index) {
     if (!_this5[field]) {
       throw new Error("Cannot fetch this model by the '" + field + "' field because it is not set.");

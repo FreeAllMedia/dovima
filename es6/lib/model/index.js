@@ -18,7 +18,7 @@ export default class Model {
 	 * @param {Object.<String,*>} [initialAttributes] Provide default values for attributes by passing a Key-Value Object.
 	 * @constructor
 	 */
-	constructor(initialAttributes) {
+	constructor(initialAttributes, options) {
 		const _ = privateData(this);
 		_._validations = {};
 		_._associations = {};
@@ -26,6 +26,10 @@ export default class Model {
 		_._tableName = null;
 		_._primaryKey = null;
 		_._softDelete = null;
+
+		if(options !== undefined) {
+			_._database = options.database;
+		}
 
 		/**
 		 * Define dynamic properties
@@ -246,6 +250,13 @@ export default class Model {
 	/**
 	 * Private Functionality
 	 */
+	[symbols.getDatabase]() {
+		let database = privateData(this)._database;
+		if(!database) {
+			database = this.constructor.database;
+		}
+		return database;
+	}
 
 	[symbols.setAttributes](newAttributes) {
 		this[symbols.parseAttributesFromFields](newAttributes);
@@ -391,9 +402,21 @@ Object.assign(Model.prototype, {
 });
 
 Object.defineProperties(Model, {
+	"database": {
+		get: function getDatabase() {
+			let database = this._database;
+			if(!database) {
+				database = Model._database;
+			}
+			return database;
+		},
+		set: function setDatabase(value) {
+			this._database = value;
+		}
+	},
 	"find": {
 		get: function modelFind() {
-			let modelQuery = new ModelFinder(Model.database);
+			let modelQuery = new ModelFinder(this.database);
 			return modelQuery.find(this);
 		}
 	}
