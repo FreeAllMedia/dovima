@@ -1,3 +1,4 @@
+/* Dependencies */
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -16,54 +17,44 @@ var _jargon = require("jargon");
 
 var _jargon2 = _interopRequireDefault(_jargon);
 
+var _incognito = require("incognito");
+
+var _incognito2 = _interopRequireDefault(_incognito);
+
+/* Private Symbols */
+
 var _collectionJs = require("./collection.js");
 
 var _collectionJs2 = _interopRequireDefault(_collectionJs);
 
-var validateDependencies = Symbol(),
-    transformNames = Symbol();
+var attributesToColumns = Symbol();
 
 var ModelFinder = (function () {
 	function ModelFinder(database) {
 		_classCallCheck(this, ModelFinder);
 
-		Object.defineProperties(this, {
-			"_database": {
-				value: database,
-				writable: true,
-				enumerable: false
-			}
-		});
+		(0, _incognito2["default"])(this).database = database;
 	}
 
 	_createClass(ModelFinder, [{
 		key: "find",
 		value: function find(ModelConstructor) {
-			this[validateDependencies]();
-
-			var query = new ModelQuery(this._database);
-
-			query.find(ModelConstructor);
+			var query = new ModelQuery(ModelConstructor, {
+				database: (0, _incognito2["default"])(this).database
+			});
+			query.find();
 
 			return query;
 		}
 	}, {
 		key: "count",
 		value: function count(ModelConstructor) {
-			this[validateDependencies]();
-
-			var query = new ModelQuery(this._database);
-
-			query.count(ModelConstructor);
+			var query = new ModelQuery(ModelConstructor, {
+				database: (0, _incognito2["default"])(this).database
+			});
+			query.count();
 
 			return query;
-		}
-	}, {
-		key: validateDependencies,
-		value: function value() {
-			if (!this._database) {
-				throw new Error("Cannot find models without a database set.");
-			}
 		}
 	}]);
 
@@ -72,141 +63,293 @@ var ModelFinder = (function () {
 
 exports["default"] = ModelFinder;
 
-var ModelQuery = (function () {
-	function ModelQuery(database) {
-		var _this = this;
+var addChain = Symbol(),
+    validateDependencies = Symbol(),
+    argumentString = Symbol(),
+    callDatabase = Symbol(),
+    argumentsEqual = Symbol();
 
+var ModelQuery = (function () {
+	function ModelQuery(ModelConstructor, options) {
 		_classCallCheck(this, ModelQuery);
 
-		this._database = database;
-		Object.defineProperties(this, {
-			"_one": {
-				enumerable: false,
-				writable: true,
-				value: false
-			},
-			"one": {
-				get: function get() {
-					_this._one = true;
-					return _this;
-				}
-			},
-			"deleted": {
-				get: function get() {
-					_this._query.whereNotNull((0, _jargon2["default"])("deletedAt").snake.toString());
-					return _this;
-				}
-			},
-			"all": {
-				get: function get() {
-					return _this;
-				}
-			}
-		});
+		var _ = (0, _incognito2["default"])(this);
+
+		_.ModelConstructor = ModelConstructor;
+		_.database = options.database;
+		_.chain = {};
+
+		_.ModelConstructor.mocks = _.ModelConstructor.mocks || {};
 	}
 
 	_createClass(ModelQuery, [{
+		key: "toString",
+		value: function toString() {
+			var _this = this;
+
+			var _ = (0, _incognito2["default"])(this);
+
+			var chainString = _.ModelConstructor.name;
+
+			[".find", ".count", ".all", ".one", ".where", ".andWhere", ".orWhere", ".groupBy", ".orderBy", ".limit"].forEach(function (chainName) {
+				if (_.chain.hasOwnProperty(chainName)) {
+					chainString = chainString + chainName;
+					var options = _.chain[chainName];
+
+					if (options) {
+						chainString = chainString + "(" + _this[argumentString](options) + ")";
+					}
+				}
+			});
+
+			return chainString;
+		}
+	}, {
+		key: "mockResults",
+		value: function mockResults(mockValue) {
+			var _ = (0, _incognito2["default"])(this);
+
+			_.ModelConstructor.mocks[this.toString()] = {
+				query: this,
+				value: mockValue
+			};
+
+			return this;
+		}
+	}, {
+		key: "equalTo",
+		value: function equalTo(query) {
+			var ourChain = this.chain;
+			var theirChain = query.chain;
+
+			var ourChainNames = Object.keys(ourChain);
+			var theirChainNames = Object.keys(theirChain);
+
+			var ourChainLength = ourChainNames.length;
+			var theirChainLength = theirChainNames.length;
+
+			var isEqual = true;
+
+			if (ourChainLength === theirChainLength) {
+				for (var chainName in ourChain) {
+					if (theirChain.hasOwnProperty(chainName)) {
+						var ourArguments = ourChain[chainName];
+						var theirArguments = theirChain[chainName];
+
+						if (!this[argumentsEqual](ourArguments, theirArguments)) {
+							isEqual = false;
+							break;
+						}
+					} else {
+						isEqual = false;
+						break;
+					}
+				}
+			} else {
+				isEqual = false;
+			}
+
+			return isEqual;
+		}
+	}, {
 		key: "find",
-		value: function find(ModelConstructor) {
-			this.ModelConstructor = ModelConstructor;
+		value: function find() {
+			var _ = (0, _incognito2["default"])(this);
 
-			var tempModel = new this.ModelConstructor();
+			var tempModel = new _.ModelConstructor();
 
-			this._query = this._database.select("*").from(tempModel.tableName);
+			if (_.database) {
+				_.query = _.database.select("*").from(tempModel.tableName);
+			}
+
+			this[addChain](".find");
 
 			return this;
 		}
 	}, {
 		key: "count",
-		value: function count(ModelConstructor) {
-			this.ModelConstructor = ModelConstructor;
+		value: function count() {
+			var _ = (0, _incognito2["default"])(this);
+
 			this.countResults = true;
 
-			var tempModel = new this.ModelConstructor();
+			var tempModel = new _.ModelConstructor();
 
-			this._query = this._database.select(null).count("* AS rowCount").from(tempModel.tableName);
+			if (_.database) {
+				_.query = _.database.select(null).count("* AS rowCount").from(tempModel.tableName);
+			}
+
+			this[addChain](".count");
 
 			return this;
 		}
 	}, {
-		key: transformNames,
-		value: function value() {
+		key: "where",
+		value: function where() {
 			for (var _len = arguments.length, options = Array(_len), _key = 0; _key < _len; _key++) {
 				options[_key] = arguments[_key];
 			}
 
-			return options.map(function (option, index) {
-				if (typeof option === "string" && index === 0) {
-					return (0, _jargon2["default"])(option).snake.toString();
-				} else {
-					return option;
-				}
-			});
-		}
-	}, {
-		key: "where",
-		value: function where() {
-			var _query;
+			var formattedOptions = this[attributesToColumns].apply(this, options);
+			var _ = (0, _incognito2["default"])(this);
+			if (_.query) {
+				var _$query;
 
-			var formattedOptions = this[transformNames].apply(this, arguments);
-			(_query = this._query).where.apply(_query, _toConsumableArray(formattedOptions));
+				(_$query = _.query).where.apply(_$query, _toConsumableArray(formattedOptions));
+			}
+			this[addChain](".where", options);
 			return this;
 		}
 	}, {
 		key: "andWhere",
 		value: function andWhere() {
-			var _query2;
+			for (var _len2 = arguments.length, options = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+				options[_key2] = arguments[_key2];
+			}
 
-			var formattedOptions = this[transformNames].apply(this, arguments);
-			(_query2 = this._query).andWhere.apply(_query2, _toConsumableArray(formattedOptions));
+			var formattedOptions = this[attributesToColumns].apply(this, options);
+			var _ = (0, _incognito2["default"])(this);
+			if (_.query) {
+				var _$query2;
+
+				(_$query2 = _.query).andWhere.apply(_$query2, _toConsumableArray(formattedOptions));
+			}
+			this[addChain](".andWhere", options);
 			return this;
 		}
 	}, {
 		key: "orWhere",
 		value: function orWhere() {
-			var _query3;
+			for (var _len3 = arguments.length, options = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+				options[_key3] = arguments[_key3];
+			}
 
-			var formattedOptions = this[transformNames].apply(this, arguments);
-			(_query3 = this._query).orWhere.apply(_query3, _toConsumableArray(formattedOptions));
+			var formattedOptions = this[attributesToColumns].apply(this, options);
+			var _ = (0, _incognito2["default"])(this);
+			if (_.query) {
+				var _$query3;
+
+				(_$query3 = _.query).orWhere.apply(_$query3, _toConsumableArray(formattedOptions));
+			}
+			this[addChain](".orWhere", options);
 			return this;
 		}
 	}, {
 		key: "groupBy",
 		value: function groupBy() {
-			var _query4;
+			for (var _len4 = arguments.length, options = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
+				options[_key4] = arguments[_key4];
+			}
 
-			var formattedOptions = this[transformNames].apply(this, arguments);
-			(_query4 = this._query).groupBy.apply(_query4, _toConsumableArray(formattedOptions));
+			var formattedOptions = this[attributesToColumns].apply(this, options);
+			var _ = (0, _incognito2["default"])(this);
+			if (_.query) {
+				var _$query4;
+
+				(_$query4 = _.query).groupBy.apply(_$query4, _toConsumableArray(formattedOptions));
+			}
+			this[addChain](".groupBy", options);
 			return this;
 		}
 	}, {
 		key: "orderBy",
 		value: function orderBy() {
-			var _query5;
+			for (var _len5 = arguments.length, options = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+				options[_key5] = arguments[_key5];
+			}
 
-			var formattedOptions = this[transformNames].apply(this, arguments);
-			(_query5 = this._query).orderBy.apply(_query5, _toConsumableArray(formattedOptions));
+			var formattedOptions = this[attributesToColumns].apply(this, options);
+			var _ = (0, _incognito2["default"])(this);
+			if (_.query) {
+				var _$query5;
+
+				(_$query5 = _.query).orderBy.apply(_$query5, _toConsumableArray(formattedOptions));
+			}
+			this[addChain](".orderBy", options);
 			return this;
 		}
 	}, {
 		key: "limit",
 		value: function limit() {
-			var _query6;
+			var _ = (0, _incognito2["default"])(this);
+			_.returnOneRecord = false;
 
-			this._one = false;
-			(_query6 = this._query).limit.apply(_query6, arguments);
+			for (var _len6 = arguments.length, options = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+				options[_key6] = arguments[_key6];
+			}
+
+			if (_.query) {
+				var _$query6;
+
+				(_$query6 = _.query).limit.apply(_$query6, options);
+			}
+			this[addChain](".limit", options);
 			return this;
 		}
 	}, {
 		key: "results",
 		value: function results(callback) {
+			var _ = (0, _incognito2["default"])(this);
+
+			var useMock = false;
+			var mockValue = undefined;
+
+			for (var chainString in _.ModelConstructor.mocks) {
+				var mock = _.ModelConstructor.mocks[chainString];
+				if (this.equalTo(mock.query)) {
+					useMock = true;
+					mockValue = mock.value;
+					break;
+				}
+			}
+
+			if (useMock) {
+				callback(null, mockValue);
+			} else {
+				this[callDatabase](callback);
+			}
+		}
+	}, {
+		key: validateDependencies,
+		value: function value() {
+			if (!(0, _incognito2["default"])(this).database) {
+				throw new Error("Cannot find models without a database set.");
+			}
+		}
+	}, {
+		key: addChain,
+		value: function value(chainName, options) {
+			(0, _incognito2["default"])(this).chain[chainName] = options;
+		}
+	}, {
+		key: argumentString,
+		value: function value(options) {
+			var newOptions = [];
+			options.forEach(function (option) {
+				var newOption = undefined;
+				if (typeof option === "string") {
+					newOption = "\"" + option + "\"";
+				} else {
+					newOption = option.toString();
+				}
+				newOptions.push(newOption);
+			});
+			return newOptions.join(", ");
+		}
+	}, {
+		key: callDatabase,
+		value: function value(callback) {
 			var _this2 = this;
 
-			if (this._one) {
+			var _ = (0, _incognito2["default"])(this);
+
+			this[validateDependencies]();
+
+			if (_.returnOneRecord) {
 				this.limit(1);
 			}
 
-			this._query.results(function (error, rows) {
+			_.query.results(function (error, rows) {
 				if (!rows) {
 					if (error) {
 						return callback(error);
@@ -219,16 +362,95 @@ var ModelQuery = (function () {
 					callback(error, rows[0].rowCount);
 				} else {
 					(function () {
-						var models = new _collectionJs2["default"](_this2.ModelConstructor);
+						var models = new _collectionJs2["default"](_.ModelConstructor);
 
 						rows.forEach(function (row) {
-							models.push(new _this2.ModelConstructor(row));
+							models.push(new _.ModelConstructor(row));
 						});
 
 						callback(error, models);
 					})();
 				}
 			});
+		}
+	}, {
+		key: attributesToColumns,
+		value: function value() {
+			for (var _len7 = arguments.length, options = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+				options[_key7] = arguments[_key7];
+			}
+
+			return options.map(function (option, index) {
+				if (typeof option === "string" && index === 0) {
+					return (0, _jargon2["default"])(option).snake.toString();
+				} else {
+					return option;
+				}
+			});
+		}
+	}, {
+		key: argumentsEqual,
+		value: function value(argumentsA, argumentsB) {
+			if (argumentsA === argumentsB) {
+				return true;
+			} else {
+				if (argumentsA.length === argumentsB.length) {
+					var index = argumentsA.length;
+					while (index--) {
+						var argumentA = argumentsA[index];
+						var argumentB = argumentsB[index];
+
+						if (argumentA !== argumentB) {
+							if (argumentA instanceof RegExp) {
+								if (argumentB.toString().match(argumentA) === null) {
+									return false;
+								}
+							} else if (argumentB instanceof RegExp) {
+								if (argumentA.toString().match(argumentB) === null) {
+									return false;
+								}
+							} else {
+								return false;
+							}
+						}
+					}
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+	}, {
+		key: "chain",
+		get: function get() {
+			return (0, _incognito2["default"])(this).chain;
+		}
+	}, {
+		key: "one",
+		get: function get() {
+			var _ = (0, _incognito2["default"])(this);
+
+			_.returnOneRecord = true;
+
+			this[addChain](".one");
+
+			return this;
+		}
+	}, {
+		key: "deleted",
+		get: function get() {
+			(0, _incognito2["default"])(this).query.whereNotNull((0, _jargon2["default"])("deletedAt").snake.toString());
+
+			this[addChain](".deleted");
+
+			return this;
+		}
+	}, {
+		key: "all",
+		get: function get() {
+			this[addChain](".all");
+
+			return this;
 		}
 	}]);
 

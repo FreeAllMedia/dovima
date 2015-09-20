@@ -130,8 +130,17 @@ var Model = (function () {
 		this.initialize();
 	}
 
+	/**
+  * STATIC INTERFACE
+  */
+
 	_createClass(Model, [{
 		key: "hasOne",
+
+		/**
+   * INSTANCE INTERFACE
+   */
+
 		value: function hasOne(associationName, associationConstructor) {
 			return this[_symbols2["default"].addAssociation]({
 				name: associationName,
@@ -176,7 +185,7 @@ var Model = (function () {
    * Return a boolean indicating whether the model is valid or not.
    *
    * @method isValid
-   * @param  {Function(boolean)} callback Callback returning the boolean.
+   * @param	{Function(boolean)} callback Callback returning the boolean.
    */
 	}, {
 		key: "isValid",
@@ -192,12 +201,12 @@ var Model = (function () {
    * @example
    * ```
    * model.invalidAttributes((invalidAttributeList) => {
-   *   console.log(invalidAttributeList); // {"name":["Cannot contain special characters", "Cannot contain numbers"], "age":["Cannot be under 18"]}
+   *	 console.log(invalidAttributeList); // {"name":["Cannot contain special characters", "Cannot contain numbers"], "age":["Cannot be under 18"]}
    * });
    * ```
    *
    * @method invalidAttributes
-   * @param  {Function(invalidAttributeList)} callback Callback returning the invalid attribute list.
+   * @param	{Function(invalidAttributeList)} callback Callback returning the invalid attribute list.
    */
 	}, {
 		key: "invalidAttributes",
@@ -485,6 +494,30 @@ var Model = (function () {
 
 			return fieldAttributes;
 		}
+	}], [{
+		key: "database",
+		get: function get() {
+			var database = this._database;
+			if (!database) {
+				database = Model._database;
+			}
+			return database;
+		},
+		set: function set(newDatabase) {
+			this._database = newDatabase;
+		}
+	}, {
+		key: "find",
+		get: function get() {
+			var modelQuery = new _modelFinderJs2["default"](this.database);
+			return modelQuery.find(this);
+		}
+	}, {
+		key: "count",
+		get: function get() {
+			var modelQuery = new _modelFinderJs2["default"](this.database);
+			return modelQuery.count(this);
+		}
 	}]);
 
 	return Model;
@@ -497,26 +530,5 @@ Object.assign(Model.prototype, _defineProperty({
 	"save": require("./save.js"),
 	"delete": require("./delete.js")
 }, _symbols2["default"].addAssociation, require("./addAssociation.js")));
-
-Object.defineProperties(Model, {
-	"database": {
-		get: function getDatabase() {
-			var database = this._database;
-			if (!database) {
-				database = Model._database;
-			}
-			return database;
-		},
-		set: function setDatabase(value) {
-			this._database = value;
-		}
-	},
-	"find": {
-		get: function modelFind() {
-			var modelQuery = new _modelFinderJs2["default"](this.database);
-			return modelQuery.find(this);
-		}
-	}
-});
 
 module.exports = exports["default"];
