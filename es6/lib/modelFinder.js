@@ -33,7 +33,8 @@ export default class ModelFinder {
 const addChain = Symbol(),
 			validateDependencies = Symbol(),
 			argumentString = Symbol(),
-			callDatabase = Symbol();
+			callDatabase = Symbol(),
+			argumentsEqual = Symbol();
 
 export class ModelQuery {
 	constructor(ModelConstructor, options) {
@@ -43,7 +44,7 @@ export class ModelQuery {
 		_.database = options.database;
 		_.chain = {};
 
-		ModelConstructor.mocks = ModelConstructor.mocks || {};
+		_.ModelConstructor.mocks = _.ModelConstructor.mocks || {};
 	}
 
 	toString() {
@@ -59,9 +60,9 @@ export class ModelQuery {
 			".where",
 			".andWhere",
 			".orWhere",
-			".limit",
 			".groupBy",
-			".orderBy"
+			".orderBy",
+			".limit"
 		].forEach((chainName) => {
 			if (_.chain.hasOwnProperty(chainName)) {
 				chainString = chainString + chainName;
@@ -79,33 +80,50 @@ export class ModelQuery {
 	mockResults(mockValue) {
 		const _ = privateData(this);
 
-		const mockString = this.toString();
-
-		_.ModelConstructor.mocks[mockString] = mockValue;
+		_.ModelConstructor.mocks[this.toString()] = {
+			query: this,
+			value: mockValue
+		};
 
 		return this;
 	}
 
-	[validateDependencies] () {
-		if (!privateData(this).database) { throw new Error("Cannot find models without a database set."); }
-	}
+	equalTo(query) {
+		const ourChain = this.chain;
+		const theirChain = query.chain;
 
-	[addChain](chainName, options) {
-		privateData(this).chain[chainName] = options;
-	}
+		const ourChainNames = Object.keys(ourChain);
+		const theirChainNames = Object.keys(theirChain);
 
-	[argumentString](options) {
-		let newOptions = [];
-		options.forEach((option) => {
-			let newOption;
-			if (typeof option === "string") {
-				newOption = `"${option}"`;
-			} else {
-				newOption = option.toString();
+		const ourChainLength = ourChainNames.length;
+		const theirChainLength = theirChainNames.length;
+
+		let isEqual = true;
+
+		if (ourChainLength === theirChainLength) {
+			for (let chainName in ourChain) {
+				if (theirChain.hasOwnProperty(chainName)) {
+					const ourArguments = ourChain[chainName];
+					const theirArguments = theirChain[chainName];
+
+					if (!this[argumentsEqual](ourArguments, theirArguments)) {
+						isEqual = false;
+						break;
+					}
+				} else {
+					isEqual = false;
+					break;
+				}
 			}
-			newOptions.push(newOption);
-		});
-		return newOptions.join(", ");
+		} else {
+			isEqual = false;
+		}
+
+		return isEqual;
+	}
+
+	get chain() {
+		return privateData(this).chain;
 	}
 
 	get one() {
@@ -234,14 +252,45 @@ export class ModelQuery {
 	results(callback) {
 		const _ = privateData(this);
 
-		const mockString = this.toString();
-		const mockValue = _.ModelConstructor.mocks[mockString];
+		let useMock = false;
+		let mockValue;
 
-		if (mockValue) {
+		for (let chainString in _.ModelConstructor.mocks) {
+			const mock = _.ModelConstructor.mocks[chainString];
+			if (this.equalTo(mock.query)) {
+				useMock = true;
+				mockValue = mock.value;
+				break;
+			}
+		}
+
+		if (useMock) {
 			callback(null, mockValue);
 		} else {
 			this[callDatabase](callback);
 		}
+	}
+
+	[validateDependencies] () {
+		if (!privateData(this).database) { throw new Error("Cannot find models without a database set."); }
+	}
+
+	[addChain](chainName, options) {
+		privateData(this).chain[chainName] = options;
+	}
+
+	[argumentString](options) {
+		let newOptions = [];
+		options.forEach((option) => {
+			let newOption;
+			if (typeof option === "string") {
+				newOption = `"${option}"`;
+			} else {
+				newOption = option.toString();
+			}
+			newOptions.push(newOption);
+		});
+		return newOptions.join(", ");
 	}
 
 	[callDatabase](callback) {
@@ -284,6 +333,37 @@ export class ModelQuery {
 				return option;
 			}
 		});
+	}
+
+	[argumentsEqual](argumentsA, argumentsB) {
+		if (argumentsA === argumentsB) {
+			return true;
+		} else {
+			if (argumentsA.length === argumentsB.length) {
+				let index = argumentsA.length;
+				while (index--) {
+					const argumentA = argumentsA[index];
+					const argumentB = argumentsB[index];
+
+					if (argumentA !== argumentB) {
+						if (argumentA instanceof RegExp) {
+							if (argumentB.toString().match(argumentA) === null) {
+								return false;
+							}
+						} else if (argumentB instanceof RegExp) {
+							if (argumentA.toString().match(argumentB) === null) {
+								return false;
+							}
+						} else {
+							return false;
+						}
+					}
+				}
+				return true;
+			} else {
+				return false;
+			}
+		}
 	}
 }
 

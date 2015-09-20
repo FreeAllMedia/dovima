@@ -70,7 +70,8 @@ exports["default"] = ModelFinder;
 var addChain = Symbol(),
     validateDependencies = Symbol(),
     argumentString = Symbol(),
-    callDatabase = Symbol();
+    callDatabase = Symbol(),
+    argumentsEqual = Symbol();
 
 var ModelQuery = (function () {
 	function ModelQuery(ModelConstructor, options) {
@@ -82,7 +83,7 @@ var ModelQuery = (function () {
 		_.database = options.database;
 		_.chain = {};
 
-		ModelConstructor.mocks = ModelConstructor.mocks || {};
+		_.ModelConstructor.mocks = _.ModelConstructor.mocks || {};
 	}
 
 	_createClass(ModelQuery, [{
@@ -94,7 +95,7 @@ var ModelQuery = (function () {
 
 			var chainString = _.ModelConstructor.name;
 
-			[".find", ".count", ".all", ".one", ".where", ".andWhere", ".orWhere", ".limit", ".groupBy", ".orderBy"].forEach(function (chainName) {
+			[".find", ".count", ".all", ".one", ".where", ".andWhere", ".orWhere", ".groupBy", ".orderBy", ".limit"].forEach(function (chainName) {
 				if (_.chain.hasOwnProperty(chainName)) {
 					chainString = chainString + chainName;
 					var options = _.chain[chainName];
@@ -112,38 +113,47 @@ var ModelQuery = (function () {
 		value: function mockResults(mockValue) {
 			var _ = (0, _incognito2["default"])(this);
 
-			var mockString = this.toString();
-
-			_.ModelConstructor.mocks[mockString] = mockValue;
+			_.ModelConstructor.mocks[this.toString()] = {
+				query: this,
+				value: mockValue
+			};
 
 			return this;
 		}
 	}, {
-		key: validateDependencies,
-		value: function value() {
-			if (!(0, _incognito2["default"])(this).database) {
-				throw new Error("Cannot find models without a database set.");
-			}
-		}
-	}, {
-		key: addChain,
-		value: function value(chainName, options) {
-			(0, _incognito2["default"])(this).chain[chainName] = options;
-		}
-	}, {
-		key: argumentString,
-		value: function value(options) {
-			var newOptions = [];
-			options.forEach(function (option) {
-				var newOption = undefined;
-				if (typeof option === "string") {
-					newOption = "\"" + option + "\"";
-				} else {
-					newOption = option.toString();
+		key: "equalTo",
+		value: function equalTo(query) {
+			var ourChain = this.chain;
+			var theirChain = query.chain;
+
+			var ourChainNames = Object.keys(ourChain);
+			var theirChainNames = Object.keys(theirChain);
+
+			var ourChainLength = ourChainNames.length;
+			var theirChainLength = theirChainNames.length;
+
+			var isEqual = true;
+
+			if (ourChainLength === theirChainLength) {
+				for (var chainName in ourChain) {
+					if (theirChain.hasOwnProperty(chainName)) {
+						var ourArguments = ourChain[chainName];
+						var theirArguments = theirChain[chainName];
+
+						if (!this[argumentsEqual](ourArguments, theirArguments)) {
+							isEqual = false;
+							break;
+						}
+					} else {
+						isEqual = false;
+						break;
+					}
 				}
-				newOptions.push(newOption);
-			});
-			return newOptions.join(", ");
+			} else {
+				isEqual = false;
+			}
+
+			return isEqual;
 		}
 	}, {
 		key: "find",
@@ -285,14 +295,50 @@ var ModelQuery = (function () {
 		value: function results(callback) {
 			var _ = (0, _incognito2["default"])(this);
 
-			var mockString = this.toString();
-			var mockValue = _.ModelConstructor.mocks[mockString];
+			var useMock = false;
+			var mockValue = undefined;
 
-			if (mockValue) {
+			for (var chainString in _.ModelConstructor.mocks) {
+				var mock = _.ModelConstructor.mocks[chainString];
+				if (this.equalTo(mock.query)) {
+					useMock = true;
+					mockValue = mock.value;
+					break;
+				}
+			}
+
+			if (useMock) {
 				callback(null, mockValue);
 			} else {
 				this[callDatabase](callback);
 			}
+		}
+	}, {
+		key: validateDependencies,
+		value: function value() {
+			if (!(0, _incognito2["default"])(this).database) {
+				throw new Error("Cannot find models without a database set.");
+			}
+		}
+	}, {
+		key: addChain,
+		value: function value(chainName, options) {
+			(0, _incognito2["default"])(this).chain[chainName] = options;
+		}
+	}, {
+		key: argumentString,
+		value: function value(options) {
+			var newOptions = [];
+			options.forEach(function (option) {
+				var newOption = undefined;
+				if (typeof option === "string") {
+					newOption = "\"" + option + "\"";
+				} else {
+					newOption = option.toString();
+				}
+				newOptions.push(newOption);
+			});
+			return newOptions.join(", ");
 		}
 	}, {
 		key: callDatabase,
@@ -345,6 +391,43 @@ var ModelQuery = (function () {
 					return option;
 				}
 			});
+		}
+	}, {
+		key: argumentsEqual,
+		value: function value(argumentsA, argumentsB) {
+			if (argumentsA === argumentsB) {
+				return true;
+			} else {
+				if (argumentsA.length === argumentsB.length) {
+					var index = argumentsA.length;
+					while (index--) {
+						var argumentA = argumentsA[index];
+						var argumentB = argumentsB[index];
+
+						if (argumentA !== argumentB) {
+							if (argumentA instanceof RegExp) {
+								if (argumentB.toString().match(argumentA) === null) {
+									return false;
+								}
+							} else if (argumentB instanceof RegExp) {
+								if (argumentA.toString().match(argumentB) === null) {
+									return false;
+								}
+							} else {
+								return false;
+							}
+						}
+					}
+					return true;
+				} else {
+					return false;
+				}
+			}
+		}
+	}, {
+		key: "chain",
+		get: function get() {
+			return (0, _incognito2["default"])(this).chain;
 		}
 	}, {
 		key: "one",

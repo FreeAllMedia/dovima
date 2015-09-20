@@ -12,10 +12,7 @@ var _ = require("../../../");
 
 var _2 = _interopRequireDefault(_);
 
-describe(".mockResults(callback)", function () {
-
-  var mockedValue = undefined;
-
+describe(".equalTo()", function () {
   var User = (function (_Model) {
     _inherits(User, _Model);
 
@@ -28,47 +25,38 @@ describe(".mockResults(callback)", function () {
     return User;
   })(_2["default"]);
 
-  beforeEach(function () {
-    mockedValue = { id: 1, name: "Bob" };
-    User.find.one.where("id", 1).mockResults(mockedValue);
+  it("should return true on simple comparisons", function () {
+    var queryA = User.find;
+    var queryB = User.find;
+
+    queryA.equalTo(queryB).should.be["true"];
   });
 
-  it("should return itself so that chaining is possible", function () {
-    var query = User.find;
-    query.mockResults().should.eql(query);
+  it("should return false on simple comparisons", function () {
+    var queryA = User.find;
+    var queryB = User.count;
+
+    queryA.equalTo(queryB).should.be["false"];
   });
 
-  it("should return the mocked value on subsequent calls of the same type", function (done) {
-    User.find.one.where("id", 1).results(function (error, data) {
-      data.should.eql(mockedValue);
-      done();
-    });
+  it("should return true on comparisons with arguments", function () {
+    var queryA = User.find.where("id", 1);
+    var queryB = User.find.where("id", 1);
+
+    queryA.equalTo(queryB).should.be["true"];
   });
 
-  it("should return the mocked value when using regex values", function (done) {
-    User.find.one.where("createdAt", /.*/).mockResults(mockedValue);
+  it("should return false on comparisons with arguments", function () {
+    var queryA = User.find.where("id", 1);
+    var queryB = User.find.where("id", 2);
 
-    User.find.one.where("createdAt", "2014-10-08 10:16:34").results(function (error, data) {
-      data.should.eql(mockedValue);
-      done();
-    });
+    queryA.equalTo(queryB).should.be["false"];
   });
 
-  it("should not matter which order the chain is called in", function () {
-    User.find.where("id", 1).one.results(function (error, data) {
-      data.should.eql(mockedValue);
-    });
-  });
+  it("should return true on comparisons with regex arguments", function () {
+    var queryA = User.find.where("createdAt", /.*/);
+    var queryB = User.find.where("createdAt", "2014-10-08 10:16:34");
 
-  it("should not affect calls with different parameters", function () {
-    (function () {
-      User.find.one.where("id", 2).results(function () {});
-    }).should["throw"]("Cannot find models without a database set.");
-  });
-
-  it("should not affect calls with a different chain", function () {
-    (function () {
-      User.find.all.where("id", 1).results(function () {});
-    }).should["throw"]("Cannot find models without a database set.");
+    queryA.equalTo(queryB).should.be["true"];
   });
 });
