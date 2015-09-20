@@ -1,150 +1,259 @@
-const validateDependencies = Symbol(),
-	transformNames = Symbol();
+/* Dependencies */
 import inflect from "jargon";
+import privateData from "incognito";
+import util from "util";
+
+/* Private Symbols */
+const attributesToColumns = Symbol();
 
 export default class ModelFinder {
 	constructor(database) {
-		Object.defineProperties(this, {
-			"_database": {
-				value: database,
-				writable: true,
-				enumerable: false
-			}
-		});
+		privateData(this).database = database;
 	}
 
 	find(ModelConstructor) {
-		this[validateDependencies]();
-
-		const query = new ModelQuery(this._database);
-
-		query.find(ModelConstructor);
+		const query = new ModelQuery(ModelConstructor, {
+			database: privateData(this).database
+		});
+		query.find();
 
 		return query;
 	}
 
 	count(ModelConstructor) {
-		this[validateDependencies]();
-
-		const query = new ModelQuery(this._database);
-
-		query.count(ModelConstructor);
+		const query = new ModelQuery(ModelConstructor, {
+			database: privateData(this).database
+		});
+		query.count();
 
 		return query;
-	}
-
-	[validateDependencies] () {
-		if (!this._database) { throw new Error("Cannot find models without a database set."); }
 	}
 }
 
+const addChain = Symbol(),
+			validateDependencies = Symbol(),
+			argumentString = Symbol(),
+			callDatabase = Symbol();
+
 export class ModelQuery {
-	constructor(database) {
-		this._database = database;
-		Object.defineProperties(this, {
-			"_one": {
-				enumerable: false,
-				writable: true,
-				value: false
-			},
-			"one": {
-				get: () => {
-					this._one = true;
-					return this;
-				}
-			},
-			"deleted": {
-				get: () => {
-					this._query.whereNotNull(inflect("deletedAt").snake.toString());
-					return this;
-				}
-			},
-			"all": {
-				get: () => {
-					return this;
+	constructor(ModelConstructor, options) {
+		const _ = privateData(this);
+
+		_.ModelConstructor = ModelConstructor;
+		_.database = options.database;
+		_.chain = {};
+
+		ModelConstructor.mocks = ModelConstructor.mocks || {};
+	}
+
+	toString() {
+		const _ = privateData(this);
+
+		let chainString = _.ModelConstructor.name;
+
+		[
+			".find",
+			".count",
+			".all",
+			".one",
+			".where",
+			".andWhere",
+			".orWhere",
+			".limit",
+			".groupBy",
+			".orderBy"
+		].forEach((chainName) => {
+			if (_.chain.hasOwnProperty(chainName)) {
+				chainString = chainString + chainName;
+				const options = _.chain[chainName];
+
+				if (options) {
+					chainString = `${chainString}(${this[argumentString](options)})`;
 				}
 			}
 		});
+
+		return chainString;
 	}
 
-	find(ModelConstructor) {
-		this.ModelConstructor = ModelConstructor;
+	mockResults(mockValue) {
+		const _ = privateData(this);
 
-		const tempModel = new this.ModelConstructor();
+		const mockString = this.toString();
 
-		this._query = this._database
-			.select("*")
-			.from(tempModel.tableName);
+		_.ModelConstructor.mocks[mockString] = mockValue;
 
 		return this;
 	}
 
-	count(ModelConstructor) {
-		this.ModelConstructor = ModelConstructor;
+	[validateDependencies] () {
+		if (!privateData(this).database) { throw new Error("Cannot find models without a database set."); }
+	}
+
+	[addChain](chainName, options) {
+		privateData(this).chain[chainName] = options;
+	}
+
+	[argumentString](options) {
+		let newOptions = [];
+		options.forEach((option) => {
+			let newOption;
+			if (typeof option === "string") {
+				newOption = `"${option}"`;
+			} else {
+				newOption = option.toString();
+			}
+			newOptions.push(newOption);
+		});
+		return newOptions.join(", ");
+	}
+
+	get one() {
+		const _ = privateData(this);
+
+		_.returnOneRecord = true;
+
+		this[addChain](".one");
+
+		return this;
+	}
+
+	get deleted() {
+		privateData(this)
+			.query
+			.whereNotNull(
+				inflect("deletedAt").snake.toString()
+			);
+
+		this[addChain](".deleted");
+
+		return this;
+	}
+
+	get all() {
+		this[addChain](".all");
+
+		return this;
+	}
+
+	find() {
+		const _ = privateData(this);
+
+		const tempModel = new _.ModelConstructor();
+
+		if (_.database) {
+			_.query = _.database
+				.select("*")
+				.from(tempModel.tableName);
+		}
+
+		this[addChain](".find");
+
+		return this;
+	}
+
+	count() {
+		const _ = privateData(this);
+
 		this.countResults = true;
 
-		const tempModel = new this.ModelConstructor();
+		const tempModel = new _.ModelConstructor();
 
-		this._query = this._database
-			.select(null)
-			.count("* AS rowCount")
-			.from(tempModel.tableName);
+		if (_.database) {
+			_.query = _.database
+				.select(null)
+				.count("* AS rowCount")
+				.from(tempModel.tableName);
+		}
+
+		this[addChain](".count");
 
 		return this;
-	}
-
-	[transformNames](...options) {
-		return options.map((option, index) => {
-			if (typeof option === "string" && index === 0) {
-				return inflect(option).snake.toString();
-			} else {
-				return option;
-			}
-		});
 	}
 
 	where(...options) {
-		const formattedOptions = this[transformNames](...options);
-		this._query.where(...formattedOptions);
+		const formattedOptions = this[attributesToColumns](...options);
+		const _ = privateData(this);
+		if (_.query) {
+			_.query.where(...formattedOptions);
+		}
+		this[addChain](`.where`, options);
 		return this;
 	}
 
 	andWhere(...options) {
-		const formattedOptions = this[transformNames](...options);
-		this._query.andWhere(...formattedOptions);
+		const formattedOptions = this[attributesToColumns](...options);
+		const _ = privateData(this);
+		if (_.query) {
+				_.query.andWhere(...formattedOptions);
+		}
+		this[addChain](`.andWhere`, options);
 		return this;
 	}
 
 	orWhere(...options) {
-		const formattedOptions = this[transformNames](...options);
-		this._query.orWhere(...formattedOptions);
+		const formattedOptions = this[attributesToColumns](...options);
+		const _ = privateData(this);
+		if (_.query) {
+			_.query.orWhere(...formattedOptions);
+		}
+		this[addChain](`.orWhere`, options);
 		return this;
 	}
 
 	groupBy(...options) {
-		const formattedOptions = this[transformNames](...options);
-		this._query.groupBy(...formattedOptions);
+		const formattedOptions = this[attributesToColumns](...options);
+		const _ = privateData(this);
+		if (_.query) {
+			_.query.groupBy(...formattedOptions);
+		}
+		this[addChain](`.groupBy`, options);
 		return this;
 	}
 
 	orderBy(...options) {
-		const formattedOptions = this[transformNames](...options);
-		this._query.orderBy(...formattedOptions);
+		const formattedOptions = this[attributesToColumns](...options);
+		const _ = privateData(this);
+		if (_.query) {
+			_.query.orderBy(...formattedOptions);
+		}
+		this[addChain](`.orderBy`, options);
 		return this;
 	}
 
 	limit(...options) {
-		this._one = false;
-		this._query.limit(...options);
+		const _ = privateData(this);
+		_.returnOneRecord = false;
+		if (_.query) {
+			_.query.limit(...options);
+		}
+		this[addChain](`.limit`, options);
 		return this;
 	}
 
 	results(callback) {
-		if(this._one) {
+		const _ = privateData(this);
+
+		const mockString = this.toString();
+		const mockValue = _.ModelConstructor.mocks[mockString];
+
+		if (mockValue) {
+			callback(null, mockValue);
+		} else {
+			this[callDatabase](callback);
+		}
+	}
+
+	[callDatabase](callback) {
+		const _ = privateData(this);
+
+		this[validateDependencies]();
+
+		if(_.returnOneRecord) {
 			this.limit(1);
 		}
 
-		this._query.results((error, rows) => {
+		_.query.results((error, rows) => {
 			if(!rows) {
 				if(error) {
 					return callback(error);
@@ -156,13 +265,23 @@ export class ModelQuery {
 			if (this.countResults) {
 				callback(error, rows[0].rowCount);
 			} else {
-				const models = new Collection(this.ModelConstructor);
+				const models = new Collection(_.ModelConstructor);
 
 				rows.forEach(row => {
-					models.push(new this.ModelConstructor(row));
+					models.push(new _.ModelConstructor(row));
 				});
 
 				callback(error, models);
+			}
+		});
+	}
+
+	[attributesToColumns](...options) {
+		return options.map((option, index) => {
+			if (typeof option === "string" && index === 0) {
+				return inflect(option).snake.toString();
+			} else {
+				return option;
 			}
 		});
 	}

@@ -90,6 +90,36 @@ export default class Model {
 		this.initialize();
 	}
 
+	/**
+	 * STATIC INTERFACE
+	 */
+
+	static get database() {
+		let database = this._database;
+		if(!database) {
+			database = Model._database;
+		}
+		return database;
+	}
+
+	static set database(newDatabase) {
+		this._database = newDatabase;
+	}
+
+	static get find() {
+		let modelQuery = new ModelFinder(this.database);
+		return modelQuery.find(this);
+	}
+
+	static get count() {
+		let modelQuery = new ModelFinder(this.database);
+		return modelQuery.count(this);
+	}
+
+	/**
+	 * INSTANCE INTERFACE
+	 */
+
 	hasOne(associationName, associationConstructor) {
 		return this[symbols.addAssociation]({
 			name: associationName,
@@ -129,7 +159,7 @@ export default class Model {
 	 * Return a boolean indicating whether the model is valid or not.
 	 *
 	 * @method isValid
-	 * @param  {Function(boolean)} callback Callback returning the boolean.
+	 * @param	{Function(boolean)} callback Callback returning the boolean.
 	 */
 	isValid(callback) {
 		this.invalidAttributes((invalidAttributeList) => {
@@ -143,12 +173,12 @@ export default class Model {
 	 * @example
 	 * ```
 	 * model.invalidAttributes((invalidAttributeList) => {
-	 *   console.log(invalidAttributeList); // {"name":["Cannot contain special characters", "Cannot contain numbers"], "age":["Cannot be under 18"]}
+	 *	 console.log(invalidAttributeList); // {"name":["Cannot contain special characters", "Cannot contain numbers"], "age":["Cannot be under 18"]}
 	 * });
 	 * ```
 	 *
 	 * @method invalidAttributes
-	 * @param  {Function(invalidAttributeList)} callback Callback returning the invalid attribute list.
+	 * @param	{Function(invalidAttributeList)} callback Callback returning the invalid attribute list.
 	 */
 	invalidAttributes(callback) {
 		const _ = privateData(this);
@@ -399,27 +429,6 @@ Object.assign(Model.prototype, {
 	"save": require("./save.js"),
 	"delete": require("./delete.js"),
 	[symbols.addAssociation]: require("./addAssociation.js")
-});
-
-Object.defineProperties(Model, {
-	"database": {
-		get: function getDatabase() {
-			let database = this._database;
-			if(!database) {
-				database = Model._database;
-			}
-			return database;
-		},
-		set: function setDatabase(value) {
-			this._database = value;
-		}
-	},
-	"find": {
-		get: function modelFind() {
-			let modelQuery = new ModelFinder(this.database);
-			return modelQuery.find(this);
-		}
-	}
 });
 
 import ModelFinder from "../modelFinder.js";
