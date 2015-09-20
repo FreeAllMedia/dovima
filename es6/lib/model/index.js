@@ -3,7 +3,6 @@
 import flowsync from "flowsync";
 import Datetime from "fleming";
 import inflect from "jargon";
-import Quirk from "quirk";
 import privateData from "incognito";
 
 import symbols from "./symbols";

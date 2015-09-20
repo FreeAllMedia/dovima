@@ -4,7 +4,6 @@ import Database from "almaden";
 import Collection from "../lib/collection.js";
 import Model from "../../";
 import AssociationSetter from "../lib/associationSetter.js";
-import Quirk from "quirk";
 import {ModelQuery} from "../lib/modelFinder.js";
 import {isPresent} from "../../";
 import {User, Photo, Comment} from "./testClasses.js";
