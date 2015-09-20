@@ -26,10 +26,6 @@ var _jargon = require("jargon");
 
 var _jargon2 = _interopRequireDefault(_jargon);
 
-var _quirk = require("quirk");
-
-var _quirk2 = _interopRequireDefault(_quirk);
-
 var _incognito = require("incognito");
 
 var _incognito2 = _interopRequireDefault(_incognito);

@@ -33,10 +33,6 @@ var _libAssociationSetterJs = require("../lib/associationSetter.js");
 
 var _libAssociationSetterJs2 = _interopRequireDefault(_libAssociationSetterJs);
 
-var _quirk = require("quirk");
-
-var _quirk2 = _interopRequireDefault(_quirk);
-
 var _libModelFinderJs = require("../lib/modelFinder.js");
 
 var _testClassesJs = require("./testClasses.js");
