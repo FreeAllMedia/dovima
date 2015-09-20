@@ -1,7 +1,6 @@
 /* Dependencies */
 import inflect from "jargon";
 import privateData from "incognito";
-import util from "util";
 
 /* Private Symbols */
 const attributesToColumns = Symbol();

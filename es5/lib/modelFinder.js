@@ -21,10 +21,6 @@ var _incognito = require("incognito");
 
 var _incognito2 = _interopRequireDefault(_incognito);
 
-var _util = require("util");
-
-var _util2 = _interopRequireDefault(_util);
-
 /* Private Symbols */
 
 var _collectionJs = require("./collection.js");

@@ -53,6 +53,13 @@ describe(".equalTo()", function () {
     queryA.equalTo(queryB).should.be["false"];
   });
 
+  it("should not matter which order the chain is called", function () {
+    var queryA = User.find.where("id", 1).all;
+    var queryB = User.find.all.where("id", 1);
+
+    queryA.equalTo(queryB).should.be["true"];
+  });
+
   it("should return true on comparisons with regex arguments", function () {
     var queryA = User.find.where("createdAt", /.*/);
     var queryB = User.find.where("createdAt", "2014-10-08 10:16:34");
