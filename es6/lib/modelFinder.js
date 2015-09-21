@@ -14,7 +14,7 @@ export default class ModelFinder {
 		const query = new ModelQuery(ModelConstructor, {
 			database: privateData(this).database
 		});
-		query.find();
+		query.find;
 
 		return query;
 	}
@@ -23,7 +23,17 @@ export default class ModelFinder {
 		const query = new ModelQuery(ModelConstructor, {
 			database: privateData(this).database
 		});
-		query.count();
+		query.count;
+
+		return query;
+	}
+
+	mock(ModelConstructor) {
+		const query = new ModelQuery(ModelConstructor, {
+			database: privateData(this).database
+		});
+
+		query.mock;
 
 		return query;
 	}
@@ -44,6 +54,11 @@ export class ModelQuery {
 		_.chain = {};
 
 		_.ModelConstructor.mocks = _.ModelConstructor.mocks || {};
+	}
+
+	get mock() {
+		privateData(this).isMockDefinition = true;
+		return this;
 	}
 
 	toString() {
@@ -74,17 +89,6 @@ export class ModelQuery {
 		});
 
 		return chainString;
-	}
-
-	mockResults(mockValue) {
-		const _ = privateData(this);
-
-		_.ModelConstructor.mocks[this.toString()] = {
-			query: this,
-			value: mockValue
-		};
-
-		return this;
 	}
 
 	equalTo(query) {
@@ -153,7 +157,7 @@ export class ModelQuery {
 		return this;
 	}
 
-	find() {
+	get find() {
 		const _ = privateData(this);
 
 		const tempModel = new _.ModelConstructor();
@@ -169,7 +173,7 @@ export class ModelQuery {
 		return this;
 	}
 
-	count() {
+	get count() {
 		const _ = privateData(this);
 
 		this.countResults = true;
@@ -248,25 +252,36 @@ export class ModelQuery {
 		return this;
 	}
 
-	results(callback) {
+	results(callbackOrMockValue) {
 		const _ = privateData(this);
 
-		let useMock = false;
-		let mockValue;
+		if (_.isMockDefinition) {
+			const mockValue = callbackOrMockValue;
 
-		for (let chainString in _.ModelConstructor.mocks) {
-			const mock = _.ModelConstructor.mocks[chainString];
-			if (this.equalTo(mock.query)) {
-				useMock = true;
-				mockValue = mock.value;
-				break;
-			}
-		}
-
-		if (useMock) {
-			callback(null, mockValue);
+			_.ModelConstructor.mocks[this.toString()] = {
+				query: this,
+				value: mockValue
+			};
 		} else {
-			this[callDatabase](callback);
+			const callback = callbackOrMockValue;
+
+			let useMock = false;
+			let mockValue;
+
+			for (let chainString in _.ModelConstructor.mocks) {
+				const mock = _.ModelConstructor.mocks[chainString];
+				if (this.equalTo(mock.query)) {
+					useMock = true;
+					mockValue = mock.value;
+					break;
+				}
+			}
+
+			if (useMock) {
+				callback(null, mockValue);
+			} else {
+				this[callDatabase](callback);
+			}
 		}
 	}
 

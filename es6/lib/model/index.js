@@ -115,6 +115,11 @@ export default class Model {
 		return modelQuery.count(this);
 	}
 
+	static get mock() {
+		let modelQuery = new ModelFinder(this.database);
+		return modelQuery.mock(this);
+	}
+
 	/**
 	 * INSTANCE INTERFACE
 	 */

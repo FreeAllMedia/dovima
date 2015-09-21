@@ -42,7 +42,7 @@ var ModelFinder = (function () {
 			var query = new ModelQuery(ModelConstructor, {
 				database: (0, _incognito2["default"])(this).database
 			});
-			query.find();
+			query.find;
 
 			return query;
 		}
@@ -52,7 +52,18 @@ var ModelFinder = (function () {
 			var query = new ModelQuery(ModelConstructor, {
 				database: (0, _incognito2["default"])(this).database
 			});
-			query.count();
+			query.count;
+
+			return query;
+		}
+	}, {
+		key: "mock",
+		value: function mock(ModelConstructor) {
+			var query = new ModelQuery(ModelConstructor, {
+				database: (0, _incognito2["default"])(this).database
+			});
+
+			query.mock;
 
 			return query;
 		}
@@ -105,18 +116,6 @@ var ModelQuery = (function () {
 			return chainString;
 		}
 	}, {
-		key: "mockResults",
-		value: function mockResults(mockValue) {
-			var _ = (0, _incognito2["default"])(this);
-
-			_.ModelConstructor.mocks[this.toString()] = {
-				query: this,
-				value: mockValue
-			};
-
-			return this;
-		}
-	}, {
 		key: "equalTo",
 		value: function equalTo(query) {
 			var ourChain = this.chain;
@@ -150,38 +149,6 @@ var ModelQuery = (function () {
 			}
 
 			return isEqual;
-		}
-	}, {
-		key: "find",
-		value: function find() {
-			var _ = (0, _incognito2["default"])(this);
-
-			var tempModel = new _.ModelConstructor();
-
-			if (_.database) {
-				_.query = _.database.select("*").from(tempModel.tableName);
-			}
-
-			this[addChain](".find");
-
-			return this;
-		}
-	}, {
-		key: "count",
-		value: function count() {
-			var _ = (0, _incognito2["default"])(this);
-
-			this.countResults = true;
-
-			var tempModel = new _.ModelConstructor();
-
-			if (_.database) {
-				_.query = _.database.select(null).count("* AS rowCount").from(tempModel.tableName);
-			}
-
-			this[addChain](".count");
-
-			return this;
 		}
 	}, {
 		key: "where",
@@ -288,25 +255,36 @@ var ModelQuery = (function () {
 		}
 	}, {
 		key: "results",
-		value: function results(callback) {
+		value: function results(callbackOrMockValue) {
 			var _ = (0, _incognito2["default"])(this);
 
-			var useMock = false;
-			var mockValue = undefined;
+			if (_.isMockDefinition) {
+				var mockValue = callbackOrMockValue;
 
-			for (var chainString in _.ModelConstructor.mocks) {
-				var mock = _.ModelConstructor.mocks[chainString];
-				if (this.equalTo(mock.query)) {
-					useMock = true;
-					mockValue = mock.value;
-					break;
-				}
-			}
-
-			if (useMock) {
-				callback(null, mockValue);
+				_.ModelConstructor.mocks[this.toString()] = {
+					query: this,
+					value: mockValue
+				};
 			} else {
-				this[callDatabase](callback);
+				var callback = callbackOrMockValue;
+
+				var useMock = false;
+				var mockValue = undefined;
+
+				for (var chainString in _.ModelConstructor.mocks) {
+					var mock = _.ModelConstructor.mocks[chainString];
+					if (this.equalTo(mock.query)) {
+						useMock = true;
+						mockValue = mock.value;
+						break;
+					}
+				}
+
+				if (useMock) {
+					callback(null, mockValue);
+				} else {
+					this[callDatabase](callback);
+				}
 			}
 		}
 	}, {
@@ -421,6 +399,12 @@ var ModelQuery = (function () {
 			}
 		}
 	}, {
+		key: "mock",
+		get: function get() {
+			(0, _incognito2["default"])(this).isMockDefinition = true;
+			return this;
+		}
+	}, {
 		key: "chain",
 		get: function get() {
 			return (0, _incognito2["default"])(this).chain;
@@ -449,6 +433,38 @@ var ModelQuery = (function () {
 		key: "all",
 		get: function get() {
 			this[addChain](".all");
+
+			return this;
+		}
+	}, {
+		key: "find",
+		get: function get() {
+			var _ = (0, _incognito2["default"])(this);
+
+			var tempModel = new _.ModelConstructor();
+
+			if (_.database) {
+				_.query = _.database.select("*").from(tempModel.tableName);
+			}
+
+			this[addChain](".find");
+
+			return this;
+		}
+	}, {
+		key: "count",
+		get: function get() {
+			var _ = (0, _incognito2["default"])(this);
+
+			this.countResults = true;
+
+			var tempModel = new _.ModelConstructor();
+
+			if (_.database) {
+				_.query = _.database.select(null).count("* AS rowCount").from(tempModel.tableName);
+			}
+
+			this[addChain](".count");
 
 			return this;
 		}

@@ -514,6 +514,12 @@ var Model = (function () {
 			var modelQuery = new _modelFinderJs2["default"](this.database);
 			return modelQuery.count(this);
 		}
+	}, {
+		key: "mock",
+		get: function get() {
+			var modelQuery = new _modelFinderJs2["default"](this.database);
+			return modelQuery.mock(this);
+		}
 	}]);
 
 	return Model;
