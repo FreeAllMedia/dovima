@@ -267,9 +267,9 @@ describe("Model(attributes, options)", function () {
         });
 
         it("should throw an error", function () {
-          (function () {
-            post["delete"]();
-          }).should["throw"]("Cannot delete without Model.database set.");
+          post["delete"](function (error) {
+            error.message.should.eql("Cannot delete without Model.database set.");
+          });
         });
       });
     });

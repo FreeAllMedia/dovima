@@ -490,6 +490,16 @@ var Model = (function () {
 
 			return fieldAttributes;
 		}
+	}, {
+		key: "mock",
+
+		/**
+   * INSTANCE MOCKING
+   */
+
+		get: function get() {
+			return new InstanceMock(this);
+		}
 	}], [{
 		key: "database",
 		get: function get() {
@@ -526,6 +536,43 @@ var Model = (function () {
 })();
 
 exports["default"] = Model;
+
+var InstanceMock = (function () {
+	function InstanceMock(instance) {
+		_classCallCheck(this, InstanceMock);
+
+		(0, _incognito2["default"])(this).instance = instance;
+	}
+
+	_createClass(InstanceMock, [{
+		key: "save",
+		value: function save(mockNewId) {
+			var instance = (0, _incognito2["default"])(this).instance;
+			(0, _incognito2["default"])(instance).mockNewId = mockNewId;
+		}
+	}, {
+		key: "fetch",
+		value: function fetch(mockRecord) {
+			var instance = (0, _incognito2["default"])(this).instance;
+			(0, _incognito2["default"])(instance).mockFetchRecord = mockRecord;
+		}
+	}, {
+		key: "delete",
+		value: function _delete() {
+			var instance = (0, _incognito2["default"])(this).instance;
+			(0, _incognito2["default"])(instance).mockDelete = true;
+		}
+	}, {
+		key: "record",
+		value: function record(mockRecord) {
+			this.save(mockRecord.id);
+			this.fetch(mockRecord);
+			this["delete"]();
+		}
+	}]);
+
+	return InstanceMock;
+})();
 
 Object.assign(Model.prototype, _defineProperty({
 	"fetch": require("./fetch.js"),

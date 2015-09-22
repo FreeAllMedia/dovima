@@ -160,6 +160,19 @@ function fetchByBelongsTo(associationName, associations, callback) {
 }
 
 function fetchBy(fields = [this.primaryKey], callback = undefined) {
+  const _ = privateData(this);
+  if (_.mockFetchRecord) {
+    for (let attributeName in _.mockFetchRecord) {
+      const mockValue = _.mockFetchRecord[attributeName];
+      this[attributeName] = mockValue;
+    }
+    callback();
+  } else {
+    fetchFromDatabase.call(this, fields, callback);
+  }
+}
+
+function fetchFromDatabase(fields = [this.primaryKey], callback = undefined) {
   let database = this[symbols.getDatabase]();
   if (!database) { throw new Error("Cannot fetch without Model.database set."); }
 

@@ -1,107 +1,27 @@
 # Dovima.js [![npm version](https://img.shields.io/npm/v/dovima.svg)](https://www.npmjs.com/package/dovima) [![license type](https://img.shields.io/npm/l/dovima.svg)](https://github.com/FreeAllMedia/dovima.git/blob/master/LICENSE) [![npm downloads](https://img.shields.io/npm/dm/dovima.svg)](https://www.npmjs.com/package/dovima) ![ECMAScript 6 & 5](https://img.shields.io/badge/ECMAScript-6%20/%205-red.svg)
 
-ES6 generic model with lots of useful special features like relations, validations, logical deletion, finding, typed collections, chained readable usage. It uses [almaden](https://github.com/FreeAllMedia/almaden) as the database adapter.
-
-```javascript
-//Declaring models with relationships
-//On runtime you need to set the static Model.database to a valid [almaden](https://github.com/FreeAllMedia/almaden) object
-import Model from "dovima";
-import {isPresent} from "dovima"; //dovima-provided validation
-import {isNotEmpty} from "proven"; //validation utility framework
-
-
-class TruckOwner extends Model {
-  associate() {
-    this.belongsTo("truck", Truck);
-    this.belongsTo("owner", Owner);
-  }
-}
-
-class Truck extends Model {
-  initialize() {
-    this.softDelete;
-  }
-
-  associate() {
-    this.hasMany("truckOwners");
-    this.hasMany("owners", Owner)
-      .through("truckOwners");
-    this.hasMany("wheels", Wheel);
-    this.hasOne("steeringWheel", SteeringWheel);
-  }
-
-  validate() {
-    this.ensure("brand", isNotEmpty);
-    this.ensure("wheels", isPresent);
-    this.ensure("steeringWheel", isPresent);
-  }
-}
-
-class Owner extends Model {
-  associate() {
-    this.hasMany("truckOwners", TruckOwner);
-    this.hasMany("trucks", Truck)
-      .through("truckOwners");
-  }
-}
-
-class Wheel extends Model {
-  associate() {
-    this.belongsTo("truck", Truck);
-  }
-  save(callback) {
-    wheelSaveSpy(callback);
-    super.save(callback);
-  }
-}
-
-class SteeringWheel extends Model {
-  associate() {
-    this.belongsTo("truck", Truck);
-  }
-  save(callback) {
-    steeringWheelSaveSpy(callback);
-    super.save(callback);
-  }
-}
-
-class Seat extends Model {
-  associate() {
-    this.belongsTo("truck", Truck);
-  }
-}
-```
-
-# Quality and Compatibility
-
-[![Build Status](https://travis-ci.org/FreeAllMedia/dovima.png?branch=master)](https://travis-ci.org/FreeAllMedia/dovima) [![Coverage Status](https://coveralls.io/repos/FreeAllMedia/dovima/badge.svg)](https://coveralls.io/r/FreeAllMedia/dovima) [![Code Climate](https://codeclimate.com/github/FreeAllMedia/dovima/badges/gpa.svg)](https://codeclimate.com/github/FreeAllMedia/dovima) [![bitHound Score](https://www.bithound.io/github/FreeAllMedia/dovima/badges/score.svg)](https://www.bithound.io/github/FreeAllMedia/dovima) [![Dependency Status](https://david-dm.org/FreeAllMedia/dovima.png?theme=shields.io)](https://david-dm.org/FreeAllMedia/dovima?theme=shields.io) [![Dev Dependency Status](https://david-dm.org/FreeAllMedia/dovima/dev-status.svg)](https://david-dm.org/FreeAllMedia/dovima?theme=shields.io#info=devDependencies)
-
-*Every build and release is automatically tested on the following platforms:*
-
-![node 0.12.x](https://img.shields.io/badge/node-0.12.x-brightgreen.svg) ![node 0.11.x](https://img.shields.io/badge/node-0.11.x-brightgreen.svg) ![node 0.10.x](https://img.shields.io/badge/node-0.10.x-brightgreen.svg)
-![iojs 2.x.x](https://img.shields.io/badge/iojs-2.x.x-brightgreen.svg) ![iojs 1.x.x](https://img.shields.io/badge/iojs-1.x.x-brightgreen.svg)
-
+[![Build Status](https://travis-ci.org/FreeAllMedia/dovima.png?branch=master)](https://travis-ci.org/FreeAllMedia/dovima) [![Coverage Status](https://coveralls.io/repos/FreeAllMedia/dovima/badge.svg)](https://coveralls.io/r/FreeAllMedia/dovima) [![Code Climate](https://codeclimate.com/github/FreeAllMedia/dovima/badges/gpa.svg)](https://codeclimate.com/github/FreeAllMedia/dovima) [![bitHound Score](https://www.bithound.io/github/FreeAllMedia/dovima/badges/score.svg)](https://www.bithound.io/github/FreeAllMedia/dovima)
+[![Dependency Status](https://david-dm.org/FreeAllMedia/dovima.png?theme=shields.io)](https://david-dm.org/FreeAllMedia/dovima?theme=shields.io) [![Dev Dependency Status](https://david-dm.org/FreeAllMedia/dovima/dev-status.svg)](https://david-dm.org/FreeAllMedia/dovima?theme=shields.io#info=devDependencies)
+![node 0.12.x](https://img.shields.io/badge/node-0.12.x-brightgreen.svg) ![node 0.11.x](https://img.shields.io/badge/node-0.11.x-brightgreen.svg) ![node 0.10.x](https://img.shields.io/badge/node-0.10.x-brightgreen.svg) ![iojs 2.x.x](https://img.shields.io/badge/iojs-2.x.x-brightgreen.svg) ![iojs 1.x.x](https://img.shields.io/badge/iojs-1.x.x-brightgreen.svg)
 
 <!-- [![Sauce Test Status](https://saucelabs.com/browser-matrix/dovima.svg)](https://saucelabs.com/u/dovima) -->
 
+Dovima is a high-quality, stand-alone ORM written in ES6. We call it a "supermodel" because it gracefully does everything you expect an ORM to do, plus a whole lot of time-saving, code-cleaning extra features that make it an absolute pleasure to work with.
 
-*If your platform is not listed above, you can test your local environment for compatibility by copying and pasting the following commands into your terminal:*
-
-```
-npm install dovima
-cd node_modules/dovima
-gulp test-local
-```
-
-# Installation
-
-Copy and paste the following command into your terminal to install Dovima:
+# 1. Installation
 
 ```
-npm install dovima --save
+$ npm install dovima --save
 ```
 
-## Import / Require
+*You may wish to run the automated test suite to ensure that Dovima is fully compatible in your environment:*
+
+```
+$ cd node_modules/dovima
+$ npm test
+```
+
+# 2. Import / Require
 
 ```
 // ES6
@@ -113,96 +33,443 @@ import Model from "dovima";
 var Model = require("dovima");
 ```
 
+# 3. Getting Started
+
+Dovima doesn't require centralized schema files for associations, validations, or anything else. You simply define a model, add the features you want to it, and use it.
+
+## 3.1 Define a Model
+
+``` javascript
+// models/user.js
+
+import Model from "dovima";
+
+class User extends Model {}
 ```
-// Require.js
-define(["require"] , function (require) {
-    var Model = require("dovima");
+
+``` javascript
+// test.js
+
+import User from "./models/user.js";
+
+const userAttributes = {
+  name: "Bob Builder"
+};
+
+const user = new User(userAttributes);
+
+user.name.should.eql(userAttributes.name);
+```
+
+## 3.2 Define Attribute Validations
+
+``` javascript
+// models/user.js
+
+import Model, {isNotEmpty} from "dovima";
+
+class User extends Model {
+  validations() {
+    this.validate("name", isNotEmpty);
+  }
+}
+```
+
+``` javascript
+// test.js
+
+import User from "./models/user.js";
+
+const user = new User();
+
+// Check if the model is valid or not
+user.isValid((isValid) => {
+  isValid.should.be.false;
+});
+
+// Get a list of all invalid attributes
+// and the reasons they are invalid
+user.invalidAttributes((invalidAttributes) => {
+  invalidAttributes.should.eql({
+    "name": ["cannot be empty"]
+  });
 });
 ```
 
-# Getting Started
-Dovima provides a Model class which you should extend with your own models like the Truck example. It is similar to the Active Record pattern.
-Besides of extending the base Model you will need to set the Model.database static property to a valid [almaden](https://github.com/FreeAllMedia/almaden) object. Almaden is a DB-agnostic adapter with query chaining support.
+## 3.3 Define Simple Associations
 
-Important note: Dovima follows a strict casing rule. Object properties are always camelCased and database fields are snake_cased.
+```
+// models/user.js
 
-## Features
-Dovima lets you (use the truck example at the top of this README as a reference to understand feature explanations):
+import Model from "dovima";
+import Article from "./models/article.js";
+import Comment from "./models/comment.js";
 
-### Relate models
-You can relate models with the `hasOne`, `hasMany` and `belongsTo` methods provided by the Model base class by writing the `associate` method.
+class User extends Model {
+  associations() {
+    this.hasMany("articles", Article);
 
-### Add validations
-Also Dovima let's you add validation to the models property by writing a simple `validate` method. You can call the `ensure(propertyName, validator)` method and that will receive the property name on the model to execute the validator. For validations there are some provided within Dovima (isPresent) and some provided by the [proven](https://github.com/FreeAllMedia/proven) package. Validations can be sync or async and new ones can be created anytime by using the same interface.
+    this.hasMany("comments", Comment);
 
-### Soft delete
-When you write your Model class you can mark it as a soft delete able Model by calling the `this.softDelete` property on the `initialize` method, case in which it will add the logical deletion behavior, so then when you delete it, it will be an update and it will be excluded from regular model queries except if you find explicitly the deleted ones. See below on find for that example.
-
-### Find models
-Finding will return the error and the result collection using the node callback convention (error, data).
-
-Find a truck with id = 3.
-```javascript
-Truck
-  .find
-  .one
-  .where("id", "3")
-  .results((error, trucks) => {
-      //do something with the first truck on the collection (in this case will be just one for sure)
-    });
+    this.hasMany("articleComments", Comment)
+        .through("articles");
+  }
+}
 ```
 
-Find all trucks.
-```javascript
-Truck
-  .find
-  .all
-  .where("brand", "like", "Mer%")
-  .results((error, trucks) => {
-      //do something with all the Mer% trucks
-    });
+```
+// models/article.js
+
+import Model from "dovima";
+import User from "./models/user.js";
+import Comment from "./models/comment.js";
+
+class Article extends Model {
+  associations() {
+    this.belongsTo("user", User);
+    this.hasMany("comments", Comment);
+  }
+}
 ```
 
-Find deleted trucks.
-```javascript
-Truck
-  .find
-  .deleted
-  .where("brand", "like", "Mer%")
-  .results((error, trucks) => {
-      //do something with all the Mer% trucks that where logically deleted (see softDelete model feature)
-    });
+```
+// models/comment.js
+
+import Model from "dovima";
+import User from "./models/user.js";
+import Article from "./models/article.js";
+
+class Comment extends Model {
+  associations() {
+    this.belongsTo("user", User);
+    this.belongsTo("article", Article);
+  }
+}
 ```
 
-### Save/update models
-You can save models with the primary key (id by default) and the appropiate timestamps (createdAt and updatedAt) managed automatically by dovima.
-```javascript
-truck.save((error) => {
-    //the truck variable now it has an id if it's new and a createdAt property
-    //or just an updatedAt property refreshed if it was an existing one
+```
+// test.js
+
+import User from "./models/user.js";
+import Article from "./models/article.js";
+import Comment from "./models/comment.js";
+
+const user = new User({
+  name: "Bob Builder"
+});
+
+const article = new Article({
+  title: "How to Build Things!",
+  user: user
+});
+
+const commentAttributes = {
+  user: user,
+  article: article,
+  text: "I really like this article."
+};
+
+const comment = new Comment(commentAttributes);
+
+user.articles.push(article);
+article.comments.push(comment);
+
+const articleComment = user.articleComments[0];
+
+articleComment.text.should.eql(commentAttributes.text);
+```
+
+## 3.4 Define Association Validations
+
+``` javascript
+// models/user.js
+
+import Model, {isPresent} from "dovima";
+import ProfilePicture from "./models/profilePicture.js";
+
+class User extends Model {
+  associations() {
+    this.hasOne("profilePicture", ProfilePicture);
+  }
+  validations() {
+    this.validate("profilePicture", isPresent);
+  }
+}
+```
+
+``` javascript
+// test.js
+
+import User from "./models/user.js";
+
+const user = new User();
+
+// Check if the model is valid or not
+user.isValid((isValid) => {
+  isValid.should.be.false;
+});
+
+// Get a list of all invalid attributes
+// and the reasons they are invalid
+user.invalidAttributes((invalidAttributes) => {
+  invalidAttributes.should.eql({
+    "profilePicture": ["must be present"]
+  });
+});
+```
+
+## 3.5 Define Custom Constructor
+
+``` javascript
+// models/user.js
+
+import Model from "dovima";
+
+class User extends Model {
+  instantiate(attributes = {}, options = {}) {
+    if (options.convertToDogYears) {
+      this.age = attributes.age * 7;
+    }
+  }
+}
+```
+
+``` javascript
+// test.js
+
+import User from "./models/user.js";
+
+const user = new User({
+  age: 8
+}, {
+  convertToDogYears: true
+});
+
+user.age.should.eql(56);
+```
+
+## 3.6 Global Data Persistence
+
+**Note:** Dovima utilizes a database adapter called `almaden` to make calls to the database.
+
+``` javascript
+// models/user.js
+
+import Model from "dovima";
+import Article from "./models/article.js";
+
+class User extends Model {
+  associations() {
+    this.hasMany("articles", Article);
+  }
+}
+```
+
+``` javascript
+// models/article.js
+
+import Model from "dovima";
+import User from "./models/user.js";
+
+class Article extends Model {
+  associations() {
+    this.belongsTo("user", User);
+  }
+}
+```
+
+``` javascript
+// test.js
+
+import Database from "almaden";
+
+import Model from "dovima";
+
+import User from "./models/user.js";
+import Article from "./models/article.js";
+
+const databaseCredentials = {
+  client: "mysql",
+  connection: {
+    host     : "127.0.0.1",
+    user     : "myUser",
+    password : "123456789",
+    database : "test"
+  }
+};
+
+const database = new Database(databaseCredentials);
+
+/**
+ * Setting Model.database will cause all models to use it by default.
+ */
+Model.database = database;
+
+/**
+ * Set up the models
+ */
+const user = new User({
+  name: "Norman"
+});
+
+const article = new Article({
+  title: "Things Happening Around Town"
+});
+
+user.articles.push(article);
+
+/**
+ * Now, all models can .save(callback)
+ */
+user.save((error) => {
+  if (error) { throw error; }
+  // user was saved, and now has an id
+  (user.id === undefined).should.be.false;
+  // article was saved as well and has an id due to .save
+  // propagating to all hasOne and hasMany associations
+  (article.id === undefined).should.be.false;
+});
+```
+
+### 3.6.1 K'Nex Compatibility
+
+`almaden` is built on `knex`, so if you have an existing knex connection you'd like to use instead of creating a new one, just use the following instead of passing credentials:
+
+``` javascript
+
+import knex from "knex";
+import Database from "almaden";
+import Model from "dovima";
+
+const databaseCredentials = {
+  client: "mysql",
+  connection: {
+    host     : "127.0.0.1",
+    user     : "myUser",
+    password : "123456789",
+    database : "test"
+  }
+};
+
+const database = knex(databaseCredentials);
+
+/**
+ * Use existing knex connection
+ */
+Model.database = new Database({
+  knex: database
+});
+```
+
+## 3.7 Finding Models in Database
+
+``` javascript
+// models/user.js
+
+import Model from "dovima";
+import Article from "./models/article.js";
+
+class User extends Model {
+  associations() {
+    this.hasMany("articles", Article);
+  }
+}
+```
+
+``` javascript
+// models/article.js
+
+import Model from "dovima";
+import User from "./models/user.js";
+
+class Article extends Model {
+  associations() {
+    this.belongsTo("user", User);
+  }
+}
+```
+
+``` javascript
+// test.js
+
+import Database from "almaden";
+
+import Model from "dovima";
+
+import User from "./models/user.js";
+import Article from "./models/article.js";
+
+const databaseCredentials = {
+  client: "mysql",
+  connection: {
+    host     : "127.0.0.1",
+    user     : "myUser",
+    password : "123456789",
+    database : "test"
+  }
+};
+
+Model.database = new Database(databaseCredentials);
+
+User
+  .find.one
+  .where("id", 1)
+  .include("articles")
+  .results((error, user) => {
+    user.name.should.eql("Norman");
+    user.articles[0].title.should.eql("Things Happening Around Town");
   });
 ```
 
-### Delete models
-```javascript
-truck.delete((error) => {
-    //as the truck model was marked with soft delete, the truck will have a new deletedAt property
-    //otherwise, it does nothing (yet)
-  });
+## 3.8 Mocking Model Find Chain
+
+``` javascript
+// models/user.js
+
+import Model from "dovima";
+
+class User extends Model {}
 ```
 
-# How to Contribute
+``` javascript
+// test.js
 
-See something that could use improvement? Have a great feature idea? We listen!
+import User from "./models/user.js";
 
-You can submit your ideas through our [issues system](https://github.com/FreeAllMedia/dovima/issues), or make the modifications yourself and submit them to us in the form of a [GitHub pull request](https://help.github.com/articles/using-pull-requests/).
+User.mock.find.one.where("id", 1).results({
+  id: 1,
+  name: "Bob"
+});
 
-We always aim to be friendly and helpful.
-
-## Running Tests
-
-It's easy to run the test suite locally, and *highly recommended* if you're using Dovima.js on a platform we aren't automatically testing for.
-
+User.find.one.where("id", 1).results((error, user) => {
+  user.name.should.eql("Bob");
+});
 ```
-npm test
+
+## 3.9 Mocking Model Instance
+
+``` javascript
+// models/user.js
+
+import Model from "dovima";
+
+class User extends Model {}
+```
+
+``` javascript
+// test.js
+
+import User from "./models/user.js";
+
+const user = new User({id: 1});
+
+user.mock.instance({
+  id: 1,
+  name: "Bob"
+});
+
+user.fetch(() => {
+  user.id.should.eql(1);
+  user.name.should.eql("Bob");
+});
 ```

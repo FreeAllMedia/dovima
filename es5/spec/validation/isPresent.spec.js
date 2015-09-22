@@ -179,26 +179,6 @@ describe("isPresent(item, callback)", function () {
 				});
 			});
 		});
-
-		describe("(on the database due to lazy loading)", function () {
-			beforeEach(function () {
-				_2["default"].database.mock({
-					"select count(*) as `rowCount` from `wheels` where `truck_id` = 1": [{ rowCount: 1 }]
-				});
-				truck = new Truck();
-				truck.id = 1;
-				truck.steeringWheel = steeringWheel;
-			});
-
-			describe("(hasMany)", function () {
-				it("should return true if collection is zero length but there are records on the database", function (done) {
-					_libValidationIsPresentJs2["default"].call(truck, "wheels", function (error, result) {
-						result.should.eql(trueValue);
-						done();
-					});
-				});
-			});
-		});
 	});
 
 	describe("(association not present)", function () {
@@ -217,25 +197,6 @@ describe("isPresent(item, callback)", function () {
 						_libValidationIsPresentJs2["default"].call(truck, "street", function (error, result) {
 							result.should.eql(trueValue);
 							done();
-						});
-					});
-				});
-
-				describe("(on the database due to lazy loading)", function () {
-					beforeEach(function () {
-						_2["default"].database.mock({
-							"select count(*) as `rowCount` from `wheels` where `truck_id` = 1": [{ rowCount: 0 }]
-						});
-						truck = new Truck();
-						truck.steeringWheel = steeringWheel;
-					});
-
-					describe("(hasMany)", function () {
-						it("should return false if collection is zero length AND there are no records on the database", function (done) {
-							_libValidationIsPresentJs2["default"].call(truck, "wheels", function (error, result) {
-								result.should.eql(falseValue);
-								done();
-							});
 						});
 					});
 				});
@@ -280,33 +241,10 @@ describe("isPresent(item, callback)", function () {
 			});
 
 			describe("(hasOne)", function () {
-				describe("(association not present in database)", function () {
-					beforeEach(function () {
-						_2["default"].database.mock({
-							"select count(*) as `rowCount` from `steering_wheels` where `truck_id` = 1": [{ rowCount: 0 }]
-						});
-					});
-
-					it("should return false", function (done) {
-						_libValidationIsPresentJs2["default"].call(truck, "steeringWheel", function (error, result) {
-							result.should.eql(falseValue);
-							done();
-						});
-					});
-				});
-
-				describe("(association is present in database)", function () {
-					beforeEach(function () {
-						_2["default"].database.mock({
-							"select count(*) as `rowCount` from `steering_wheels` where `truck_id` = 1": [{ rowCount: 1 }]
-						});
-					});
-
-					it("should return true", function (done) {
-						_libValidationIsPresentJs2["default"].call(truck, "steeringWheel", function (error, result) {
-							result.should.eql(trueValue);
-							done();
-						});
+				it("should return false", function (done) {
+					_libValidationIsPresentJs2["default"].call(truck, "steeringWheel", function (error, result) {
+						result.should.eql(falseValue);
+						done();
 					});
 				});
 			});

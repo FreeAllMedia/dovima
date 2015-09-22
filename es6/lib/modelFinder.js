@@ -3,7 +3,8 @@ import inflect from "jargon";
 import privateData from "incognito";
 
 /* Private Symbols */
-const attributesToColumns = Symbol();
+const attributesToColumns = Symbol(),
+			newQuery = Symbol();
 
 export default class ModelFinder {
 	constructor(database) {
@@ -11,35 +12,38 @@ export default class ModelFinder {
 	}
 
 	find(ModelConstructor) {
-		const query = new ModelQuery(ModelConstructor, {
-			database: privateData(this).database
-		});
+		const query = this[newQuery](ModelConstructor);
+
 		query.find;
 
 		return query;
 	}
 
 	count(ModelConstructor) {
-		const query = new ModelQuery(ModelConstructor, {
-			database: privateData(this).database
-		});
+		const query = this[newQuery](ModelConstructor);
+
 		query.count;
 
 		return query;
 	}
 
 	mock(ModelConstructor) {
-		const query = new ModelQuery(ModelConstructor, {
-			database: privateData(this).database
-		});
+		const query = this[newQuery](ModelConstructor);
 
 		query.mock;
 
 		return query;
 	}
+
+	[newQuery](ModelConstructor) {
+		return new ModelQuery(ModelConstructor, {
+			database: privateData(this).database
+		});
+	}
 }
 
 const addChain = Symbol(),
+			addMock = Symbol(),
 			validateDependencies = Symbol(),
 			argumentString = Symbol(),
 			callDatabase = Symbol(),
@@ -258,10 +262,7 @@ export class ModelQuery {
 		if (_.isMockDefinition) {
 			const mockValue = callbackOrMockValue;
 
-			_.ModelConstructor.mocks[this.toString()] = {
-				query: this,
-				value: mockValue
-			};
+			this[addMock](this.toString(), mockValue);
 		} else {
 			const callback = callbackOrMockValue;
 
@@ -283,6 +284,13 @@ export class ModelQuery {
 				this[callDatabase](callback);
 			}
 		}
+	}
+
+	[addMock](mockIdentifier, mockValue) {
+		privateData(this).ModelConstructor.mocks[mockIdentifier] = {
+			query: this,
+			value: mockValue
+		};
 	}
 
 	[validateDependencies] () {

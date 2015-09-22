@@ -196,9 +196,9 @@ describe("Model(attributes, options)", () => {
         });
 
         it("should throw an error", () => {
-          () => {
-            post.delete();
-          }.should.throw("Cannot delete without Model.database set.");
+          post.delete((error) => {
+            error.message.should.eql("Cannot delete without Model.database set.");
+          });
         });
       });
     });

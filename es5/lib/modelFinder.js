@@ -27,7 +27,8 @@ var _collectionJs = require("./collection.js");
 
 var _collectionJs2 = _interopRequireDefault(_collectionJs);
 
-var attributesToColumns = Symbol();
+var attributesToColumns = Symbol(),
+    newQuery = Symbol();
 
 var ModelFinder = (function () {
 	function ModelFinder(database) {
@@ -39,9 +40,8 @@ var ModelFinder = (function () {
 	_createClass(ModelFinder, [{
 		key: "find",
 		value: function find(ModelConstructor) {
-			var query = new ModelQuery(ModelConstructor, {
-				database: (0, _incognito2["default"])(this).database
-			});
+			var query = this[newQuery](ModelConstructor);
+
 			query.find;
 
 			return query;
@@ -49,9 +49,8 @@ var ModelFinder = (function () {
 	}, {
 		key: "count",
 		value: function count(ModelConstructor) {
-			var query = new ModelQuery(ModelConstructor, {
-				database: (0, _incognito2["default"])(this).database
-			});
+			var query = this[newQuery](ModelConstructor);
+
 			query.count;
 
 			return query;
@@ -59,13 +58,18 @@ var ModelFinder = (function () {
 	}, {
 		key: "mock",
 		value: function mock(ModelConstructor) {
-			var query = new ModelQuery(ModelConstructor, {
-				database: (0, _incognito2["default"])(this).database
-			});
+			var query = this[newQuery](ModelConstructor);
 
 			query.mock;
 
 			return query;
+		}
+	}, {
+		key: newQuery,
+		value: function value(ModelConstructor) {
+			return new ModelQuery(ModelConstructor, {
+				database: (0, _incognito2["default"])(this).database
+			});
 		}
 	}]);
 
@@ -75,6 +79,7 @@ var ModelFinder = (function () {
 exports["default"] = ModelFinder;
 
 var addChain = Symbol(),
+    addMock = Symbol(),
     validateDependencies = Symbol(),
     argumentString = Symbol(),
     callDatabase = Symbol(),
@@ -261,10 +266,7 @@ var ModelQuery = (function () {
 			if (_.isMockDefinition) {
 				var mockValue = callbackOrMockValue;
 
-				_.ModelConstructor.mocks[this.toString()] = {
-					query: this,
-					value: mockValue
-				};
+				this[addMock](this.toString(), mockValue);
 			} else {
 				var callback = callbackOrMockValue;
 
@@ -286,6 +288,14 @@ var ModelQuery = (function () {
 					this[callDatabase](callback);
 				}
 			}
+		}
+	}, {
+		key: addMock,
+		value: function value(mockIdentifier, mockValue) {
+			(0, _incognito2["default"])(this).ModelConstructor.mocks[mockIdentifier] = {
+				query: this,
+				value: mockValue
+			};
 		}
 	}, {
 		key: validateDependencies,

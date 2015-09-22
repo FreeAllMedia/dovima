@@ -39,10 +39,6 @@ var _jargon2 = _interopRequireDefault(_jargon);
 function deleteSelf(callback) {
   var _this = this;
 
-  if (!this[_symbols2["default"].getDatabase]()) {
-    throw new Error("Cannot delete without Model.database set.");
-  }
-
   _flowsync2["default"].series([function (done) {
     _this.beforeDelete(done);
   }, function (done) {
@@ -55,10 +51,24 @@ function deleteSelf(callback) {
 }
 
 function performDelete(callback) {
-  if ((0, _incognito2["default"])(this)._softDelete) {
-    softDelete.call(this, callback);
+  var _ = (0, _incognito2["default"])(this);
+  if (_.mockDelete) {
+    if (_._softDelete) {
+      this.deletedAt = new _fleming2["default"]();
+      callback();
+    } else {
+      callback();
+    }
   } else {
-    hardDelete.call(this, callback);
+    if (this[_symbols2["default"].getDatabase]()) {
+      if (_._softDelete) {
+        softDelete.call(this, callback);
+      } else {
+        hardDelete.call(this, callback);
+      }
+    } else {
+      callback(new Error("Cannot delete without Model.database set."));
+    }
   }
 }
 

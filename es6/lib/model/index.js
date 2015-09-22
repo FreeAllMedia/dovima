@@ -1,6 +1,6 @@
 /* Component Dependencies */
 //
-import flowsync from "flowsync";
+import Async from "flowsync";
 import Datetime from "fleming";
 import inflect from "jargon";
 import privateData from "incognito";
@@ -106,18 +106,26 @@ export default class Model {
 	}
 
 	static get find() {
-		let modelQuery = new ModelFinder(this.database);
+		const modelQuery = new ModelFinder(this.database);
 		return modelQuery.find(this);
 	}
 
 	static get count() {
-		let modelQuery = new ModelFinder(this.database);
+		const modelQuery = new ModelFinder(this.database);
 		return modelQuery.count(this);
 	}
 
 	static get mock() {
-		let modelQuery = new ModelFinder(this.database);
+		const modelQuery = new ModelFinder(this.database);
 		return modelQuery.mock(this);
+	}
+
+	/**
+	 * INSTANCE MOCKING
+	 */
+
+	get mock() {
+		return new InstanceMock(this);
 	}
 
 	/**
@@ -231,14 +239,14 @@ export default class Model {
 				done(null, cleanedMessages);
 			};
 
-			flowsync.mapParallel(
+			Async.mapParallel(
 				attributeValidations,
 				performValidation,
 				compileValidatorResponses
 			);
 		};
 
-		flowsync.mapParallel(
+		Async.mapParallel(
 			attributeNamesWithValidators,
 			performValidationsForAttribute,
 			compileInvalidAttributeList
@@ -337,7 +345,7 @@ export default class Model {
 	[symbols.callDeep] (methodName, predicate, callback) {
 		const associationNames = Object.keys(this.associations);
 
-		flowsync.mapParallel(
+		Async.mapParallel(
 			associationNames,
 			(associationName, next) => {
 
@@ -365,7 +373,7 @@ export default class Model {
 						//collection set, and not many to many (nothing in that case)
 						if (collection) {
 							//let array = [].slice.call(collection);
-							flowsync.eachParallel(
+							Async.eachParallel(
 								collection,
 								(collectionModel, finishSubStep) => {
 									const result = predicate(associationDetails);
@@ -425,6 +433,33 @@ export default class Model {
 		});
 
 		return fieldAttributes;
+	}
+}
+
+class InstanceMock {
+	constructor(instance) {
+		privateData(this).instance = instance;
+	}
+
+	save(mockNewId) {
+		const instance = privateData(this).instance;
+		privateData(instance).mockNewId = mockNewId;
+	}
+
+	fetch(mockRecord) {
+		const instance = privateData(this).instance;
+		privateData(instance).mockFetchRecord = mockRecord;
+	}
+
+	delete() {
+		const instance = privateData(this).instance;
+		privateData(instance).mockDelete = true;
+	}
+
+	record(mockRecord) {
+		this.save(mockRecord.id);
+		this.fetch(mockRecord);
+		this.delete();
 	}
 }
 
