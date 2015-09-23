@@ -114,28 +114,6 @@ describe("isPresent(item, callback)", () => {
 				});
 			});
 		});
-
-		describe("(on the database due to lazy loading)", () => {
-			beforeEach(() => {
-				Model.database.mock({
-					"select count(*) as `rowCount` from `wheels` where `truck_id` = 1": [
-						{rowCount: 1}
-					]
-				});
-				truck = new Truck();
-				truck.id = 1;
-				truck.steeringWheel = steeringWheel;
-			});
-
-			describe("(hasMany)", () => {
-				it("should return true if collection is zero length but there are records on the database", done => {
-					isPresent.call(truck, "wheels", (error, result) => {
-						result.should.eql(trueValue);
-						done();
-					});
-				});
-			});
-		});
 	});
 
 	describe("(association not present)", () => {
@@ -154,27 +132,6 @@ describe("isPresent(item, callback)", () => {
 						isPresent.call(truck, "street", (error, result) => {
 							result.should.eql(trueValue);
 							done();
-						});
-					});
-				});
-
-				describe("(on the database due to lazy loading)", () => {
-					beforeEach(() => {
-						Model.database.mock({
-							"select count(*) as `rowCount` from `wheels` where `truck_id` = 1": [
-								{rowCount: 0}
-							]
-						});
-						truck = new Truck();
-						truck.steeringWheel = steeringWheel;
-					});
-
-					describe("(hasMany)", () => {
-						it("should return false if collection is zero length AND there are no records on the database", done => {
-							isPresent.call(truck, "wheels", (error, result) => {
-								result.should.eql(falseValue);
-								done();
-							});
 						});
 					});
 				});
@@ -204,7 +161,7 @@ describe("isPresent(item, callback)", () => {
 
 			describe("(hasMany)", () => {
 				it("should return false when a hasMany association is not present", done => {
-					delete truck.id
+					delete truck.id;
 					isPresent.call(truck, "wheels", (error, result) => {
 						result.should.eql(falseValue);
 						done();
@@ -219,37 +176,10 @@ describe("isPresent(item, callback)", () => {
 			});
 
 			describe("(hasOne)", () => {
-				describe("(association not present in database)", () => {
-					beforeEach(() => {
-						Model.database.mock({
-							"select count(*) as `rowCount` from `steering_wheels` where `truck_id` = 1": [
-								{rowCount: 0}
-							]
-						});
-					});
-
-					it("should return false", done => {
-						isPresent.call(truck, "steeringWheel", (error, result) => {
-							result.should.eql(falseValue);
-							done();
-						});
-					});
-				});
-
-				describe("(association is present in database)", () => {
-					beforeEach(() => {
-						Model.database.mock({
-							"select count(*) as `rowCount` from `steering_wheels` where `truck_id` = 1": [
-								{rowCount: 1}
-							]
-						});
-					});
-
-					it("should return true", done => {
-						isPresent.call(truck, "steeringWheel", (error, result) => {
-							result.should.eql(trueValue);
-							done();
-						});
+				it("should return false", done => {
+					isPresent.call(truck, "steeringWheel", (error, result) => {
+						result.should.eql(falseValue);
+						done();
 					});
 				});
 			});

@@ -26,37 +26,49 @@ function propagate(callback) {
 
 function saveOrUpdate(callback) {
   let now = new Datetime();
-  if (this.isNew) {
-    this.createdAt = now.toDate();
-    let fieldAttributes = this[symbols.getFieldAttributes]();
 
-    this[symbols.getDatabase]()
-      .insert(fieldAttributes)
-      .into(this.tableName)
-      .results((error, ids) => {
-        if(error) {
-          callback(error);
-        } else {
-          this[this.primaryKey] = ids[0];
-          callback();
-        }
-      });
+  const _ = privateData(this);
+
+  if (_.mockNewId) {
+    this[this.primaryKey] = _.mockNewId;
+    callback(undefined, _.mockNewId);
   } else {
-    this.updatedAt = now.toDate();
-    let attributes = this[symbols.getFieldAttributes]();
-    let updateAttributes = {};
+    if (!this[symbols.getDatabase]()) {
+      callback(new Error("Cannot save without Model.database set."));
+    } else {
+      if (this.isNew) {
+        this.createdAt = now.toDate();
+        let fieldAttributes = this[symbols.getFieldAttributes]();
 
-    for (let attributeName in attributes) {
-      if (attributeName !== this.primaryKey) {
-        updateAttributes[attributeName] = attributes[attributeName];
+        this[symbols.getDatabase]()
+          .insert(fieldAttributes)
+          .into(this.tableName)
+          .results((error, ids) => {
+            if(error) {
+              callback(error);
+            } else {
+              this[this.primaryKey] = ids[0];
+              callback();
+            }
+          });
+      } else {
+        this.updatedAt = now.toDate();
+        let attributes = this[symbols.getFieldAttributes]();
+        let updateAttributes = {};
+
+        for (let attributeName in attributes) {
+          if (attributeName !== this.primaryKey) {
+            updateAttributes[attributeName] = attributes[attributeName];
+          }
+        }
+
+        this[symbols.getDatabase]()
+          .update(updateAttributes)
+          .into(this.tableName)
+          .where(this.primaryKey, "=", this[this.primaryKey])
+          .results(callback);
       }
     }
-
-    this[symbols.getDatabase]()
-      .update(updateAttributes)
-      .into(this.tableName)
-      .where(this.primaryKey, "=", this[this.primaryKey])
-      .results(callback);
   }
 }
 
@@ -91,8 +103,6 @@ function validate(callback) {
 
 //public save method
 export default function save(callback) {
-  if (!this[symbols.getDatabase]()) { throw new Error("Cannot save without Model.database set."); }
-
   flowsync.series([
     (next) => {
       this.beforeValidation(next);
@@ -117,7 +127,7 @@ export default function save(callback) {
     if(errors) {
       callback(errors);
     } else {
-      callback(undefined, this);
+      callback(undefined, this[this.primaryKey]);
     }
   });
 }

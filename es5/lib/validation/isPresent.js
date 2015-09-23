@@ -11,35 +11,18 @@ var _modelFinderJs = require("../modelFinder.js");
 
 var _modelFinderJs2 = _interopRequireDefault(_modelFinderJs);
 
+var _incognito = require("incognito");
+
+var _incognito2 = _interopRequireDefault(_incognito);
+
 function countAssociationHasMany(model, associationModel, association, resultDetails, callback) {
-	var modelFinder = new _modelFinderJs2["default"](model.constructor.database);
 	var collection = associationModel;
 	if (collection.length > 0) {
 		resultDetails.result = true;
 		callback(undefined, resultDetails);
 	} else {
-		if (model.isNew) {
-			//it does not have an id to look for
-			resultDetails.result = false;
-			callback(null, resultDetails);
-		} else {
-			modelFinder.count(association.constructor).where(association.foreignKey, "=", model.id).results(function (error, count) {
-				if (error) {
-					resultDetails.result = false;
-					callback(error, resultDetails);
-				} else {
-					var modelsFound = count > 0;
-
-					if (modelsFound) {
-						resultDetails.result = true;
-						callback(null, resultDetails);
-					} else {
-						resultDetails.result = false;
-						callback(null, resultDetails);
-					}
-				}
-			});
-		}
+		resultDetails.result = false;
+		callback(undefined, resultDetails);
 	}
 }
 
@@ -47,13 +30,8 @@ function isPresent(associationName, callback) {
 	var model = this;
 	var defaultErrorMessage = "must be present on " + model.constructor.name;
 
-	if (!model.constructor.database) {
-		throw new Error("Cannot check isPresent without a database set.");
-	}
-
 	//apiKey
 	var association = model.associations[associationName];
-	var modelFinder = new _modelFinderJs2["default"](model.constructor.database);
 
 	var associationModel = model[associationName]; //this["apiKey"], this["apiKeyId"]
 
@@ -100,22 +78,13 @@ function isPresent(associationName, callback) {
 			switch (association.type) {
 				case "hasOne":
 				case "hasMany":
-					modelFinder.count(association.constructor).where(association.foreignKey, "=", model.id).results(function (error, count) {
-						if (error) {
-							resultDetails.result = false;
-							callback(error, resultDetails);
-						} else {
-							var modelsFound = count > 0;
-
-							if (modelsFound) {
-								resultDetails.result = true;
-								callback(null, resultDetails);
-							} else {
-								resultDetails.result = false;
-								callback(null, resultDetails);
-							}
-						}
-					});
+					if (model[foreignId]) {
+						resultDetails.result = true;
+						callback(null, resultDetails);
+					} else {
+						resultDetails.result = false;
+						callback(null, resultDetails);
+					}
 					break;
 				case "belongsTo":
 

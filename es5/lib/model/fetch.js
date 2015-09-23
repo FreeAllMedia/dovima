@@ -182,6 +182,22 @@ function fetchByBelongsTo(associationName, associations, callback) {
 }
 
 function fetchBy() {
+  var fields = arguments.length <= 0 || arguments[0] === undefined ? [this.primaryKey] : arguments[0];
+  var callback = arguments.length <= 1 || arguments[1] === undefined ? undefined : arguments[1];
+
+  var _ = (0, _incognito2["default"])(this);
+  if (_.mockFetchRecord) {
+    for (var attributeName in _.mockFetchRecord) {
+      var mockValue = _.mockFetchRecord[attributeName];
+      this[attributeName] = mockValue;
+    }
+    callback();
+  } else {
+    fetchFromDatabase.call(this, fields, callback);
+  }
+}
+
+function fetchFromDatabase() {
   var _this5 = this;
 
   var fields = arguments.length <= 0 || arguments[0] === undefined ? [this.primaryKey] : arguments[0];

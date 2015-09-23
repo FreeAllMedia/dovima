@@ -282,13 +282,16 @@ describe("Model(attributes, options)", () => {
 
     describe("(Model.database is NOT set)", () => {
       beforeEach(() => {
+        user.primaryPhoto = primaryPhoto;
+        user.photos.push(photo);
         delete Model._database;
       });
 
-      it("should call back with an error", () => {
-        () => {
-          user.save();
-        }.should.throw("Cannot save without Model.database set.");
+      it("should call back with an error", done => {
+        user.save((error) => {
+          error.message.should.eql("Cannot save without Model.database set.");
+          done();
+        });
       });
     });
   });

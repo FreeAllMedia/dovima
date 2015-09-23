@@ -13,8 +13,6 @@ import inflect from "jargon";
  * @param  {Function} callback
  */
 export default function deleteSelf(callback) {
-  if (!this[symbols.getDatabase]()) { throw new Error("Cannot delete without Model.database set."); }
-
   flowsync.series([
     (done) => {
       this.beforeDelete(done);
@@ -31,10 +29,24 @@ export default function deleteSelf(callback) {
 }
 
 function performDelete(callback) {
-  if(privateData(this)._softDelete) {
-    softDelete.call(this, callback);
+  const _ = privateData(this);
+  if (_.mockDelete) {
+    if(_._softDelete) {
+      this.deletedAt = new Datetime();
+      callback();
+    } else {
+      callback();
+    }
   } else {
-    hardDelete.call(this, callback);
+    if (this[symbols.getDatabase]()) {
+      if(_._softDelete) {
+        softDelete.call(this, callback);
+      } else {
+        hardDelete.call(this, callback);
+      }
+    } else {
+      callback(new Error("Cannot delete without Model.database set."));
+    }
   }
 }
 

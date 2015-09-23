@@ -51,30 +51,42 @@ function saveOrUpdate(callback) {
   var _this = this;
 
   var now = new _fleming2["default"]();
-  if (this.isNew) {
-    this.createdAt = now.toDate();
-    var fieldAttributes = this[_symbols2["default"].getFieldAttributes]();
 
-    this[_symbols2["default"].getDatabase]().insert(fieldAttributes).into(this.tableName).results(function (error, ids) {
-      if (error) {
-        callback(error);
-      } else {
-        _this[_this.primaryKey] = ids[0];
-        callback();
-      }
-    });
+  var _ = (0, _incognito2["default"])(this);
+
+  if (_.mockNewId) {
+    this[this.primaryKey] = _.mockNewId;
+    callback(undefined, _.mockNewId);
   } else {
-    this.updatedAt = now.toDate();
-    var attributes = this[_symbols2["default"].getFieldAttributes]();
-    var updateAttributes = {};
+    if (!this[_symbols2["default"].getDatabase]()) {
+      callback(new Error("Cannot save without Model.database set."));
+    } else {
+      if (this.isNew) {
+        this.createdAt = now.toDate();
+        var fieldAttributes = this[_symbols2["default"].getFieldAttributes]();
 
-    for (var attributeName in attributes) {
-      if (attributeName !== this.primaryKey) {
-        updateAttributes[attributeName] = attributes[attributeName];
+        this[_symbols2["default"].getDatabase]().insert(fieldAttributes).into(this.tableName).results(function (error, ids) {
+          if (error) {
+            callback(error);
+          } else {
+            _this[_this.primaryKey] = ids[0];
+            callback();
+          }
+        });
+      } else {
+        this.updatedAt = now.toDate();
+        var attributes = this[_symbols2["default"].getFieldAttributes]();
+        var updateAttributes = {};
+
+        for (var attributeName in attributes) {
+          if (attributeName !== this.primaryKey) {
+            updateAttributes[attributeName] = attributes[attributeName];
+          }
+        }
+
+        this[_symbols2["default"].getDatabase]().update(updateAttributes).into(this.tableName).where(this.primaryKey, "=", this[this.primaryKey]).results(callback);
       }
     }
-
-    this[_symbols2["default"].getDatabase]().update(updateAttributes).into(this.tableName).where(this.primaryKey, "=", this[this.primaryKey]).results(callback);
   }
 }
 
@@ -114,10 +126,6 @@ function validate(callback) {
 function save(callback) {
   var _this3 = this;
 
-  if (!this[_symbols2["default"].getDatabase]()) {
-    throw new Error("Cannot save without Model.database set.");
-  }
-
   _flowsync2["default"].series([function (next) {
     _this3.beforeValidation(next);
   }, function (next) {
@@ -134,7 +142,7 @@ function save(callback) {
     if (errors) {
       callback(errors);
     } else {
-      callback(undefined, _this3);
+      callback(undefined, _this3[_this3.primaryKey]);
     }
   });
 }
