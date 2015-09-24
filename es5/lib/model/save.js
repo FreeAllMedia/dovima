@@ -55,8 +55,14 @@ function saveOrUpdate(callback) {
   var _ = (0, _incognito2["default"])(this);
 
   if (_.mockNewId) {
-    this[this.primaryKey] = _.mockNewId;
-    callback(undefined, _.mockNewId);
+
+    if (this[this.primaryKey] !== undefined) {
+      this.updatedAt = now.toDate();
+    } else {
+      this[this.primaryKey] = _.mockNewId;
+      this.createdAt = now.toDate();
+    }
+    callback();
   } else {
     if (!this[_symbols2["default"].getDatabase]()) {
       callback(new Error("Cannot save without Model.database set."));
