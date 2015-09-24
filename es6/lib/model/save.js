@@ -30,8 +30,14 @@ function saveOrUpdate(callback) {
   const _ = privateData(this);
 
   if (_.mockNewId) {
-    this[this.primaryKey] = _.mockNewId;
-    callback(undefined, _.mockNewId);
+
+    if (this[this.primaryKey] !== undefined) {
+      this.updatedAt = now.toDate();
+    } else {
+      this[this.primaryKey] = _.mockNewId;
+      this.createdAt = now.toDate();
+    }
+    callback();
   } else {
     if (!this[symbols.getDatabase]()) {
       callback(new Error("Cannot save without Model.database set."));
