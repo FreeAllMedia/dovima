@@ -1,5 +1,6 @@
 import Database from "almaden";
 import Model from "../../../";
+import databaseConfig from "../databaseConfig.json";
 
 describe("options.database", () => {
 
@@ -9,7 +10,7 @@ describe("options.database", () => {
       database;
 
   before(() => {
-    database = new Database({client: "mysql"});
+    database = new Database(databaseConfig);
     user = new User({id: 1}, {
       database: database
     });
