@@ -42,7 +42,11 @@ function deleteSelf(callback) {
   _flowsync2["default"].series([function (done) {
     _this.beforeDelete(done);
   }, function (done) {
-    performDelete.call(_this, done);
+    if (_this.constructor.useSoftDelete !== undefined) {
+      _this.softDestroy(done);
+    } else {
+      _this.destroy(done);
+    }
   }, function (done) {
     _this.afterDelete(done);
   }], function (errors) {

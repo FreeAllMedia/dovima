@@ -65,6 +65,13 @@ export class ModelQuery {
 		return this;
 	}
 
+	instance(attributes, options) {
+		const _ = privateData(this);
+		const model = new _.ModelConstructor(attributes, options);
+		model.mock.instance(attributes);
+		return model;
+	}
+
 	toString() {
 		const _ = privateData(this);
 

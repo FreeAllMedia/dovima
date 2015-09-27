@@ -16,7 +16,7 @@ var _sinon = require("sinon");
 
 var _sinon2 = _interopRequireDefault(_sinon);
 
-describe(".mock.record(mockedRecord)", function () {
+describe(".mock.instance(mockedRecord)", function () {
 
   var user = undefined,
       mockedRecord = undefined;
@@ -34,10 +34,8 @@ describe(".mock.record(mockedRecord)", function () {
   })(_2["default"]);
 
   beforeEach(function () {
-    user = new User();
-
     mockedRecord = { id: 1, name: "Bob" };
-    user.mock.record(mockedRecord);
+    user = User.mock.instance(mockedRecord);
   });
 
   it("should mock .save", function (done) {
@@ -48,6 +46,7 @@ describe(".mock.record(mockedRecord)", function () {
   });
 
   it("should set .createdAt when record is new", function (done) {
+    user.id = undefined;
     user.save(function (error) {
       if (error) {
         throw error;
@@ -57,8 +56,7 @@ describe(".mock.record(mockedRecord)", function () {
     });
   });
 
-  it("should set .createdAt when record is not new", function (done) {
-    user.id = 1;
+  it("should set .updatedAt when record is not new", function (done) {
     user.save(function (error) {
       if (error) {
         throw error;

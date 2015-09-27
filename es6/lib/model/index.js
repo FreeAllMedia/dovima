@@ -412,7 +412,7 @@ class InstanceMock {
 		privateData(instance).mockDelete = true;
 	}
 
-	record(mockRecord) {
+	instance(mockRecord) {
 		this.save(mockRecord.id);
 		this.fetch(mockRecord);
 		this.delete();
@@ -423,6 +423,9 @@ Object.assign(Model.prototype, {
 	"fetch": require("./fetch.js"),
 	"save": require("./save.js"),
 	"delete": require("./delete.js"),
+	"softDelete": require("./softDelete.js"),
+	"destroy": require("./destroy.js"),
+	"softDestroy": require("./softDestroy.js"),
 	[symbols.addAssociation]: require("./addAssociation.js")
 });
 

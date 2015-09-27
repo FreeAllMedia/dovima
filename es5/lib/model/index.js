@@ -517,8 +517,8 @@ var InstanceMock = (function () {
 			(0, _incognito2["default"])(instance).mockDelete = true;
 		}
 	}, {
-		key: "record",
-		value: function record(mockRecord) {
+		key: "instance",
+		value: function instance(mockRecord) {
 			this.save(mockRecord.id);
 			this.fetch(mockRecord);
 			this["delete"]();
@@ -531,7 +531,10 @@ var InstanceMock = (function () {
 Object.assign(Model.prototype, _defineProperty({
 	"fetch": require("./fetch.js"),
 	"save": require("./save.js"),
-	"delete": require("./delete.js")
+	"delete": require("./delete.js"),
+	"softDelete": require("./softDelete.js"),
+	"destroy": require("./destroy.js"),
+	"softDestroy": require("./softDestroy.js")
 }, _symbols2["default"].addAssociation, require("./addAssociation.js")));
 
 module.exports = exports["default"];

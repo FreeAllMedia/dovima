@@ -18,7 +18,11 @@ export default function deleteSelf(callback) {
       this.beforeDelete(done);
     },
     (done) => {
-      performDelete.call(this, done);
+      if (this.constructor.useSoftDelete !== undefined) {
+        this.softDestroy(done);
+      } else {
+        this.destroy(done);
+      }
     },
     (done) => {
       this.afterDelete(done);

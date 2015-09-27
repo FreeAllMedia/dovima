@@ -99,6 +99,14 @@ var ModelQuery = (function () {
 	}
 
 	_createClass(ModelQuery, [{
+		key: "instance",
+		value: function instance(attributes, options) {
+			var _ = (0, _incognito2["default"])(this);
+			var model = new _.ModelConstructor(attributes, options);
+			model.mock.instance(attributes);
+			return model;
+		}
+	}, {
 		key: "toString",
 		value: function toString() {
 			var _this = this;
