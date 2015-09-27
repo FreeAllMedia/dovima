@@ -12,7 +12,7 @@ const fetchByAssociations = {
 };
 
 function fetchByHasOne(associationName, associations, callback) {
-  const modelFinder = new ModelFinder(this[symbols.getDatabase]());
+  const modelFinder = new ModelFinder(this.database);
   const association = associations[associationName];
   const ModelClass = association.constructor;
 
@@ -80,7 +80,7 @@ function fetchByHasOne(associationName, associations, callback) {
 }
 
 function fetchWhere(modelClass, key, conditionType, ids, target, callback) {
-  const modelFinder = new ModelFinder(this[symbols.getDatabase]());
+  const modelFinder = new ModelFinder(this.database);
   modelFinder
     .find(modelClass)
     .where(key, conditionType, ids)
@@ -140,7 +140,7 @@ function fetchByHasMany(associationName, associations, callback) {
 }
 
 function fetchByBelongsTo(associationName, associations, callback) {
-  const modelFinder = new ModelFinder(this[symbols.getDatabase]());
+  const modelFinder = new ModelFinder(this.database);
   const association = associations[associationName];
 
   if (!this[association.foreignId]) {
@@ -173,7 +173,7 @@ function fetchBy(fields = [this.primaryKey], callback = undefined) {
 }
 
 function fetchFromDatabase(fields = [this.primaryKey], callback = undefined) {
-  let database = this[symbols.getDatabase]();
+  let database = this.database;
   if (!database) { throw new Error("Cannot fetch without Model.database set."); }
 
   let chain = database
@@ -191,7 +191,7 @@ function fetchFromDatabase(fields = [this.primaryKey], callback = undefined) {
 
   const _ = privateData(this);
 
-  if(_._softDelete) {
+  if(_.softDelete) {
     chain = chain.whereNull(inflect("deletedAt").snake.toString());
   }
 
@@ -203,13 +203,13 @@ function fetchFromDatabase(fields = [this.primaryKey], callback = undefined) {
       } else {
         this[symbols.parseAttributesFromFields](records[0]);
 
-        if (_._includeAssociations.length > 0) {
+        if (_.includeAssociations.length > 0) {
           const associations = this.associations;
 
           /* We'll be putting all of our Async tasks into this */
           const fetchTasks = [];
 
-          _._includeAssociations.forEach((associationName) => {
+          _.includeAssociations.forEach((associationName) => {
 
             const association = associations[associationName];
 

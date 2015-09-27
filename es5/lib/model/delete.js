@@ -53,7 +53,7 @@ function deleteSelf(callback) {
 function performDelete(callback) {
   var _ = (0, _incognito2["default"])(this);
   if (_.mockDelete) {
-    if (_._softDelete) {
+    if (_.softDelete) {
       this.deletedAt = new _fleming2["default"]();
       callback();
     } else {
@@ -61,7 +61,7 @@ function performDelete(callback) {
     }
   } else {
     if (this[_symbols2["default"].getDatabase]()) {
-      if (_._softDelete) {
+      if (_.softDelete) {
         softDelete.call(this, callback);
       } else {
         hardDelete.call(this, callback);

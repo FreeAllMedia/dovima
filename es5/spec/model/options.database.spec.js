@@ -8,11 +8,15 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var _almaden = require("almaden");
+
+var _almaden2 = _interopRequireDefault(_almaden);
+
 var _ = require("../../../");
 
 var _2 = _interopRequireDefault(_);
 
-describe(".chain", function () {
+describe("options.database", function () {
   var User = (function (_Model) {
     _inherits(User, _Model);
 
@@ -25,20 +29,27 @@ describe(".chain", function () {
     return User;
   })(_2["default"]);
 
-  it("should return the full chain of a simple query", function () {
-    User.find.chain.should.eql([{
-      name: ".find",
-      options: undefined
-    }]);
+  var user = undefined,
+      database = undefined;
+
+  before(function () {
+    database = new _almaden2["default"]({ client: "mysql" });
+    user = new User({ id: 1 }, {
+      database: database
+    });
   });
 
-  it("should return the full chain of query with arguments", function () {
-    User.find.where("id", 1).chain.should.eql([{
-      name: ".find",
-      options: undefined
-    }, {
-      name: ".where",
-      options: ["id", 1]
-    }]);
+  it("should be set to the .database property", function () {
+    user.database.should.eql(database);
+  });
+
+  it("should use the supplied database object", function (done) {
+    var query = "select * from `users` where `id` = 1 limit 1";
+    var querySpy = database.spy(query, [{}]);
+
+    user.fetch(function () {
+      querySpy.callCount.should.eql(1);
+      done();
+    });
   });
 });

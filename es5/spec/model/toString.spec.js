@@ -46,6 +46,12 @@ describe(".toString()", function () {
     });
   });
 
+  describe("User.find.where(\"id\", \"<\", 10).andWhere(\"id\", \">\", 1).andWhere(\"id\", \"!=\", 3)", function () {
+    it("should return a string representation of the chain", function () {
+      User.find.where("id", "<", 10).andWhere("id", ">", 1).andWhere("id", "!=", 3).toString().should.eql("User.find.where(\"id\", \"<\", 10).andWhere(\"id\", \">\", 1).andWhere(\"id\", \"!=\", 3)");
+    });
+  });
+
   describe("User.find.where(\"id\", \"<\", 10).orWhere(\"id\", \">\", 1)", function () {
     it("should return a string representation of the chain", function () {
       User.find.where("id", "<", 10).orWhere("id", ">", 1).toString().should.eql("User.find.where(\"id\", \"<\", 10).orWhere(\"id\", \">\", 1)");

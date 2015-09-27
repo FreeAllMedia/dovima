@@ -30,6 +30,15 @@ describe(".mock.record(mockedRecord)", () => {
     });
   });
 
+  it("should set .createdAt when record is not new", done => {
+    user.id = 1;
+    user.save((error) => {
+      if (error) { throw error; }
+      (undefined === user.updatedAt).should.not.be.true;
+      done();
+    });
+  });
+
   it("should set .updatedAt when record is not new", done => {
     user.id = 1;
     user.save((error) => {

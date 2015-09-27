@@ -1,13 +1,10 @@
 /* Component Dependencies */
-//
 import Async from "flowsync";
-import Datetime from "fleming";
 import inflect from "jargon";
 import privateData from "incognito";
 
+/* Shared Symbols */
 import symbols from "./symbols";
-
-// TODO: Remove superfluous underscores from private data. _._validations should be _.validations
 
 /**
  * @class Model
@@ -17,74 +14,18 @@ export default class Model {
 	 * @param {Object.<String,*>} [initialAttributes] Provide default values for attributes by passing a Key-Value Object.
 	 * @constructor
 	 */
-	constructor(initialAttributes, options) {
+	constructor(initialAttributes, options = {}) {
 		const _ = privateData(this);
-		_._validations = {};
-		_._associations = {};
-		_._includeAssociations = [];
-		_._tableName = null;
-		_._primaryKey = null;
-		_._softDelete = null;
+		_.validations = {};
+		_.associations = {};
+		_.includeAssociations = [];
 
-		if(options !== undefined) {
-			_._database = options.database;
-		}
-
-		/**
-		 * Define dynamic properties
-		 */
-		Object.defineProperties(this, {
-
-			"isNew": {
-				get: this[symbols.isNew]
-			},
-
-			"attributes": {
-				get: this[symbols.attributes],
-				set: this[symbols.setAttributes]
-			},
-
-			"associations": {
-				get: this[symbols.associations]
-			},
-
-			"properties": {
-				get: this[symbols.properties]
-			},
-
-			"validations": {
-				get: this[symbols.validations]
-			},
-
-			"tableName": {
-				get: () => {
-					return _._tableName || inflect(this.constructor.name).plural.snake.toString();
-				},
-				set: (newTableName) => {
-					_._tableName = newTableName;
-				}
-			},
-
-			"primaryKey": {
-				get: () => {
-					return _._primaryKey || "id";
-				},
-				set: (newPrimaryKey) => {
-					_._primaryKey = newPrimaryKey;
-				}
-			},
-
-			"softDelete": {
-				get: () => {
-					_._softDelete = true;
-				}
-			}
-		});
+		_.database = options.database;
 
 		this.associate();
 		this.validate();
 
-		this[symbols.setAttributes](initialAttributes);
+		this.attributes = initialAttributes;
 
 		this.initialize();
 	}
@@ -92,18 +33,6 @@ export default class Model {
 	/**
 	 * STATIC INTERFACE
 	 */
-
-	static get database() {
-		let database = this._database;
-		if(!database) {
-			database = Model._database;
-		}
-		return database;
-	}
-
-	static set database(newDatabase) {
-		this._database = newDatabase;
-	}
 
 	static get find() {
 		const modelQuery = new ModelFinder(this.database);
@@ -158,13 +87,13 @@ export default class Model {
 
 	ensure(attributeName, validatorFunction, validatorMessage) {
 		const _ = privateData(this);
-		_._validations[attributeName] = _._validations[attributeName] || [];
+		_.validations[attributeName] = _.validations[attributeName] || [];
 
 		let validatorDetails = {validator: validatorFunction};
 
 		if (validatorMessage) { validatorDetails.message = validatorMessage; }
 
-		_._validations[attributeName].push(validatorDetails);
+		_.validations[attributeName].push(validatorDetails);
 	}
 
 	/**
@@ -194,7 +123,7 @@ export default class Model {
 	 */
 	invalidAttributes(callback) {
 		const _ = privateData(this);
-		const attributeNamesWithValidators = Object.keys(_._validations);
+		const attributeNamesWithValidators = Object.keys(_.validations);
 
 		const compileInvalidAttributeList = (errors, validatorMessages) => {
 			if (errors) {
@@ -216,7 +145,7 @@ export default class Model {
 		};
 
 		const performValidationsForAttribute = (attributeName, done) => {
-			const attributeValidations = _._validations[attributeName];
+			const attributeValidations = _.validations[attributeName];
 
 			const performValidation = (validation, returnValue) => {
 				const validator = validation.validator;
@@ -254,7 +183,7 @@ export default class Model {
 	}
 
 	include(...associationNames) {
-		privateData(this)._includeAssociations = associationNames;
+		privateData(this).includeAssociations = associationNames;
 		return this;
 	}
 
@@ -289,49 +218,76 @@ export default class Model {
 		return this.attributes;
 	}
 
-	/**
-	 * Private Functionality
-	 */
-	[symbols.getDatabase]() {
-		let database = privateData(this)._database;
-		if(!database) {
-			database = this.constructor.database;
+	/* Dynamic Properties */
+
+	get database() {
+		const _ = privateData(this);
+		if (_.database) {
+			return _.database;
+		} else {
+			return this.constructor.database;
 		}
-		return database;
 	}
 
-	[symbols.setAttributes](newAttributes) {
+	get isNew() {
+		if (this[this.primaryKey]) {
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	set attributes(newAttributes) {
 		this[symbols.parseAttributesFromFields](newAttributes);
 	}
 
-	[symbols.associations]() {
-		return privateData(this)._associations;
-	}
-
-	[symbols.properties]() {
-		return Object.keys(this);
-	}
-
-	[symbols.validations]() {
-		return privateData(this)._validations;
-	}
-
-	[symbols.attributes]() {
+	get attributes() {
 		var attributes = {};
 		this.properties.forEach((propertyName) => {
-			if(!privateData(this)._associations[propertyName]) {
+			if(!privateData(this).associations[propertyName]) {
 				attributes[propertyName] = this[propertyName];
 			}
 		});
 		return attributes;
 	}
 
-	[symbols.isNew]() {
-		if (this[this.primaryKey]) {
-			return false;
-		} else {
-			return true;
+	get associations() {
+		return privateData(this).associations;
+	}
+
+	get properties() {
+		return Object.keys(this);
+	}
+
+	get validations() {
+		return privateData(this).validations;
+	}
+
+	get tableName() {
+		return privateData(this).tableName || inflect(this.constructor.name).plural.snake.toString();
+	}
+
+	set tableName(newTableName) {
+		privateData(this).tableName = newTableName;
+	}
+
+	get primaryKey() {
+		return privateData(this).primaryKey || "id";
+	}
+
+	set primaryKey(newPrimaryKey) {
+		privateData(this).primaryKey = newPrimaryKey;
+	}
+
+	/**
+	 * Private Functionality
+	 */
+	[symbols.getDatabase]() {
+		let database = privateData(this).database;
+		if(!database) {
+			database = this.constructor.database;
 		}
+		return database;
 	}
 
 	/**
@@ -415,7 +371,7 @@ export default class Model {
 		Object.keys(this.associations).forEach((associationName) => {
 			let relatedModel = this[associationName];
 			let foreignKeyField = inflect(associationName).foreignKey.toString();
-			if(_._associations[associationName].type === "belongsTo") {
+			if(_.associations[associationName].type === "belongsTo") {
 				//try with relatedModel and relatedModel.id
 				if(relatedModel && relatedModel.id) {
 					fieldAttributes[foreignKeyField] = relatedModel.id;

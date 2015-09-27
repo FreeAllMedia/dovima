@@ -57,6 +57,17 @@ describe(".mock.record(mockedRecord)", function () {
     });
   });
 
+  it("should set .createdAt when record is not new", function (done) {
+    user.id = 1;
+    user.save(function (error) {
+      if (error) {
+        throw error;
+      }
+      (undefined === user.updatedAt).should.not.be["true"];
+      done();
+    });
+  });
+
   it("should set .updatedAt when record is not new", function (done) {
     user.id = 1;
     user.save(function (error) {

@@ -55,7 +55,7 @@ export class ModelQuery {
 
 		_.ModelConstructor = ModelConstructor;
 		_.database = options.database;
-		_.chain = {};
+		_.chain = [];
 
 		_.ModelConstructor.mocks = _.ModelConstructor.mocks || {};
 	}
@@ -78,18 +78,23 @@ export class ModelQuery {
 			".where",
 			".andWhere",
 			".orWhere",
+			".whereNull",
+			".whereNotNull",
 			".groupBy",
 			".orderBy",
 			".limit"
-		].forEach((chainName) => {
-			if (_.chain.hasOwnProperty(chainName)) {
-				chainString = chainString + chainName;
-				const options = _.chain[chainName];
+		].forEach((name) => {
+			_.chain.forEach((link) => {
+				const linkName = link.name;
+				const linkOptions = link.options;
 
-				if (options) {
-					chainString = `${chainString}(${this[argumentString](options)})`;
+				if (name === linkName) {
+					chainString = chainString + linkName;
+					if (linkOptions) {
+						chainString = `${chainString}(${this[argumentString](linkOptions)})`;
+					}
 				}
-			}
+			});
 		});
 
 		return chainString;
@@ -99,28 +104,34 @@ export class ModelQuery {
 		const ourChain = this.chain;
 		const theirChain = query.chain;
 
-		const ourChainNames = Object.keys(ourChain);
-		const theirChainNames = Object.keys(theirChain);
-
-		const ourChainLength = ourChainNames.length;
-		const theirChainLength = theirChainNames.length;
-
 		let isEqual = true;
 
-		if (ourChainLength === theirChainLength) {
-			for (let chainName in ourChain) {
-				if (theirChain.hasOwnProperty(chainName)) {
-					const ourArguments = ourChain[chainName];
-					const theirArguments = theirChain[chainName];
+		if (ourChain.length === theirChain.length) {
 
-					if (!this[argumentsEqual](ourArguments, theirArguments)) {
-						isEqual = false;
-						break;
+			for (let ourIndex = 0; ourIndex < ourChain.length; ourIndex++) {
+
+				const ourLink = ourChain[ourIndex];
+				const ourArguments = ourLink.options;
+
+				let hasMatchingLink = false;
+
+				for (let theirIndex = 0; theirIndex < theirChain.length; theirIndex++) {
+					const theirLink = theirChain[theirIndex];
+					const theirArguments = theirLink.options;
+
+					if (ourLink.name === theirLink.name) {
+						if (this[argumentsEqual](ourArguments, theirArguments)) {
+							hasMatchingLink = true;
+							break;
+						}
 					}
-				} else {
+				}
+
+				if (!hasMatchingLink) {
 					isEqual = false;
 					break;
 				}
+
 			}
 		} else {
 			isEqual = false;
@@ -174,6 +185,10 @@ export class ModelQuery {
 
 		this[addChain](".find");
 
+		if (_.ModelConstructor.useSoftDelete !== undefined) {
+			this.whereNull("deletedAt");
+		}
+
 		return this;
 	}
 
@@ -192,6 +207,10 @@ export class ModelQuery {
 		}
 
 		this[addChain](".count");
+
+		if (_.ModelConstructor.useSoftDelete !== undefined) {
+			this.whereNull("deletedAt");
+		}
 
 		return this;
 	}
@@ -226,6 +245,26 @@ export class ModelQuery {
 		return this;
 	}
 
+	whereNull(...options) {
+		const formattedOptions = this[attributesToColumns](...options);
+		const _ = privateData(this);
+		if (_.query) {
+			_.query.whereNull(...formattedOptions);
+		}
+		this[addChain](`.whereNull`, options);
+		return this;
+	}
+
+	whereNotNull(...options) {
+		const formattedOptions = this[attributesToColumns](...options);
+		const _ = privateData(this);
+		if (_.query) {
+			_.query.whereNotNull(...formattedOptions);
+		}
+		this[addChain](`.whereNotNull`, options);
+		return this;
+	}
+
 	groupBy(...options) {
 		const formattedOptions = this[attributesToColumns](...options);
 		const _ = privateData(this);
@@ -248,7 +287,6 @@ export class ModelQuery {
 
 	limit(...options) {
 		const _ = privateData(this);
-		_.returnOneRecord = false;
 		if (_.query) {
 			_.query.limit(...options);
 		}
@@ -298,7 +336,10 @@ export class ModelQuery {
 	}
 
 	[addChain](chainName, options) {
-		privateData(this).chain[chainName] = options;
+		privateData(this).chain.push({
+			name: chainName,
+			options: options
+		});
 	}
 
 	[argumentString](options) {
@@ -336,13 +377,19 @@ export class ModelQuery {
 			if (this.countResults) {
 				callback(error, rows[0].rowCount);
 			} else {
-				const models = new Collection(_.ModelConstructor);
+				if (_.returnOneRecord) {
+					const model = new _.ModelConstructor(rows[0]);
 
-				rows.forEach(row => {
-					models.push(new _.ModelConstructor(row));
-				});
+					callback(error, model);
+				} else {
+					const models = new Collection(_.ModelConstructor);
 
-				callback(error, models);
+					rows.forEach(row => {
+						models.push(new _.ModelConstructor(row));
+					});
+
+					callback(error, models);
+				}
 			}
 		});
 	}

@@ -14,8 +14,8 @@ describe("Model(attributes, options)", () => {
   }
 
   beforeEach(() => {
-    Model.database = new Database(databaseConfig);
-    Model.database.mock({
+    User.database = new Database(databaseConfig);
+    User.database.mock({
       [/update `users` set `deleted_at` = '.*' where `id` = 1/]: [{}]
     });
 

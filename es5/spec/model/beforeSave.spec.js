@@ -57,10 +57,10 @@ describe("Model(attributes, options)", function () {
   beforeEach(function () {
     beforeSaveSpy = _sinon2["default"].spy();
 
-    _2["default"].database = new _almaden2["default"](_databaseConfigJson2["default"]);
+    User.database = new _almaden2["default"](_databaseConfigJson2["default"]);
 
     // Mock save query
-    _2["default"].database.mock(_defineProperty({}, /insert into `users` \(`created_at`, `name`\) values \('.*', 'Bob'\)/, [{ "created_at": Date.now, "name": "Bob" }]));
+    User.database.mock(_defineProperty({}, /insert into `users` \(`created_at`, `name`\) values \('.*', 'Bob'\)/, [{ "created_at": Date.now, "name": "Bob" }]));
 
     attributes = {
       "name": "Bob"

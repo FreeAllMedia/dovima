@@ -38,7 +38,12 @@ describe("Model(attributes, options)", () => {
     primaryPhoto = new Photo();
   });
 
-  afterEach(() => clock.restore());
+  afterEach(() => {
+    // Remove database from model to prevent
+    // polluting another file via the prototype
+    Model.database = undefined;
+    clock.restore();
+  });
 
   describe(".save(callback)", () => {
     describe("(Model.database is Set)", () => {
@@ -284,7 +289,7 @@ describe("Model(attributes, options)", () => {
       beforeEach(() => {
         user.primaryPhoto = primaryPhoto;
         user.photos.push(photo);
-        delete Model._database;
+        Model.database = undefined;
       });
 
       it("should call back with an error", done => {

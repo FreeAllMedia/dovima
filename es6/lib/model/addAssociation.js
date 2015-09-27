@@ -203,7 +203,7 @@ export default function addAssociation (associationDetails) {
 
   this[associationDetails.name] = associationDetails.value;
 
-  privateData(this)._associations[associationDetails.name] = association;
+  privateData(this).associations[associationDetails.name] = association;
 
   return associationSetter;
 }

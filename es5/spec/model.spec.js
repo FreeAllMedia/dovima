@@ -150,240 +150,6 @@ describe("Model(attributes, options)", function () {
 		});
 	});
 
-	describe("(Static Properties)", function () {
-		describe(".find", function () {
-			var users = undefined,
-			    userCollection = undefined;
-
-			before(function () {
-				userCollection = new _libCollectionJs2["default"](_testClassesJs.User);
-				userFixtures.forEach(function (userFiture) {
-					userCollection.push(new _testClassesJs.User(userFiture));
-				});
-			});
-
-			beforeEach(function (done) {
-				_2["default"].database.mock({
-					"select * from `users` where `mom_id` = 1": userFixtures
-				});
-
-				_testClassesJs.User.find.where("momId", "=", 1).results(function (error, fetchedUsers) {
-					users = fetchedUsers;
-					done();
-				});
-			});
-
-			it("should return a ModelQuery instance", function () {
-				_testClassesJs.User.find.should.be.instanceOf(_libModelFinderJs.ModelQuery);
-			});
-
-			describe("(ModelQuery operations)", function () {
-				describe(".where", function () {
-					var querySpy = undefined;
-
-					beforeEach(function (done) {
-						querySpy = _2["default"].database.spy("select * from `users` where `some_id` = 1", [1]);
-						_testClassesJs.User.find.where("someId", 1).results(function () {
-							done();
-						});
-					});
-
-					it("should convert camel case names to snake case names on a where", function () {
-						querySpy.callCount.should.equal(1);
-					});
-				});
-
-				describe(".andWhere", function () {
-					var querySpy = undefined;
-
-					beforeEach(function (done) {
-						querySpy = _2["default"].database.spy("select * from `users` where `some_id` = 1", [1]);
-						_testClassesJs.User.find.andWhere("someId", 1).results(function () {
-							done();
-						});
-					});
-
-					it("should convert camel case names to snake case names on a where", function () {
-						querySpy.callCount.should.equal(1);
-					});
-				});
-
-				describe(".orWhere", function () {
-					var querySpy = undefined;
-
-					beforeEach(function (done) {
-						querySpy = _2["default"].database.spy("select * from `users` where `some_id` = 1", [1]);
-						_testClassesJs.User.find.orWhere("someId", 1).results(function () {
-							done();
-						});
-					});
-
-					it("should convert camel case names to snake case names on a where", function () {
-						querySpy.callCount.should.equal(1);
-					});
-				});
-
-				describe(".groupBy", function () {
-					var querySpy = undefined;
-
-					beforeEach(function (done) {
-						querySpy = _2["default"].database.spy("select * from `users` group by `some_id`", [1]);
-						_testClassesJs.User.find.groupBy("someId").results(function () {
-							done();
-						});
-					});
-
-					it("should convert camel case names to snake case names on a where", function () {
-						querySpy.callCount.should.equal(1);
-					});
-				});
-
-				describe(".orderBy", function () {
-					var querySpy = undefined;
-
-					beforeEach(function (done) {
-						querySpy = _2["default"].database.spy("select * from `users` order by `some_id` asc", [1]);
-						_testClassesJs.User.find.orderBy("someId").results(function () {
-							done();
-						});
-					});
-
-					it("should convert camel case names to snake case names on a where", function () {
-						querySpy.callCount.should.equal(1);
-					});
-				});
-			});
-
-			it("should return a collection", function () {
-				users.should.be.instanceOf(_libCollectionJs2["default"]);
-			});
-
-			it("should return the right collection", function () {
-				users.should.eql(userCollection);
-			});
-
-			it("should allow to search all models that matchs a certain condition", function () {
-				users.length.should.equal(5);
-			});
-
-			describe(".one", function () {
-				beforeEach(function (done) {
-					_2["default"].database.mock({
-						"select * from `users` where `mom_id` = 1 limit 1": [userFixtures[0]]
-					});
-
-					_testClassesJs.User.find.one.where("momId", 1).results(function (error, fetchedUsers) {
-						users = fetchedUsers;
-						done();
-					});
-				});
-
-				it("should return just one user", function () {
-					users.length.should.equal(1);
-				});
-			});
-
-			describe(".all", function () {
-				beforeEach(function (done) {
-					_testClassesJs.User.find.all.where("momId", 1).results(function (error, fetchedUsers) {
-						users = fetchedUsers;
-						done();
-					});
-				});
-
-				it("should return just all users matching the condition", function () {
-					users.length.should.equal(5);
-				});
-			});
-
-			describe(".deleted", function () {
-				var SoftUser = (function (_Model) {
-					_inherits(SoftUser, _Model);
-
-					function SoftUser() {
-						_classCallCheck(this, SoftUser);
-
-						_get(Object.getPrototypeOf(SoftUser.prototype), "constructor", this).apply(this, arguments);
-					}
-
-					_createClass(SoftUser, [{
-						key: "initialize",
-						value: function initialize() {
-							this.softDelete;
-						}
-					}]);
-
-					return SoftUser;
-				})(_2["default"]);
-
-				beforeEach(function (done) {
-					_2["default"].database.mock({
-						"select * from `soft_users` where `mom_id` = 1 and `deleted_at` is not null": userFixtures
-					});
-
-					SoftUser.find.all.where("momId", 1).deleted.results(function (error, fetchedUsers) {
-						users = fetchedUsers;
-						done();
-					});
-				});
-
-				it("should return just all users matching the condition", function () {
-					users.length.should.equal(5);
-				});
-			});
-
-			describe("(with a different database for a model)", function () {
-				var Car = (function (_Model2) {
-					_inherits(Car, _Model2);
-
-					function Car() {
-						_classCallCheck(this, Car);
-
-						_get(Object.getPrototypeOf(Car.prototype), "constructor", this).apply(this, arguments);
-					}
-
-					return Car;
-				})(_2["default"]);
-
-				var car = undefined,
-				    database = undefined,
-				    query = undefined;
-
-				describe("(static way)", function () {
-					beforeEach(function () {
-						database = new _almaden2["default"](_databaseConfigJson2["default"]);
-						Car.database = database;
-						query = database.spy("select * from `cars`", []);
-						car = new Car();
-					});
-
-					it("should use the specific model class database", function (done) {
-						Car.find.all.results(function () {
-							query.callCount.should.equal(1);
-							done();
-						});
-					});
-				});
-
-				describe("(instance way)", function () {
-					beforeEach(function () {
-						database = new _almaden2["default"](_databaseConfigJson2["default"]);
-						Car.database = null;
-						car = new Car({ id: 2 }, { database: database });
-						query = database.spy("select * from `cars` where `id` = 2 limit 1", []);
-					});
-
-					it("should use the specific model instance database", function (done) {
-						car.fetch(function () {
-							query.callCount.should.equal(1);
-							done();
-						});
-					});
-				});
-			});
-		});
-	});
-
 	describe("(Initialization)", function () {
 		/* eslint-disable no-unused-vars */
 		// This is because we instantiate Post, but we don"t do anything with it.
@@ -393,8 +159,8 @@ describe("Model(attributes, options)", function () {
 		    validateSpy = undefined,
 		    associateSpy = undefined;
 
-		var Post = (function (_Model3) {
-			_inherits(Post, _Model3);
+		var Post = (function (_Model) {
+			_inherits(Post, _Model);
 
 			function Post() {
 				_classCallCheck(this, Post);
@@ -458,8 +224,8 @@ describe("Model(attributes, options)", function () {
 	});
 
 	describe("(Associations)", function () {
-		var Street = (function (_Model4) {
-			_inherits(Street, _Model4);
+		var Street = (function (_Model2) {
+			_inherits(Street, _Model2);
 
 			function Street() {
 				_classCallCheck(this, Street);
@@ -470,8 +236,8 @@ describe("Model(attributes, options)", function () {
 			return Street;
 		})(_2["default"]);
 
-		var Driver = (function (_Model5) {
-			_inherits(Driver, _Model5);
+		var Driver = (function (_Model3) {
+			_inherits(Driver, _Model3);
 
 			function Driver() {
 				_classCallCheck(this, Driver);
@@ -482,8 +248,8 @@ describe("Model(attributes, options)", function () {
 			return Driver;
 		})(_2["default"]);
 
-		var Truck = (function (_Model6) {
-			_inherits(Truck, _Model6);
+		var Truck = (function (_Model4) {
+			_inherits(Truck, _Model4);
 
 			function Truck() {
 				_classCallCheck(this, Truck);
@@ -494,8 +260,8 @@ describe("Model(attributes, options)", function () {
 			return Truck;
 		})(_2["default"]);
 
-		var Wheel = (function (_Model7) {
-			_inherits(Wheel, _Model7);
+		var Wheel = (function (_Model5) {
+			_inherits(Wheel, _Model5);
 
 			function Wheel() {
 				_classCallCheck(this, Wheel);
@@ -506,8 +272,8 @@ describe("Model(attributes, options)", function () {
 			return Wheel;
 		})(_2["default"]);
 
-		var SteeringWheel = (function (_Model8) {
-			_inherits(SteeringWheel, _Model8);
+		var SteeringWheel = (function (_Model6) {
+			_inherits(SteeringWheel, _Model6);
 
 			function SteeringWheel() {
 				_classCallCheck(this, SteeringWheel);

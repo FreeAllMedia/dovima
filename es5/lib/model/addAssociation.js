@@ -241,7 +241,7 @@ function addAssociation(associationDetails) {
 
   this[associationDetails.name] = associationDetails.value;
 
-  (0, _incognito2["default"])(this)._associations[associationDetails.name] = association;
+  (0, _incognito2["default"])(this).associations[associationDetails.name] = association;
 
   return associationSetter;
 }

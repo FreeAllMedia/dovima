@@ -6,15 +6,9 @@ var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_ag
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var _sinon = require("sinon");
-
-var _sinon2 = _interopRequireDefault(_sinon);
 
 var _almaden = require("almaden");
 
@@ -28,13 +22,7 @@ var _databaseConfigJson = require("../databaseConfig.json");
 
 var _databaseConfigJson2 = _interopRequireDefault(_databaseConfigJson);
 
-describe("Model(attributes, options)", function () {
-  var model = undefined,
-      attributes = undefined,
-      afterSaveSpy = undefined;
-
-  // Example Class
-
+describe("Model.useSoftDelete", function () {
   var User = (function (_Model) {
     _inherits(User, _Model);
 
@@ -44,52 +32,36 @@ describe("Model(attributes, options)", function () {
       _get(Object.getPrototypeOf(User.prototype), "constructor", this).apply(this, arguments);
     }
 
-    _createClass(User, [{
-      key: "afterSave",
-      value: function afterSave(callback) {
-        afterSaveSpy();
-        callback();
-      }
+    _createClass(User, null, [{
+      key: "useSoftDelete",
+      value: function useSoftDelete() {}
     }]);
 
     return User;
   })(_2["default"]);
 
-  beforeEach(function () {
-    afterSaveSpy = _sinon2["default"].spy();
-
+  before(function () {
     User.database = new _almaden2["default"](_databaseConfigJson2["default"]);
-    // Mock save query
-    User.database.mock(_defineProperty({}, /insert into `users` \(`created_at`, `name`\) values \('.*', 'Bob'\)/, [{ "created_at": Date.now, "name": "Bob" }]));
-
-    // Instantiate model
-    attributes = {
-      name: "Bob"
-    };
-
-    model = new User(attributes);
+    User.database.mock({}); // Catch-all for database
   });
 
-  describe(".afterSave(done)", function () {
-    describe("(With Callback)", function () {
-      it("should be called after .save", function (done) {
-        // throw util.inspect(model.afterSave, true, 4);
-        model.save(function (error) {
-          if (error) {
-            throw error;
-          }
-          afterSaveSpy.called.should.be["true"];
-          done();
-        });
-      });
+  it("should automatically add a where deleted_at = null clause to all select queries", function (done) {
+    var query = "select * from `users` where `deleted_at` is null and `id` = 1";
+    var querySpy = User.database.spy(query);
 
-      // TODO: Enhance with callback waiting
-      it("should make the .save callback wait for the .afterSave callback");
+    User.find.where("id", 1).results(function () {
+      querySpy.callCount.should.eql(1);
+      done();
+    });
+  });
+
+  describe(".toString()", function () {
+    it("should render the chain link for find", function () {
+      User.find.where("id", 1).toString().should.eql("User.find.where(\"id\", 1).whereNull(\"deletedAt\")");
     });
 
-    // TODO: Enhance with synchronous hook
-    describe("(Without Callback)", function () {
-      it("should be called after .save is complete");
+    it("should render the chain link for count", function () {
+      User.count.where("id", 1).toString().should.eql("User.count.where(\"id\", 1).whereNull(\"deletedAt\")");
     });
   });
 });

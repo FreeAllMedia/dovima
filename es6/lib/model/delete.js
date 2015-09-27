@@ -31,7 +31,7 @@ export default function deleteSelf(callback) {
 function performDelete(callback) {
   const _ = privateData(this);
   if (_.mockDelete) {
-    if(_._softDelete) {
+    if(_.softDelete) {
       this.deletedAt = new Datetime();
       callback();
     } else {
@@ -39,7 +39,7 @@ function performDelete(callback) {
     }
   } else {
     if (this[symbols.getDatabase]()) {
-      if(_._softDelete) {
+      if(_.softDelete) {
         softDelete.call(this, callback);
       } else {
         hardDelete.call(this, callback);
