@@ -16,6 +16,10 @@ var _ = require("../../../");
 
 var _2 = _interopRequireDefault(_);
 
+var _databaseConfigJson = require("../databaseConfig.json");
+
+var _databaseConfigJson2 = _interopRequireDefault(_databaseConfigJson);
+
 describe("options.database", function () {
   var User = (function (_Model) {
     _inherits(User, _Model);
@@ -33,7 +37,7 @@ describe("options.database", function () {
       database = undefined;
 
   before(function () {
-    database = new _almaden2["default"]({ client: "mysql" });
+    database = new _almaden2["default"](_databaseConfigJson2["default"]);
     user = new User({ id: 1 }, {
       database: database
     });

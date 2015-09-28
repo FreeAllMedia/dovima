@@ -9,11 +9,23 @@ describe(".softDestroy(callback)", () => {
     static useSoftDelete() {}
   }
 
-  let user;
+  let user,
+      saveQuery,
+      clock;
 
   beforeEach(() => {
+    clock = sinon.useFakeTimers();
+
     User.database = new Database(databaseConfig);
     user = new User({id: 1});
+
+    saveQuery = User.database.spy(
+      /update `users` set `deleted_at` = '.*', `updated_at` = '.*' where `id` = 1/
+    );
+  });
+
+  afterEach(() => {
+    clock.restore();
   });
 
   it("should set deletedAt on the model", () => {
@@ -28,7 +40,7 @@ describe(".softDestroy(callback)", () => {
 
     user.softDestroy((error) => {
       if (error) { throw error; }
-      user.save.called.should.be.true;
+      saveQuery.callCount.should.eql(1);
     });
   });
 });

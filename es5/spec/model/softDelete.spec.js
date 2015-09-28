@@ -18,7 +18,7 @@ var _ = require("../../../");
 
 var _2 = _interopRequireDefault(_);
 
-describe(".delete(callback)", function () {
+describe(".softDelete(callback)", function () {
   var User = (function (_Model) {
     _inherits(User, _Model);
 
