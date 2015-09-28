@@ -44,11 +44,21 @@ describe(".softDestroy(callback)", function () {
     return User;
   })(_2["default"]);
 
-  var user = undefined;
+  var user = undefined,
+      saveQuery = undefined,
+      clock = undefined;
 
   beforeEach(function () {
+    clock = _sinon2["default"].useFakeTimers();
+
     User.database = new _almaden2["default"](_databaseConfigJson2["default"]);
     user = new User({ id: 1 });
+
+    saveQuery = User.database.spy("update `users` set `deleted_at` = '1969-12-31 17:00:00.000', `updated_at` = '1969-12-31 17:00:00.000' where `id` = 1");
+  });
+
+  afterEach(function () {
+    clock.restore();
   });
 
   it("should set deletedAt on the model", function () {
@@ -56,6 +66,7 @@ describe(".softDestroy(callback)", function () {
       if (error) {
         throw error;
       }
+      throw user.deletedAt;
       (user.deletedAt === undefined).should.not.be["true"];
     });
   });
@@ -67,7 +78,7 @@ describe(".softDestroy(callback)", function () {
       if (error) {
         throw error;
       }
-      user.save.called.should.be["true"];
+      saveQuery.callCount.should.eql(1);
     });
   });
 });

@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import Model from "../../../";
 
-describe(".delete(callback)", () => {
+describe(".softDelete(callback)", () => {
   class User extends Model {
     static useSoftDelete() {}
   }

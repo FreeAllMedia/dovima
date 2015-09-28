@@ -13,11 +13,11 @@ export default function destroy(callback) {
   if (_.mockDelete) {
     callback();
   } else {
-    this.database
-        .delete
-        .from(this.tableName)
-        .results((error) => {
-          callback(error);
-        });
+    // this.database
+    //     .delete
+    //     .from(this.tableName)
+    //     .results((error) => {
+    //       callback(error);
+    //     });
   }
 }
