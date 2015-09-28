@@ -19,7 +19,9 @@ describe(".softDestroy(callback)", () => {
     User.database = new Database(databaseConfig);
     user = new User({id: 1});
 
-    saveQuery = User.database.spy("update `users` set `deleted_at` = '1969-12-31 17:00:00.000', `updated_at` = '1969-12-31 17:00:00.000' where `id` = 1");
+    saveQuery = User.database.spy(
+      /update `users` set `deleted_at` = '.*', `updated_at` = '.*' where `id` = 1/
+    );
   });
 
   afterEach(() => {
