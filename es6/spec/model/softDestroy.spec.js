@@ -29,7 +29,6 @@ describe(".softDestroy(callback)", () => {
   it("should set deletedAt on the model", () => {
     user.softDestroy((error) => {
       if (error) { throw error; }
-      throw user.deletedAt;
       (user.deletedAt === undefined).should.not.be.true;
     });
   });
