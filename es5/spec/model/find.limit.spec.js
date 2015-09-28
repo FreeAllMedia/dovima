@@ -8,19 +8,19 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var _almaden = require("almaden");
+
+var _almaden2 = _interopRequireDefault(_almaden);
+
 var _ = require("../../../");
 
 var _2 = _interopRequireDefault(_);
 
-var _sinon = require("sinon");
+var _databaseConfigJson = require("../databaseConfig.json");
 
-var _sinon2 = _interopRequireDefault(_sinon);
+var _databaseConfigJson2 = _interopRequireDefault(_databaseConfigJson);
 
-describe(".mock.record(mockedRecord)", function () {
-
-  var user = undefined,
-      mockedRecord = undefined;
-
+describe("Model.find.limit(numberOfRows)", function () {
   var User = (function (_Model) {
     _inherits(User, _Model);
 
@@ -33,65 +33,18 @@ describe(".mock.record(mockedRecord)", function () {
     return User;
   })(_2["default"]);
 
-  beforeEach(function () {
-    user = new User();
-
-    mockedRecord = { id: 1, name: "Bob" };
-    user.mock.record(mockedRecord);
+  before(function () {
+    User.database = new _almaden2["default"](_databaseConfigJson2["default"]);
+    User.database.mock({}); // Catch-all for database
   });
 
-  it("should mock .save", function (done) {
-    user.save(function (error, newId) {
-      newId.should.eql(mockedRecord.id);
+  it("should add a where clause to the query", function (done) {
+    var query = "select * from `users` limit 2";
+    var querySpy = User.database.spy(query, [{ id: 1 }, { id: 2 }]);
+
+    User.find.limit(2).results(function () {
+      querySpy.callCount.should.eql(1);
       done();
     });
-  });
-
-  it("should set .createdAt when record is new", function (done) {
-    user.save(function (error) {
-      if (error) {
-        throw error;
-      }
-      (undefined === user.createdAt).should.not.be["true"];
-      done();
-    });
-  });
-
-  it("should set .updatedAt when record is not new", function (done) {
-    user.id = 1;
-    user.save(function (error) {
-      if (error) {
-        throw error;
-      }
-      (undefined === user.updatedAt).should.not.be["true"];
-      done();
-    });
-  });
-
-  it("should still call .beforeSave", function () {
-    user.constructor.prototype.afterSave = _sinon2["default"].spy();
-
-    user.save(function () {
-      user.beforeSave.called.should.be["true"];
-    });
-  });
-
-  it("should still call .afterSave", function () {
-    user.constructor.prototype.afterSave = _sinon2["default"].spy();
-
-    user.save(function () {
-      user.afterSave.called.should.be["true"];
-    });
-  });
-
-  it("should mock .fetch", function (done) {
-    user.fetch(function () {
-      user.attributes.should.eql(mockedRecord);
-      done();
-    });
-  });
-
-  it("should mock .delete", function (done) {
-    user["delete"](done);
   });
 });

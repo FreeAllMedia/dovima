@@ -6,8 +6,6 @@ var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_ag
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
@@ -16,261 +14,93 @@ var _sinon = require("sinon");
 
 var _sinon2 = _interopRequireDefault(_sinon);
 
-var _almaden = require("almaden");
-
-var _almaden2 = _interopRequireDefault(_almaden);
-
 var _ = require("../../../");
 
 var _2 = _interopRequireDefault(_);
 
-var _databaseConfigJson = require("../databaseConfig.json");
+describe(".delete(callback)", function () {
 
-var _databaseConfigJson2 = _interopRequireDefault(_databaseConfigJson);
+  describe("(when useSoftDelete is set)", function () {
+    var User = (function (_Model) {
+      _inherits(User, _Model);
 
-describe("Model(attributes, options)", function () {
-  beforeEach(function () {
-    _2["default"].database = new _almaden2["default"](_databaseConfigJson2["default"]);
+      function User() {
+        _classCallCheck(this, User);
 
-    _2["default"].database.mock({});
+        _get(Object.getPrototypeOf(User.prototype), "constructor", this).apply(this, arguments);
+      }
+
+      _createClass(User, null, [{
+        key: "useSoftDelete",
+        value: function useSoftDelete() {}
+      }]);
+
+      return User;
+    })(_2["default"]);
+
+    var user = undefined;
+
+    beforeEach(function () {
+      user = User.mock.instance({ id: 1 });
+    });
+
+    it("should call .beforeDelete, then .softDestroy", function (done) {
+      user.constructor.prototype.beforeDelete = _sinon2["default"].spy(user.beforeDelete);
+      user.constructor.prototype.softDestroy = _sinon2["default"].spy(user.softDestroy);
+
+      user["delete"](function () {
+        user.beforeDelete.calledBefore(user.softDestroy).should.be["true"];
+        done();
+      });
+    });
+
+    it("should call .softDestroy, then .afterDelete", function (done) {
+      user.constructor.prototype.afterDelete = _sinon2["default"].spy(user.afterDelete);
+      user.constructor.prototype.softDestroy = _sinon2["default"].spy(user.softDestroy);
+
+      user["delete"](function () {
+        user.softDestroy.calledBefore(user.afterDelete).should.be["true"];
+        done();
+      });
+    });
   });
 
-  describe(".delete(callback)", function () {
-    describe("(when dependent is declared on the association)", function () {
-      var Account = (function (_Model) {
-        _inherits(Account, _Model);
+  describe("(when useSoftDelete is NOT set)", function () {
+    var User = (function (_Model2) {
+      _inherits(User, _Model2);
 
-        function Account() {
-          _classCallCheck(this, Account);
+      function User() {
+        _classCallCheck(this, User);
 
-          _get(Object.getPrototypeOf(Account.prototype), "constructor", this).apply(this, arguments);
-        }
+        _get(Object.getPrototypeOf(User.prototype), "constructor", this).apply(this, arguments);
+      }
 
-        _createClass(Account, [{
-          key: "initialize",
-          value: function initialize() {
-            this.softDelete;
-          }
-        }, {
-          key: "associate",
-          value: function associate() {
-            this.hasOne("forumUser", ForumUser).dependent;
-          }
-        }]);
+      return User;
+    })(_2["default"]);
 
-        return Account;
-      })(_2["default"]);
+    var user = undefined;
 
-      var ForumUser = (function (_Model2) {
-        _inherits(ForumUser, _Model2);
+    beforeEach(function () {
+      user = User.mock.instance({ id: 1 });
+    });
 
-        function ForumUser() {
-          _classCallCheck(this, ForumUser);
+    it("should call .beforeDelete, then .destroy", function (done) {
+      user.constructor.prototype.beforeDelete = _sinon2["default"].spy(user.beforeDelete);
+      user.constructor.prototype.destroy = _sinon2["default"].spy(user.destroy);
 
-          _get(Object.getPrototypeOf(ForumUser.prototype), "constructor", this).apply(this, arguments);
-        }
-
-        _createClass(ForumUser, [{
-          key: "initialize",
-          value: function initialize() {
-            this.softDelete;
-          }
-        }, {
-          key: "associate",
-          value: function associate() {
-            this.hasMany("posts", Post).dependent;
-            this.belongsTo("account", Account).dependent;
-          }
-        }]);
-
-        return ForumUser;
-      })(_2["default"]);
-
-      var Post = (function (_Model3) {
-        _inherits(Post, _Model3);
-
-        function Post() {
-          _classCallCheck(this, Post);
-
-          _get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
-        }
-
-        _createClass(Post, [{
-          key: "initialize",
-          value: function initialize() {
-            this.softDelete;
-          }
-        }, {
-          key: "associate",
-          value: function associate() {
-            this.belongsTo("forumUser", ForumUser);
-          }
-        }]);
-
-        return Post;
-      })(_2["default"]);
-
-      var forumUser = undefined,
-          account = undefined,
-          post = undefined;
-
-      beforeEach(function () {
-        account = new Account({ id: 1 });
-        forumUser = new ForumUser({ id: 2 });
-        post = new Post({ id: 3 });
-      });
-
-      it("should add the dependent flag to the association", function () {
-        account.associations.forumUser.should.eql({
-          parent: account,
-          type: "hasOne",
-          constructor: ForumUser,
-          foreignName: "account",
-          foreignId: "accountId",
-          foreignKey: "account_id",
-          dependent: true
-        });
-      });
-
-      describe("(on a hasOne)", function () {
-        var userDeleteQuerySpy = undefined;
-
-        beforeEach(function () {
-          _2["default"].database.mock(_defineProperty({}, /update `accounts` set `deleted_at` = '.*' where `id` = 1/, 1));
-
-          userDeleteQuerySpy = _2["default"].database.spy(/update `forum_users` set `deleted_at` = '.*' where `id` = 2/, 1);
-
-          account.forumUser = forumUser;
-        });
-
-        it("should propagate delete on those models", function (done) {
-          account["delete"](function () {
-            userDeleteQuerySpy.callCount.should.equal(1);
-            done();
-          });
-        });
-      });
-
-      describe("(on a hasMany)", function () {
-        var postDeleteQuerySpy = undefined;
-
-        beforeEach(function () {
-          _2["default"].database.mock(_defineProperty({}, /update `forum_users` set `deleted_at` = '.*' where `id` = 2/, 1));
-
-          postDeleteQuerySpy = _2["default"].database.spy(/update `posts` set `deleted_at` = '.*' where `id` = 3/, 1);
-
-          forumUser.posts.push(post);
-        });
-
-        it("should propagate delete on those models", function (done) {
-          forumUser["delete"](function () {
-            postDeleteQuerySpy.callCount.should.equal(1);
-            done();
-          });
-        });
+      user["delete"](function () {
+        user.beforeDelete.calledBefore(user.destroy).should.be["true"];
+        done();
       });
     });
 
-    describe("(when .softDelete is not called)", function () {
-      var Post = (function (_Model4) {
-        _inherits(Post, _Model4);
+    it("should call .destroy, then .afterDelete", function (done) {
+      user.constructor.prototype.afterDelete = _sinon2["default"].spy(user.afterDelete);
+      user.constructor.prototype.destroy = _sinon2["default"].spy(user.destroy);
 
-        function Post() {
-          _classCallCheck(this, Post);
-
-          _get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
-        }
-
-        return Post;
-      })(_2["default"]);
-
-      var post = undefined;
-
-      beforeEach(function () {
-        post = new Post();
-      });
-
-      it("should return an error", function (done) {
-        post["delete"](function (error) {
-          error.message.should.eql("Not implemented.");
-          done();
-        });
-      });
-    });
-
-    describe("when softDelete called)", function () {
-      var post = undefined;
-
-      var Post = (function (_Model5) {
-        _inherits(Post, _Model5);
-
-        function Post() {
-          _classCallCheck(this, Post);
-
-          _get(Object.getPrototypeOf(Post.prototype), "constructor", this).apply(this, arguments);
-        }
-
-        _createClass(Post, [{
-          key: "initialize",
-          value: function initialize() {
-            this.softDelete;
-          }
-        }]);
-
-        return Post;
-      })(_2["default"]);
-
-      beforeEach(function () {
-        post = new Post();
-      });
-
-      describe("(Model.database is set)", function () {
-        describe("(when primaryKey is set)", function () {
-          beforeEach(function () {
-            post.id = 1;
-            _2["default"].database.mock(_defineProperty({}, /update `posts` set `deleted_at` = \'.*\' where `id` = 1/, 1));
-          });
-
-          it("should return no error", function () {
-            post["delete"](function (error) {
-              (error == null).should.be["true"];
-            });
-          });
-
-          describe("(when primary key is set but not exists)", function () {
-            beforeEach(function () {
-              post.id = 1;
-              _2["default"].database.mock(_defineProperty({}, /update `posts` set `deleted_at` = \'.*\' where `id` = 1/, 0));
-            });
-
-            it("should return an error", function () {
-              post["delete"](function (error) {
-                error.should.eql(new Error("Post with id 1 cannot be soft deleted because it doesn't exists."));
-              });
-            });
-          });
-        });
-
-        describe("(when primaryKey is not set)", function () {
-          it("should throw an error", function (done) {
-            post["delete"](function (error) {
-              error.message.should.eql("Cannot delete the Post because the primary key is not set.");
-              done();
-            });
-          });
-        });
-      });
-
-      describe("(Model.database not set)", function () {
-        beforeEach(function () {
-          delete _2["default"]._database;
-        });
-
-        it("should throw an error", function () {
-          post["delete"](function (error) {
-            error.message.should.eql("Cannot delete without Model.database set.");
-          });
-        });
+      user["delete"](function () {
+        user.destroy.calledBefore(user.afterDelete).should.be["true"];
+        done();
       });
     });
   });

@@ -39,7 +39,7 @@ var fetchByAssociations = {
 function fetchByHasOne(associationName, associations, callback) {
   var _this = this;
 
-  var modelFinder = new _modelFinderJs2["default"](this[_symbols2["default"].getDatabase]());
+  var modelFinder = new _modelFinderJs2["default"](this.database);
   var association = associations[associationName];
   var ModelClass = association.constructor;
 
@@ -99,7 +99,7 @@ function fetchByHasOne(associationName, associations, callback) {
 }
 
 function fetchWhere(modelClass, key, conditionType, ids, target, callback) {
-  var modelFinder = new _modelFinderJs2["default"](this[_symbols2["default"].getDatabase]());
+  var modelFinder = new _modelFinderJs2["default"](this.database);
   modelFinder.find(modelClass).where(key, conditionType, ids).results(function (findErrors, resultModels) {
     resultModels.forEach(function (model) {
       target.push(model);
@@ -166,7 +166,7 @@ function fetchByHasMany(associationName, associations, callback) {
 function fetchByBelongsTo(associationName, associations, callback) {
   var _this4 = this;
 
-  var modelFinder = new _modelFinderJs2["default"](this[_symbols2["default"].getDatabase]());
+  var modelFinder = new _modelFinderJs2["default"](this.database);
   var association = associations[associationName];
 
   if (!this[association.foreignId]) {
@@ -203,7 +203,7 @@ function fetchFromDatabase() {
   var fields = arguments.length <= 0 || arguments[0] === undefined ? [this.primaryKey] : arguments[0];
   var callback = arguments.length <= 1 || arguments[1] === undefined ? undefined : arguments[1];
 
-  var database = this[_symbols2["default"].getDatabase]();
+  var database = this.database;
   if (!database) {
     throw new Error("Cannot fetch without Model.database set.");
   }
@@ -223,7 +223,7 @@ function fetchFromDatabase() {
 
   var _ = (0, _incognito2["default"])(this);
 
-  if (_._softDelete) {
+  if (_.softDelete) {
     chain = chain.whereNull((0, _jargon2["default"])("deletedAt").snake.toString());
   }
 
@@ -233,14 +233,14 @@ function fetchFromDatabase() {
     } else {
       _this5[_symbols2["default"].parseAttributesFromFields](records[0]);
 
-      if (_._includeAssociations.length > 0) {
+      if (_.includeAssociations.length > 0) {
         (function () {
           var associations = _this5.associations;
 
           /* We'll be putting all of our Async tasks into this */
           var fetchTasks = [];
 
-          _._includeAssociations.forEach(function (associationName) {
+          _.includeAssociations.forEach(function (associationName) {
 
             var association = associations[associationName];
 

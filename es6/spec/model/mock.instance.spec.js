@@ -1,7 +1,7 @@
 import Model from "../../../";
 import sinon from "sinon";
 
-describe(".mock.record(mockedRecord)", () => {
+describe(".mock.instance(mockedRecord)", () => {
 
   let user,
       mockedRecord;
@@ -9,10 +9,8 @@ describe(".mock.record(mockedRecord)", () => {
   class User extends Model {}
 
   beforeEach(() => {
-    user = new User();
-
     mockedRecord = {id: 1, name: "Bob"};
-    user.mock.record(mockedRecord);
+    user = User.mock.instance(mockedRecord);
   });
 
   it("should mock .save", done => {
@@ -23,9 +21,18 @@ describe(".mock.record(mockedRecord)", () => {
   });
 
   it("should set .createdAt when record is new", done => {
+    user.id = undefined;
     user.save((error) => {
       if (error) { throw error; }
       (undefined === user.createdAt).should.not.be.true;
+      done();
+    });
+  });
+
+  it("should set .updatedAt when record is not new", done => {
+    user.save((error) => {
+      if (error) { throw error; }
+      (undefined === user.updatedAt).should.not.be.true;
       done();
     });
   });

@@ -28,7 +28,12 @@ describe(".fetch(callback)", () => {
 		user = new User(userAttributes);
 	});
 
-	afterEach(() => clock.restore());
+  afterEach(() => {
+    // Remove database from model to prevent
+    // polluting another file via the prototype
+    Model.database = undefined;
+    clock.restore();
+  });
 
   describe("(Model.database is set)", () => {
     beforeEach(() => {
@@ -55,30 +60,6 @@ describe(".fetch(callback)", () => {
         user.fetch(() => {
           user.attributes.should.eql(userAttributes);
           done();
-        });
-      });
-
-      describe("(when soft delete is enabled)", () => {
-        let post,
-          deleteQuerySpy;
-
-        class Post extends Model {
-          initialize() {
-            this.softDelete;
-          }
-        }
-
-        beforeEach(() => {
-          post = new Post({id: 1});
-          //querySpy
-          deleteQuerySpy = Model.database.spy("select * from `posts` where `id` = 1 and `deleted_at` is null limit 1", [{}]);
-        });
-
-        it("should add a where deleted is not null condition", done => {
-          post.fetch(() => {
-            deleteQuerySpy.callCount.should.equal(1);
-            done();
-          });
         });
       });
     });
@@ -116,7 +97,7 @@ describe(".fetch(callback)", () => {
 
   describe("(Model.database not set)", () => {
     beforeEach(() => {
-      delete Model._database;
+      Model.database = undefined;
     });
 
     it("should throw an error", () => {
@@ -189,7 +170,7 @@ describe(".fetch(callback)", () => {
 
     describe("(Model.database not set)", () => {
       beforeEach(() => {
-        delete Model._database;
+        Model.database = undefined;
       });
 
       it("should throw an error", () => {
@@ -266,7 +247,7 @@ describe(".fetch(callback)", () => {
 
     describe("(Model.database not set)", () => {
       beforeEach(() => {
-        delete Model._database;
+        Model.database = undefined;
       });
 
       it("should throw an error", () => {

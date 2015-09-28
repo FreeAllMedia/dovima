@@ -26,15 +26,19 @@ describe(".chain", function () {
   })(_2["default"]);
 
   it("should return the full chain of a simple query", function () {
-    User.find.chain.should.eql({
-      ".find": undefined
-    });
+    User.find.chain.should.eql([{
+      name: ".find",
+      options: undefined
+    }]);
   });
 
   it("should return the full chain of query with arguments", function () {
-    User.find.where("id", 1).chain.should.eql({
-      ".find": undefined,
-      ".where": ["id", 1]
-    });
+    User.find.where("id", 1).chain.should.eql([{
+      name: ".find",
+      options: undefined
+    }, {
+      name: ".where",
+      options: ["id", 1]
+    }]);
   });
 });

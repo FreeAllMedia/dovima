@@ -19,9 +19,9 @@ describe("Model(attributes, options)", () => {
   beforeEach(() => {
     afterSaveSpy = sinon.spy();
 
-    Model.database = new Database(databaseConfig);
+    User.database = new Database(databaseConfig);
     // Mock save query
-    Model.database.mock({
+    User.database.mock({
       [/insert into `users` \(`created_at`, `name`\) values \('.*', 'Bob'\)/]:
         [{"created_at": Date.now, "name": "Bob"}]
     });

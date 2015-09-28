@@ -65,7 +65,10 @@ describe("Model(attributes, options)", function () {
   });
 
   afterEach(function () {
-    return clock.restore();
+    // Remove database from model to prevent
+    // polluting another file via the prototype
+    _2["default"].database = undefined;
+    clock.restore();
   });
 
   describe(".save(callback)", function () {
@@ -357,7 +360,7 @@ describe("Model(attributes, options)", function () {
       beforeEach(function () {
         user.primaryPhoto = primaryPhoto;
         user.photos.push(photo);
-        delete _2["default"]._database;
+        _2["default"].database = undefined;
       });
 
       it("should call back with an error", function (done) {

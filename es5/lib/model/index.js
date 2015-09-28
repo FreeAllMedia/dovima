@@ -1,5 +1,4 @@
 /* Component Dependencies */
-//
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -18,10 +17,6 @@ var _flowsync = require("flowsync");
 
 var _flowsync2 = _interopRequireDefault(_flowsync);
 
-var _fleming = require("fleming");
-
-var _fleming2 = _interopRequireDefault(_fleming);
-
 var _jargon = require("jargon");
 
 var _jargon2 = _interopRequireDefault(_jargon);
@@ -30,11 +25,11 @@ var _incognito = require("incognito");
 
 var _incognito2 = _interopRequireDefault(_incognito);
 
+/* Shared Symbols */
+
 var _symbols = require("./symbols");
 
 var _symbols2 = _interopRequireDefault(_symbols);
-
-// TODO: Remove superfluous underscores from private data. _._validations should be _.validations
 
 /**
  * @class Model
@@ -50,78 +45,22 @@ var Model = (function () {
   * @constructor
   */
 
-	function Model(initialAttributes, options) {
-		var _this = this;
+	function Model(initialAttributes) {
+		var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
 		_classCallCheck(this, Model);
 
 		var _ = (0, _incognito2["default"])(this);
-		_._validations = {};
-		_._associations = {};
-		_._includeAssociations = [];
-		_._tableName = null;
-		_._primaryKey = null;
-		_._softDelete = null;
+		_.validations = {};
+		_.associations = {};
+		_.includeAssociations = [];
 
-		if (options !== undefined) {
-			_._database = options.database;
-		}
-
-		/**
-   * Define dynamic properties
-   */
-		Object.defineProperties(this, {
-
-			"isNew": {
-				get: this[_symbols2["default"].isNew]
-			},
-
-			"attributes": {
-				get: this[_symbols2["default"].attributes],
-				set: this[_symbols2["default"].setAttributes]
-			},
-
-			"associations": {
-				get: this[_symbols2["default"].associations]
-			},
-
-			"properties": {
-				get: this[_symbols2["default"].properties]
-			},
-
-			"validations": {
-				get: this[_symbols2["default"].validations]
-			},
-
-			"tableName": {
-				get: function get() {
-					return _._tableName || (0, _jargon2["default"])(_this.constructor.name).plural.snake.toString();
-				},
-				set: function set(newTableName) {
-					_._tableName = newTableName;
-				}
-			},
-
-			"primaryKey": {
-				get: function get() {
-					return _._primaryKey || "id";
-				},
-				set: function set(newPrimaryKey) {
-					_._primaryKey = newPrimaryKey;
-				}
-			},
-
-			"softDelete": {
-				get: function get() {
-					_._softDelete = true;
-				}
-			}
-		});
+		_.database = options.database;
 
 		this.associate();
 		this.validate();
 
-		this[_symbols2["default"].setAttributes](initialAttributes);
+		this.attributes = initialAttributes;
 
 		this.initialize();
 	}
@@ -166,7 +105,7 @@ var Model = (function () {
 		key: "ensure",
 		value: function ensure(attributeName, validatorFunction, validatorMessage) {
 			var _ = (0, _incognito2["default"])(this);
-			_._validations[attributeName] = _._validations[attributeName] || [];
+			_.validations[attributeName] = _.validations[attributeName] || [];
 
 			var validatorDetails = { validator: validatorFunction };
 
@@ -174,7 +113,7 @@ var Model = (function () {
 				validatorDetails.message = validatorMessage;
 			}
 
-			_._validations[attributeName].push(validatorDetails);
+			_.validations[attributeName].push(validatorDetails);
 		}
 
 		/**
@@ -207,10 +146,10 @@ var Model = (function () {
 	}, {
 		key: "invalidAttributes",
 		value: function invalidAttributes(callback) {
-			var _this2 = this;
+			var _this = this;
 
 			var _ = (0, _incognito2["default"])(this);
-			var attributeNamesWithValidators = Object.keys(_._validations);
+			var attributeNamesWithValidators = Object.keys(_.validations);
 
 			var compileInvalidAttributeList = function compileInvalidAttributeList(errors, validatorMessages) {
 				if (errors) {
@@ -232,12 +171,12 @@ var Model = (function () {
 			};
 
 			var performValidationsForAttribute = function performValidationsForAttribute(attributeName, done) {
-				var attributeValidations = _._validations[attributeName];
+				var attributeValidations = _.validations[attributeName];
 
 				var performValidation = function performValidation(validation, returnValue) {
 					var validator = validation.validator;
 
-					validator.call(_this2, attributeName, function (error, validatorDetails) {
+					validator.call(_this, attributeName, function (error, validatorDetails) {
 						if (validatorDetails.result) {
 							returnValue(null, null);
 						} else {
@@ -289,7 +228,7 @@ var Model = (function () {
 				associationNames[_key] = arguments[_key];
 			}
 
-			(0, _incognito2["default"])(this)._includeAssociations = associationNames;
+			(0, _incognito2["default"])(this).includeAssociations = associationNames;
 			return this;
 		}
 
@@ -334,59 +273,20 @@ var Model = (function () {
 			return this.attributes;
 		}
 
+		/* Dynamic Properties */
+
+	}, {
+		key: _symbols2["default"].getDatabase,
+
 		/**
    * Private Functionality
    */
-	}, {
-		key: _symbols2["default"].getDatabase,
 		value: function value() {
-			var database = (0, _incognito2["default"])(this)._database;
+			var database = (0, _incognito2["default"])(this).database;
 			if (!database) {
 				database = this.constructor.database;
 			}
 			return database;
-		}
-	}, {
-		key: _symbols2["default"].setAttributes,
-		value: function value(newAttributes) {
-			this[_symbols2["default"].parseAttributesFromFields](newAttributes);
-		}
-	}, {
-		key: _symbols2["default"].associations,
-		value: function value() {
-			return (0, _incognito2["default"])(this)._associations;
-		}
-	}, {
-		key: _symbols2["default"].properties,
-		value: function value() {
-			return Object.keys(this);
-		}
-	}, {
-		key: _symbols2["default"].validations,
-		value: function value() {
-			return (0, _incognito2["default"])(this)._validations;
-		}
-	}, {
-		key: _symbols2["default"].attributes,
-		value: function value() {
-			var _this3 = this;
-
-			var attributes = {};
-			this.properties.forEach(function (propertyName) {
-				if (!(0, _incognito2["default"])(_this3)._associations[propertyName]) {
-					attributes[propertyName] = _this3[propertyName];
-				}
-			});
-			return attributes;
-		}
-	}, {
-		key: _symbols2["default"].isNew,
-		value: function value() {
-			if (this[this.primaryKey]) {
-				return false;
-			} else {
-				return true;
-			}
 		}
 
 		/**
@@ -400,18 +300,18 @@ var Model = (function () {
 	}, {
 		key: _symbols2["default"].callDeep,
 		value: function value(methodName, predicate, callback) {
-			var _this4 = this;
+			var _this2 = this;
 
 			var associationNames = Object.keys(this.associations);
 
 			_flowsync2["default"].mapParallel(associationNames, function (associationName, next) {
 
-				var associationDetails = _this4.associations[associationName];
+				var associationDetails = _this2.associations[associationName];
 
 				switch (associationDetails.type) {
 					case "belongsTo":
 					case "hasOne":
-						var model = _this4[associationName];
+						var model = _this2[associationName];
 						if (model) {
 							//pass the associationDetails.whereArgs to the function
 							var result = predicate(associationDetails);
@@ -426,7 +326,7 @@ var Model = (function () {
 						break;
 
 					case "hasMany":
-						var collection = _this4[associationName];
+						var collection = _this2[associationName];
 						//collection set, and not many to many (nothing in that case)
 						if (collection) {
 							//let array = [].slice.call(collection);
@@ -457,21 +357,21 @@ var Model = (function () {
 	}, {
 		key: _symbols2["default"].getFieldAttributes,
 		value: function value() {
-			var _this5 = this;
+			var _this3 = this;
 
 			var attributeNames = Object.keys(this.attributes);
 			var fieldAttributes = {};
 			attributeNames.forEach(function (attributeName) {
-				fieldAttributes[(0, _jargon2["default"])(attributeName).snake.toString()] = _this5[attributeName];
+				fieldAttributes[(0, _jargon2["default"])(attributeName).snake.toString()] = _this3[attributeName];
 			});
 
 			var _ = (0, _incognito2["default"])(this);
 
 			//add belongsTo associations and remove others
 			Object.keys(this.associations).forEach(function (associationName) {
-				var relatedModel = _this5[associationName];
+				var relatedModel = _this3[associationName];
 				var foreignKeyField = (0, _jargon2["default"])(associationName).foreignKey.toString();
-				if (_._associations[associationName].type === "belongsTo") {
+				if (_.associations[associationName].type === "belongsTo") {
 					//try with relatedModel and relatedModel.id
 					if (relatedModel && relatedModel.id) {
 						fieldAttributes[foreignKeyField] = relatedModel.id;
@@ -479,7 +379,7 @@ var Model = (function () {
 						//or just with the relatedModelId
 						//construct the snake with _id and then camelize it
 						var foreignIdAsAttribute = (0, _jargon2["default"])(foreignKeyField).camel.toString();
-						fieldAttributes[foreignKeyField] = _this5[foreignIdAsAttribute];
+						fieldAttributes[foreignKeyField] = _this3[foreignIdAsAttribute];
 					}
 				} else {
 					//console.log("getFieldAttributes delete on ", {on: this.constructor.name, associationName: associationName, foreignKeyField: foreignKeyField, relatedModel: relatedModel});
@@ -500,19 +400,73 @@ var Model = (function () {
 		get: function get() {
 			return new InstanceMock(this);
 		}
-	}], [{
+	}, {
 		key: "database",
 		get: function get() {
-			var database = this._database;
-			if (!database) {
-				database = Model._database;
+			var _ = (0, _incognito2["default"])(this);
+			if (_.database) {
+				return _.database;
+			} else {
+				return this.constructor.database;
 			}
-			return database;
-		},
-		set: function set(newDatabase) {
-			this._database = newDatabase;
 		}
 	}, {
+		key: "isNew",
+		get: function get() {
+			if (this[this.primaryKey]) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+	}, {
+		key: "attributes",
+		set: function set(newAttributes) {
+			this[_symbols2["default"].parseAttributesFromFields](newAttributes);
+		},
+		get: function get() {
+			var _this4 = this;
+
+			var attributes = {};
+			this.properties.forEach(function (propertyName) {
+				if (!(0, _incognito2["default"])(_this4).associations[propertyName]) {
+					attributes[propertyName] = _this4[propertyName];
+				}
+			});
+			return attributes;
+		}
+	}, {
+		key: "associations",
+		get: function get() {
+			return (0, _incognito2["default"])(this).associations;
+		}
+	}, {
+		key: "properties",
+		get: function get() {
+			return Object.keys(this);
+		}
+	}, {
+		key: "validations",
+		get: function get() {
+			return (0, _incognito2["default"])(this).validations;
+		}
+	}, {
+		key: "tableName",
+		get: function get() {
+			return (0, _incognito2["default"])(this).tableName || (0, _jargon2["default"])(this.constructor.name).plural.snake.toString();
+		},
+		set: function set(newTableName) {
+			(0, _incognito2["default"])(this).tableName = newTableName;
+		}
+	}, {
+		key: "primaryKey",
+		get: function get() {
+			return (0, _incognito2["default"])(this).primaryKey || "id";
+		},
+		set: function set(newPrimaryKey) {
+			(0, _incognito2["default"])(this).primaryKey = newPrimaryKey;
+		}
+	}], [{
 		key: "find",
 		get: function get() {
 			var modelQuery = new _modelFinderJs2["default"](this.database);
@@ -563,8 +517,8 @@ var InstanceMock = (function () {
 			(0, _incognito2["default"])(instance).mockDelete = true;
 		}
 	}, {
-		key: "record",
-		value: function record(mockRecord) {
+		key: "instance",
+		value: function instance(mockRecord) {
 			this.save(mockRecord.id);
 			this.fetch(mockRecord);
 			this["delete"]();
@@ -577,7 +531,10 @@ var InstanceMock = (function () {
 Object.assign(Model.prototype, _defineProperty({
 	"fetch": require("./fetch.js"),
 	"save": require("./save.js"),
-	"delete": require("./delete.js")
+	"delete": require("./delete.js"),
+	"softDelete": require("./softDelete.js"),
+	"destroy": require("./destroy.js"),
+	"softDestroy": require("./softDestroy.js")
 }, _symbols2["default"].addAssociation, require("./addAssociation.js")));
 
 module.exports = exports["default"];

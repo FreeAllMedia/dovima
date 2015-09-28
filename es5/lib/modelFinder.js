@@ -93,12 +93,20 @@ var ModelQuery = (function () {
 
 		_.ModelConstructor = ModelConstructor;
 		_.database = options.database;
-		_.chain = {};
+		_.chain = [];
 
 		_.ModelConstructor.mocks = _.ModelConstructor.mocks || {};
 	}
 
 	_createClass(ModelQuery, [{
+		key: "instance",
+		value: function instance(attributes, options) {
+			var _ = (0, _incognito2["default"])(this);
+			var model = new _.ModelConstructor(attributes, options);
+			model.mock.instance(attributes);
+			return model;
+		}
+	}, {
 		key: "toString",
 		value: function toString() {
 			var _this = this;
@@ -107,15 +115,18 @@ var ModelQuery = (function () {
 
 			var chainString = _.ModelConstructor.name;
 
-			[".find", ".count", ".all", ".one", ".where", ".andWhere", ".orWhere", ".groupBy", ".orderBy", ".limit"].forEach(function (chainName) {
-				if (_.chain.hasOwnProperty(chainName)) {
-					chainString = chainString + chainName;
-					var options = _.chain[chainName];
+			[".find", ".count", ".all", ".one", ".where", ".andWhere", ".orWhere", ".whereNull", ".whereNotNull", ".groupBy", ".orderBy", ".limit"].forEach(function (name) {
+				_.chain.forEach(function (link) {
+					var linkName = link.name;
+					var linkOptions = link.options;
 
-					if (options) {
-						chainString = chainString + "(" + _this[argumentString](options) + ")";
+					if (name === linkName) {
+						chainString = chainString + linkName;
+						if (linkOptions) {
+							chainString = chainString + "(" + _this[argumentString](linkOptions) + ")";
+						}
 					}
-				}
+				});
 			});
 
 			return chainString;
@@ -126,25 +137,30 @@ var ModelQuery = (function () {
 			var ourChain = this.chain;
 			var theirChain = query.chain;
 
-			var ourChainNames = Object.keys(ourChain);
-			var theirChainNames = Object.keys(theirChain);
-
-			var ourChainLength = ourChainNames.length;
-			var theirChainLength = theirChainNames.length;
-
 			var isEqual = true;
 
-			if (ourChainLength === theirChainLength) {
-				for (var chainName in ourChain) {
-					if (theirChain.hasOwnProperty(chainName)) {
-						var ourArguments = ourChain[chainName];
-						var theirArguments = theirChain[chainName];
+			if (ourChain.length === theirChain.length) {
 
-						if (!this[argumentsEqual](ourArguments, theirArguments)) {
-							isEqual = false;
-							break;
+				for (var ourIndex = 0; ourIndex < ourChain.length; ourIndex++) {
+
+					var ourLink = ourChain[ourIndex];
+					var ourArguments = ourLink.options;
+
+					var hasMatchingLink = false;
+
+					for (var theirIndex = 0; theirIndex < theirChain.length; theirIndex++) {
+						var theirLink = theirChain[theirIndex];
+						var theirArguments = theirLink.options;
+
+						if (ourLink.name === theirLink.name) {
+							if (this[argumentsEqual](ourArguments, theirArguments)) {
+								hasMatchingLink = true;
+								break;
+							}
 						}
-					} else {
+					}
+
+					if (!hasMatchingLink) {
 						isEqual = false;
 						break;
 					}
@@ -207,8 +223,8 @@ var ModelQuery = (function () {
 			return this;
 		}
 	}, {
-		key: "groupBy",
-		value: function groupBy() {
+		key: "whereNull",
+		value: function whereNull() {
 			for (var _len4 = arguments.length, options = Array(_len4), _key4 = 0; _key4 < _len4; _key4++) {
 				options[_key4] = arguments[_key4];
 			}
@@ -218,14 +234,14 @@ var ModelQuery = (function () {
 			if (_.query) {
 				var _$query4;
 
-				(_$query4 = _.query).groupBy.apply(_$query4, _toConsumableArray(formattedOptions));
+				(_$query4 = _.query).whereNull.apply(_$query4, _toConsumableArray(formattedOptions));
 			}
-			this[addChain](".groupBy", options);
+			this[addChain](".whereNull", options);
 			return this;
 		}
 	}, {
-		key: "orderBy",
-		value: function orderBy() {
+		key: "whereNotNull",
+		value: function whereNotNull() {
 			for (var _len5 = arguments.length, options = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
 				options[_key5] = arguments[_key5];
 			}
@@ -235,7 +251,41 @@ var ModelQuery = (function () {
 			if (_.query) {
 				var _$query5;
 
-				(_$query5 = _.query).orderBy.apply(_$query5, _toConsumableArray(formattedOptions));
+				(_$query5 = _.query).whereNotNull.apply(_$query5, _toConsumableArray(formattedOptions));
+			}
+			this[addChain](".whereNotNull", options);
+			return this;
+		}
+	}, {
+		key: "groupBy",
+		value: function groupBy() {
+			for (var _len6 = arguments.length, options = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+				options[_key6] = arguments[_key6];
+			}
+
+			var formattedOptions = this[attributesToColumns].apply(this, options);
+			var _ = (0, _incognito2["default"])(this);
+			if (_.query) {
+				var _$query6;
+
+				(_$query6 = _.query).groupBy.apply(_$query6, _toConsumableArray(formattedOptions));
+			}
+			this[addChain](".groupBy", options);
+			return this;
+		}
+	}, {
+		key: "orderBy",
+		value: function orderBy() {
+			for (var _len7 = arguments.length, options = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+				options[_key7] = arguments[_key7];
+			}
+
+			var formattedOptions = this[attributesToColumns].apply(this, options);
+			var _ = (0, _incognito2["default"])(this);
+			if (_.query) {
+				var _$query7;
+
+				(_$query7 = _.query).orderBy.apply(_$query7, _toConsumableArray(formattedOptions));
 			}
 			this[addChain](".orderBy", options);
 			return this;
@@ -244,16 +294,15 @@ var ModelQuery = (function () {
 		key: "limit",
 		value: function limit() {
 			var _ = (0, _incognito2["default"])(this);
-			_.returnOneRecord = false;
 
-			for (var _len6 = arguments.length, options = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
-				options[_key6] = arguments[_key6];
+			for (var _len8 = arguments.length, options = Array(_len8), _key8 = 0; _key8 < _len8; _key8++) {
+				options[_key8] = arguments[_key8];
 			}
 
 			if (_.query) {
-				var _$query6;
+				var _$query8;
 
-				(_$query6 = _.query).limit.apply(_$query6, options);
+				(_$query8 = _.query).limit.apply(_$query8, options);
 			}
 			this[addChain](".limit", options);
 			return this;
@@ -307,7 +356,10 @@ var ModelQuery = (function () {
 	}, {
 		key: addChain,
 		value: function value(chainName, options) {
-			(0, _incognito2["default"])(this).chain[chainName] = options;
+			(0, _incognito2["default"])(this).chain.push({
+				name: chainName,
+				options: options
+			});
 		}
 	}, {
 		key: argumentString,
@@ -349,23 +401,29 @@ var ModelQuery = (function () {
 				if (_this2.countResults) {
 					callback(error, rows[0].rowCount);
 				} else {
-					(function () {
-						var models = new _collectionJs2["default"](_.ModelConstructor);
+					if (_.returnOneRecord) {
+						var model = new _.ModelConstructor(rows[0]);
 
-						rows.forEach(function (row) {
-							models.push(new _.ModelConstructor(row));
-						});
+						callback(error, model);
+					} else {
+						(function () {
+							var models = new _collectionJs2["default"](_.ModelConstructor);
 
-						callback(error, models);
-					})();
+							rows.forEach(function (row) {
+								models.push(new _.ModelConstructor(row));
+							});
+
+							callback(error, models);
+						})();
+					}
 				}
 			});
 		}
 	}, {
 		key: attributesToColumns,
 		value: function value() {
-			for (var _len7 = arguments.length, options = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
-				options[_key7] = arguments[_key7];
+			for (var _len9 = arguments.length, options = Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
+				options[_key9] = arguments[_key9];
 			}
 
 			return options.map(function (option, index) {
@@ -459,6 +517,10 @@ var ModelQuery = (function () {
 
 			this[addChain](".find");
 
+			if (_.ModelConstructor.useSoftDelete !== undefined) {
+				this.whereNull("deletedAt");
+			}
+
 			return this;
 		}
 	}, {
@@ -475,6 +537,10 @@ var ModelQuery = (function () {
 			}
 
 			this[addChain](".count");
+
+			if (_.ModelConstructor.useSoftDelete !== undefined) {
+				this.whereNull("deletedAt");
+			}
 
 			return this;
 		}

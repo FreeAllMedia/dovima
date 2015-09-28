@@ -42,7 +42,11 @@ function deleteSelf(callback) {
   _flowsync2["default"].series([function (done) {
     _this.beforeDelete(done);
   }, function (done) {
-    performDelete.call(_this, done);
+    if (_this.constructor.useSoftDelete !== undefined) {
+      _this.softDestroy(done);
+    } else {
+      _this.destroy(done);
+    }
   }, function (done) {
     _this.afterDelete(done);
   }], function (errors) {
@@ -53,7 +57,7 @@ function deleteSelf(callback) {
 function performDelete(callback) {
   var _ = (0, _incognito2["default"])(this);
   if (_.mockDelete) {
-    if (_._softDelete) {
+    if (_.softDelete) {
       this.deletedAt = new _fleming2["default"]();
       callback();
     } else {
@@ -61,7 +65,7 @@ function performDelete(callback) {
     }
   } else {
     if (this[_symbols2["default"].getDatabase]()) {
-      if (_._softDelete) {
+      if (_.softDelete) {
         softDelete.call(this, callback);
       } else {
         hardDelete.call(this, callback);
