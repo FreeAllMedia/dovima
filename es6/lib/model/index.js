@@ -85,11 +85,30 @@ export default class Model {
 		});
 	}
 
-	ensure(attributeName, validatorFunction, validatorMessage) {
+	ensure(attributeNameOrNames, validatorFunction, validatorMessage) {
+		if (attributeNameOrNames.constructor === Array) {
+			const attributeNames = attributeNameOrNames;
+
+			attributeNames.forEach((attributeName) => {
+				this[symbols.addValidationForAttribute](attributeName, validatorFunction, attributeNames, validatorMessage);
+			});
+		} else {
+			const attributeName = attributeNameOrNames;
+
+			this[symbols.addValidationForAttribute](attributeName, validatorFunction, attributeName, validatorMessage);
+		}
+	}
+
+	[symbols.addValidationForAttribute](attributeName, validatorFunction, validatorParameters, validatorMessage) {
 		const _ = privateData(this);
+
 		_.validations[attributeName] = _.validations[attributeName] || [];
 
 		let validatorDetails = {validator: validatorFunction};
+
+		if (validatorParameters.constructor === Array) {
+			validatorDetails.parameters = validatorParameters;
+		}
 
 		if (validatorMessage) { validatorDetails.message = validatorMessage; }
 
@@ -149,8 +168,15 @@ export default class Model {
 
 			const performValidation = (validation, returnValue) => {
 				const validator = validation.validator;
+				const parameters = validation.parameters;
 
-				validator.call(this, attributeName, (error, validatorDetails) => {
+				let validatorParameters = attributeName;
+
+				if (parameters) {
+					validatorParameters = parameters;
+				}
+
+				validator.call(this, validatorParameters, (error, validatorDetails) => {
 					if (validatorDetails.result) {
 						returnValue(null, null);
 					} else {

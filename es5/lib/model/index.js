@@ -103,11 +103,35 @@ var Model = (function () {
 		}
 	}, {
 		key: "ensure",
-		value: function ensure(attributeName, validatorFunction, validatorMessage) {
+		value: function ensure(attributeNameOrNames, validatorFunction, validatorMessage) {
+			var _this = this;
+
+			if (attributeNameOrNames.constructor === Array) {
+				(function () {
+					var attributeNames = attributeNameOrNames;
+
+					attributeNames.forEach(function (attributeName) {
+						_this[_symbols2["default"].addValidationForAttribute](attributeName, validatorFunction, attributeNames, validatorMessage);
+					});
+				})();
+			} else {
+				var attributeName = attributeNameOrNames;
+
+				this[_symbols2["default"].addValidationForAttribute](attributeName, validatorFunction, attributeName, validatorMessage);
+			}
+		}
+	}, {
+		key: _symbols2["default"].addValidationForAttribute,
+		value: function value(attributeName, validatorFunction, validatorParameters, validatorMessage) {
 			var _ = (0, _incognito2["default"])(this);
+
 			_.validations[attributeName] = _.validations[attributeName] || [];
 
 			var validatorDetails = { validator: validatorFunction };
+
+			if (validatorParameters.constructor === Array) {
+				validatorDetails.parameters = validatorParameters;
+			}
 
 			if (validatorMessage) {
 				validatorDetails.message = validatorMessage;
@@ -146,7 +170,7 @@ var Model = (function () {
 	}, {
 		key: "invalidAttributes",
 		value: function invalidAttributes(callback) {
-			var _this = this;
+			var _this2 = this;
 
 			var _ = (0, _incognito2["default"])(this);
 			var attributeNamesWithValidators = Object.keys(_.validations);
@@ -175,8 +199,15 @@ var Model = (function () {
 
 				var performValidation = function performValidation(validation, returnValue) {
 					var validator = validation.validator;
+					var parameters = validation.parameters;
 
-					validator.call(_this, attributeName, function (error, validatorDetails) {
+					var validatorParameters = attributeName;
+
+					if (parameters) {
+						validatorParameters = parameters;
+					}
+
+					validator.call(_this2, validatorParameters, function (error, validatorDetails) {
 						if (validatorDetails.result) {
 							returnValue(null, null);
 						} else {
@@ -300,18 +331,18 @@ var Model = (function () {
 	}, {
 		key: _symbols2["default"].callDeep,
 		value: function value(methodName, predicate, callback) {
-			var _this2 = this;
+			var _this3 = this;
 
 			var associationNames = Object.keys(this.associations);
 
 			_flowsync2["default"].mapParallel(associationNames, function (associationName, next) {
 
-				var associationDetails = _this2.associations[associationName];
+				var associationDetails = _this3.associations[associationName];
 
 				switch (associationDetails.type) {
 					case "belongsTo":
 					case "hasOne":
-						var model = _this2[associationName];
+						var model = _this3[associationName];
 						if (model) {
 							//pass the associationDetails.whereArgs to the function
 							var result = predicate(associationDetails);
@@ -326,7 +357,7 @@ var Model = (function () {
 						break;
 
 					case "hasMany":
-						var collection = _this2[associationName];
+						var collection = _this3[associationName];
 						//collection set, and not many to many (nothing in that case)
 						if (collection) {
 							//let array = [].slice.call(collection);
@@ -357,19 +388,19 @@ var Model = (function () {
 	}, {
 		key: _symbols2["default"].getFieldAttributes,
 		value: function value() {
-			var _this3 = this;
+			var _this4 = this;
 
 			var attributeNames = Object.keys(this.attributes);
 			var fieldAttributes = {};
 			attributeNames.forEach(function (attributeName) {
-				fieldAttributes[(0, _jargon2["default"])(attributeName).snake.toString()] = _this3[attributeName];
+				fieldAttributes[(0, _jargon2["default"])(attributeName).snake.toString()] = _this4[attributeName];
 			});
 
 			var _ = (0, _incognito2["default"])(this);
 
 			//add belongsTo associations and remove others
 			Object.keys(this.associations).forEach(function (associationName) {
-				var relatedModel = _this3[associationName];
+				var relatedModel = _this4[associationName];
 				var foreignKeyField = (0, _jargon2["default"])(associationName).foreignKey.toString();
 				if (_.associations[associationName].type === "belongsTo") {
 					//try with relatedModel and relatedModel.id
@@ -379,7 +410,7 @@ var Model = (function () {
 						//or just with the relatedModelId
 						//construct the snake with _id and then camelize it
 						var foreignIdAsAttribute = (0, _jargon2["default"])(foreignKeyField).camel.toString();
-						fieldAttributes[foreignKeyField] = _this3[foreignIdAsAttribute];
+						fieldAttributes[foreignKeyField] = _this4[foreignIdAsAttribute];
 					}
 				} else {
 					//console.log("getFieldAttributes delete on ", {on: this.constructor.name, associationName: associationName, foreignKeyField: foreignKeyField, relatedModel: relatedModel});
@@ -425,12 +456,12 @@ var Model = (function () {
 			this[_symbols2["default"].parseAttributesFromFields](newAttributes);
 		},
 		get: function get() {
-			var _this4 = this;
+			var _this5 = this;
 
 			var attributes = {};
 			this.properties.forEach(function (propertyName) {
-				if (!(0, _incognito2["default"])(_this4).associations[propertyName]) {
-					attributes[propertyName] = _this4[propertyName];
+				if (!(0, _incognito2["default"])(_this5).associations[propertyName]) {
+					attributes[propertyName] = _this5[propertyName];
 				}
 			});
 			return attributes;

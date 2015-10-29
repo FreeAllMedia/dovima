@@ -4,6 +4,7 @@ module.exports = {
 	addAssociation: Symbol(),
 	getFieldAttributes: Symbol(),
 	parseAttributesFromFields: Symbol(),
+  addValidationForAttribute: Symbol(),
 	setAttributes: Symbol(),
 	attributes: Symbol(),
 	associations: Symbol(),
