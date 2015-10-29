@@ -1,7 +1,7 @@
 {
   "name": "dovima",
-  "version": "0.3.0",
-  "description": "ES6 generic model with lots of useful special features.",
+  "version": "0.3.1",
+  "description": "A gorgeous multi-platform standalone model.",
   "main": "index.js",
   "scripts": {
     "test": "gulp test"
