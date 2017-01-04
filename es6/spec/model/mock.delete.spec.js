@@ -12,10 +12,10 @@ describe(".mock.delete()", () => {
   });
 
   it("should mock delete callback", done => {
-    () => {
+    (() => {
       user.delete(() => {
         done();
       });
-    }.should.not.throw();
+    }).should.not.throw();
   });
 });

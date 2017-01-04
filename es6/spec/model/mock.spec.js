@@ -39,14 +39,14 @@ describe(".mock", () => {
   });
 
   it("should not affect calls with different parameters", () => {
-    () => {
+    (() => {
       User.find.one.where("id", 2).results(() => {});
-    }.should.throw("Cannot find models without a database set.");
+    }).should.throw("Cannot find models without a database set.");
   });
 
   it("should not affect calls with a different chain", () => {
-    () => {
+    (() => {
       User.find.all.where("id", 1).results(() => {});
-    }.should.throw("Cannot find models without a database set.");
+    }).should.throw("Cannot find models without a database set.");
   });
 });
