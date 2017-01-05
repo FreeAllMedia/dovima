@@ -109,7 +109,13 @@ var Collection = (function (_Array) {
 			if (this.association) {
 				var modelFinder = new _modelFinderJs2["default"](this.association.constructor.database);
 
-				var query = modelFinder.find(this.association.constructor).where(this.association.foreignKey, "=", this.association.parent.id);
+				var query = modelFinder.find(this.association.constructor);
+
+				if (this.association.as) {
+					query.where(this.association.as + "_id", "=", this.association.parent.id).andWhere(this.association.as + "_type", "=", this.association.parent.constructor.name);
+				} else {
+					query.where(this.association.foreignKey, "=", this.association.parent.id);
+				}
 
 				if (this.association.where) {
 					(function () {

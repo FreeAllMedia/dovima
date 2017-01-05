@@ -72,8 +72,16 @@ export default class Collection extends Array {
 			const modelFinder = new ModelFinder(this.association.constructor.database);
 
 			const query = modelFinder
-				.find(this.association.constructor)
-				.where(this.association.foreignKey, "=", this.association.parent.id);
+				.find(this.association.constructor);
+
+			if (this.association.as) {
+				query
+					.where(`${this.association.as}_id`, "=", this.association.parent.id)
+					.andWhere(`${this.association.as}_type`, "=", this.association.parent.constructor.name);
+			} else {
+				query.where(this.association.foreignKey, "=", this.association.parent.id);
+			}
+
 
 			if (this.association.where) {
 				const processedWhereConditions = this.association.where.map(processWhereCondition);
