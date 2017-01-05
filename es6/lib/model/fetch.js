@@ -179,6 +179,7 @@ function fetchFromDatabase(fields = [this.primaryKey], callback = undefined) {
   let chain = database
     .select("*")
     .from(this.tableName);
+
   fields.forEach((field, index) => {
     if (!this[field]) { throw new Error(`Cannot fetch this model by the '${field}' field because it is not set.`); }
 

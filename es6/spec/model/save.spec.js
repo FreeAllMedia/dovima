@@ -152,15 +152,15 @@ describe("Model(attributes, options)", () => {
             });
 
             it("should throw when assign a non model object to a belongsTo association", () => {
-              () => {
+              (() => {
                 steeringWheel.truck = {};
-              }.should.throw("Cannot set a non model entity onto this property. It should inherit from Model");
+              }).should.throw("Cannot set a non model entity onto this property. It should inherit from Model");
             });
 
             it("should throw when assign a non model object to a hasOne association", () => {
-              () => {
+              (() => {
                 truck.steeringWheel = {};
-              }.should.throw("Cannot set a non model entity onto this property. It should inherit from Model");
+              }).should.throw("Cannot set a non model entity onto this property. It should inherit from Model");
             });
 
             it("should associate a hasOne from a belongsTo", () => {

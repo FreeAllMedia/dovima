@@ -70,9 +70,9 @@ describe(".fetch(callback)", () => {
       });
 
       it("should throw an error", () => {
-        () => {
+        (() => {
           user.fetch();
-        }.should.throw("Cannot fetch this model by the 'id' field because it is not set.");
+        }).should.throw("Cannot fetch this model by the 'id' field because it is not set.");
       });
     });
 
@@ -101,9 +101,9 @@ describe(".fetch(callback)", () => {
     });
 
     it("should throw an error", () => {
-      () => {
+      (() => {
         user.fetch();
-      }.should.throw("Cannot fetch without Model.database set.");
+      }).should.throw("Cannot fetch without Model.database set.");
     });
   });
 
@@ -143,9 +143,9 @@ describe(".fetch(callback)", () => {
         });
 
         it("should throw an error", () => {
-          () => {
+          (() => {
             user.fetch("name");
-          }.should.throw("Cannot fetch this model by the 'name' field because it is not set.");
+          }).should.throw("Cannot fetch this model by the 'name' field because it is not set.");
         });
       });
 
@@ -174,9 +174,9 @@ describe(".fetch(callback)", () => {
       });
 
       it("should throw an error", () => {
-        () => {
+        (() => {
           user.fetch("name");
-        }.should.throw("Cannot fetch without Model.database set.");
+        }).should.throw("Cannot fetch without Model.database set.");
       });
     });
   });
@@ -219,9 +219,9 @@ describe(".fetch(callback)", () => {
         });
 
         it("should throw an error", () => {
-          () => {
+          (() => {
             user.fetch(["name", "lastName"]);
-          }.should.throw("Cannot fetch this model by the 'lastName' field because it is not set.");
+          }).should.throw("Cannot fetch this model by the 'lastName' field because it is not set.");
         });
       });
 
@@ -251,9 +251,9 @@ describe(".fetch(callback)", () => {
       });
 
       it("should throw an error", () => {
-        () => {
+        (() => {
           user.fetch("name");
-        }.should.throw("Cannot fetch without Model.database set.");
+        }).should.throw("Cannot fetch without Model.database set.");
       });
     });
   });

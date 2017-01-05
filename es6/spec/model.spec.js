@@ -336,9 +336,9 @@ describe("Model(attributes, options)", () => {
 				});
 
 				it("should throw an error", () => {
-					() => {
+					(() => {
 						wheel.truck = truck;
-					}.should.throw("Neither \"wheel\" or \"wheels\" are valid associations on \"Truck\"");
+					}).should.throw("Neither \"wheel\" or \"wheels\" are valid associations on \"Truck\"");
 				});
 			});
 
@@ -784,9 +784,9 @@ describe("Model(attributes, options)", () => {
 					"select * from `users` where `id` = 1 limit 1":
 						[userAttributes]
 				});
-				() => {
+				(() => {
 					user.include("bogusAssociation").fetch();
-				}.should.throw("Cannot fetch 'bogusAssociation' because it is not a valid association on User");
+				}).should.throw("Cannot fetch 'bogusAssociation' because it is not a valid association on User");
 			});
 
 			it("should throw an error if a belongs to association id is not set", () => {
@@ -795,10 +795,10 @@ describe("Model(attributes, options)", () => {
 						[{id: 1}]
 				});
 
-				() => {
+				(() => {
 					comment.id = 1;
 					comment.include("photo").fetch();
-				}.should.throw("Cannot fetch 'photo' because 'photoId' is not set on Comment");
+				}).should.throw("Cannot fetch 'photo' because 'photoId' is not set on Comment");
 			});
 
 			it("should return the model to support chaining", () => {
@@ -912,14 +912,14 @@ describe("Model(attributes, options)", () => {
 
 				class Post {} // Needed to mock a through association that is incomplete
 
-				() => {
+				(() => {
 					user.hasMany("posts", Post)
 						.through("photos");
 
 					user
 						.include("posts")
 						.fetch();
-				}.should.throw("'posts' is not a valid association on through model 'Photo'");
+				}).should.throw("'posts' is not a valid association on through model 'Photo'");
 			});
 
 			it("should fetch hasMany through hasOne associations", done => {

@@ -209,6 +209,7 @@ function fetchFromDatabase() {
   }
 
   var chain = database.select("*").from(this.tableName);
+
   fields.forEach(function (field, index) {
     if (!_this5[field]) {
       throw new Error("Cannot fetch this model by the '" + field + "' field because it is not set.");
